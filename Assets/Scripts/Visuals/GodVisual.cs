@@ -31,8 +31,8 @@ public class GodVisual : MonoBehaviour
     [SerializeField] private Color maskSlotEmptyColor = new Color(0.2f, 0.2f, 0.25f, 0.5f);
     
     [Header("Resource Display")]
-    [SerializeField] private int favorPipValue = 10;    // Each pip represents 10 favor
-    [SerializeField] private int moneyPipValue = 20;    // Each pip represents 20 money
+    [SerializeField] private int favorPipValue = 1;    // Each pip represents 1 favor
+    [SerializeField] private int moneyPipValue = 1;     // Each pip represents 1 money
     [SerializeField] private int maxDisplayPips = 10;   // Max pips to show per resource
     
     private God god;
@@ -205,23 +205,17 @@ public class GodVisual : MonoBehaviour
     {
         if (cult == null) return;
         
-        int filledPips = Mathf.Min(maxDisplayPips, Mathf.CeilToInt(cult.Money / moneyPipValue));
+        int maxPips = Mathf.Min(maxDisplayPips, cult.MaxMoney / moneyPipValue);
+        int filledPips = Mathf.Min(maxPips, cult.Money / moneyPipValue);
         
         for (int i = 0; i < moneyPips.Count; i++)
         {
-            if (i < filledPips)
+            if (i < maxPips)
             {
-                float pipStartValue = i * moneyPipValue;
-                float pipEndValue = (i + 1) * moneyPipValue;
-                
-                if (cult.Money >= pipEndValue)
+                // Show pip (either filled or empty based on current money)
+                if (i < filledPips)
                 {
                     moneyPips[i].color = moneyColor;
-                }
-                else if (cult.Money > pipStartValue)
-                {
-                    float fillAmount = (cult.Money - pipStartValue) / moneyPipValue;
-                    moneyPips[i].color = Color.Lerp(moneyEmptyColor, moneyColor, fillAmount);
                 }
                 else
                 {
@@ -230,7 +224,8 @@ public class GodVisual : MonoBehaviour
             }
             else
             {
-                moneyPips[i].color = moneyEmptyColor;
+                // Beyond max capacity - hide pip
+                moneyPips[i].color = new Color(0, 0, 0, 0);
             }
         }
     }

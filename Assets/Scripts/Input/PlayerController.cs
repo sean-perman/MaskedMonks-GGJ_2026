@@ -255,9 +255,9 @@ public class PlayerController : MonoBehaviour
         if (currentRoom.Followers.Count == 0) return;
         
         var sanctuary = cult.church.GetRoomOfType(RoomType.Sanctuary);
-        if (sanctuary == null || !sanctuary.HasSpace) return;
+        if (sanctuary == null) return;
         
-        // Find lowest commitment follower
+        // Find lowest commitment follower in current room
         Follower lowestFollower = null;
         float lowestCommitment = float.MaxValue;
         
@@ -270,22 +270,88 @@ public class PlayerController : MonoBehaviour
             }
         }
         
-        if (lowestFollower != null)
+        if (lowestFollower == null) return;
+        
+        if (sanctuary.HasSpace)
         {
+            // Simple move - sanctuary has space
             currentRoom.RemoveFollower(lowestFollower);
             sanctuary.AddFollower(lowestFollower);
             Debug.Log($"Moved {lowestFollower.name} to Sanctuary (commitment: {lowestCommitment:F0})");
+        }
+        else
+        {
+            // Sanctuary is full - swap with highest commitment follower in sanctuary
+            Follower highestInSanctuary = null;
+            float highestCommitment = float.MinValue;
+            
+            foreach (var follower in sanctuary.Followers)
+            {
+                if (follower.Commitment > highestCommitment)
+                {
+                    highestCommitment = follower.Commitment;
+                    highestInSanctuary = follower;
+                }
+            }
+            
+            if (highestInSanctuary != null)
+            {
+                // Perform swap - remove from both rooms first to ensure space
+                currentRoom.RemoveFollower(lowestFollower);
+                sanctuary.RemoveFollower(highestInSanctuary);
+                // Now add to swapped locations
+                sanctuary.AddFollower(lowestFollower);
+                currentRoom.AddFollower(highestInSanctuary);
+                Debug.Log($"Swapped {lowestFollower.name} (commitment: {lowestCommitment:F0}) with {highestInSanctuary.name} (commitment: {highestCommitment:F0})");
+            }
         }
     }
     
     private void SendHighestCommitmentFromSanctuary()
     {
         var currentRoom = cult.church.GetRoomAt(cursorPosition);
-        if (currentRoom == null || currentRoom.Type == RoomType.Sanctuary) return;
-        if (!currentRoom.HasSpace) return;
+        if (currentRoom == null) return;
         
         var sanctuary = cult.church.GetRoomOfType(RoomType.Sanctuary);
-        if (sanctuary == null || sanctuary.Followers.Count == 0) return;
+        if (sanctuary == null) return;
+        
+        // If cursor is on Sanctuary, find lowest commitment pawn in entire church and send to sanctuary
+        if (currentRoom.Type == RoomType.Sanctuary)
+        {
+            if (!sanctuary.HasSpace) return;
+            
+            // Find lowest commitment follower across all non-sanctuary rooms
+            Follower lowestFollower = null;
+            float lowestCommitment = float.MaxValue;
+            Room sourceRoom = null;
+            
+            foreach (var room in cult.church.Rooms)
+            {
+                if (room.Type == RoomType.Sanctuary) continue;
+                
+                foreach (var follower in room.Followers)
+                {
+                    if (follower.Commitment < lowestCommitment)
+                    {
+                        lowestCommitment = follower.Commitment;
+                        lowestFollower = follower;
+                        sourceRoom = room;
+                    }
+                }
+            }
+            
+            if (lowestFollower != null && sourceRoom != null)
+            {
+                sourceRoom.RemoveFollower(lowestFollower);
+                sanctuary.AddFollower(lowestFollower);
+                Debug.Log($"Auto-moved {lowestFollower.name} from {sourceRoom.Type} to Sanctuary (commitment: {lowestCommitment:F0})");
+            }
+            return;
+        }
+        
+        // Original behavior: cursor on non-sanctuary room, send highest from sanctuary to current room
+        if (!currentRoom.HasSpace) return;
+        if (sanctuary.Followers.Count == 0) return;
         
         // Find highest commitment follower in sanctuary
         Follower highestFollower = null;
@@ -327,9 +393,17 @@ public class PlayerController : MonoBehaviour
             return;
         }
         
-        // TODO: Implement upgrade cost check
+        // nth upgrade costs n wealth (so level 1->2 costs 1, level 2->3 costs 2, etc.)
+        int upgradeCost = currentRoom.Level;
+        
+        if (!cult.SpendMoney(upgradeCost))
+        {
+            Debug.Log($"Not enough money to upgrade {currentRoom.Type} (need {upgradeCost})");
+            return;
+        }
+        
         currentRoom.Upgrade();
-        Debug.Log($"Upgraded {currentRoom.Type} to level {currentRoom.Level}");
+        Debug.Log($"Upgraded {currentRoom.Type} to level {currentRoom.Level} (cost: {upgradeCost})");
     }
     
     private void ProcessMaskCommands()

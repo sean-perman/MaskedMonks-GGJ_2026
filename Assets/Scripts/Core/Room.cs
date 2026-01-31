@@ -44,12 +44,30 @@ public abstract class Room : MonoBehaviour
     
     /// <summary>
     /// Maximum number of followers this room can hold.
-    /// Capacity equals Level (damage doesn't reduce capacity, but damaged slots need repair).
+    /// Capacity = Level - RedDamage (red slots can't hold pawns, orange slots can).
     /// </summary>
-    public int Capacity => level;
+    public int Capacity => Mathf.Max(0, level - RedDamage);
     
     /// <summary>
-    /// Number of undamaged slots (functional capacity).
+    /// Maximum damage this room can sustain (2 * Level - 1).
+    /// At max damage: 1 orange slot + (Level - 1) red slots.
+    /// </summary>
+    public int MaxDamage => 2 * level - 1;
+    
+    /// <summary>
+    /// Number of orange-damaged slots (damaged but still functional, pawns help repair).
+    /// Orange damage fills first, then converts to red.
+    /// </summary>
+    public int OrangeDamage => Mathf.Min(level, damage);
+    
+    /// <summary>
+    /// Number of red-damaged slots (completely non-functional, can't hold pawns).
+    /// Red damage = damage beyond Level.
+    /// </summary>
+    public int RedDamage => Mathf.Max(0, damage - level);
+    
+    /// <summary>
+    /// Number of completely undamaged slots.
     /// </summary>
     public int FunctionalCapacity => Mathf.Max(0, level - damage);
     
@@ -130,13 +148,21 @@ public abstract class Room : MonoBehaviour
     // === Repair System ===
     
     /// <summary>
-    /// Accumulate repair progress based on follower count.
+    /// Accumulate repair progress based on followers in orange-damaged slots.
+    /// All pawns in orange slots contribute to repairs.
+    /// Red damage is repaired first, then orange damage.
     /// When enough progress is accumulated, repair one level of damage.
     /// </summary>
     protected virtual void AccumulateRepair()
     {
         if (damage <= 0) return;
         
+        // Only pawns in orange-damaged slots contribute to repairs
+        // Orange slots = slots beyond FunctionalCapacity but within Capacity
+        int undamagedSlots = FunctionalCapacity;
+        int pawnsInOrangeSlots = Mathf.Max(0, followers.Count - undamagedSlots);
+        
+        // All pawns contribute to repair (simplified - all pawns help)
         repairProgress += followers.Count * repairRatePerFollowerPerSecond * Time.deltaTime;
         
         if (repairProgress >= repairThreshold)
@@ -204,13 +230,39 @@ public abstract class Room : MonoBehaviour
         int previousDamage = damage;
         damage += amount;
         
-        // Cap damage at level (can't have more damage than levels)
-        damage = Mathf.Min(damage, level);
+        // Cap damage at MaxDamage (2 * Level - 1)
+        damage = Mathf.Min(damage, MaxDamage);
         
-        // Apply commitment damage to all followers in the room
-        // Scales with the amount of damage taken
+        // If damage increased red count, kick out pawns that no longer fit
+        while (followers.Count > Capacity && followers.Count > 0)
+        {
+            var kickedFollower = followers[followers.Count - 1];
+            RemoveFollower(kickedFollower);
+            Debug.Log($"Follower {kickedFollower.name} was kicked from {type} due to damage!");
+            
+            // Try to send to sanctuary first
+            var sanctuary = church?.GetRoomOfType(RoomType.Sanctuary);
+            if (sanctuary != null && sanctuary.HasSpace)
+            {
+                sanctuary.AddFollower(kickedFollower);
+            }
+            else
+            {
+                // No room in sanctuary - follower leaves to marketplace
+                Debug.Log($"Follower {kickedFollower.name} left the cult (no space in sanctuary)!");
+                cult?.RemoveFollower(kickedFollower);
+                if (kickedFollower != null && kickedFollower.gameObject != null)
+                {
+                    Destroy(kickedFollower.gameObject);
+                }
+            }
+        }
+        
+        // Apply commitment damage to all remaining followers in the room
+        // Make a copy to avoid collection modified exception
         float commitmentHit = commitmentDamagePerLevel * amount;
-        foreach (var follower in followers)
+        var remainingFollowers = new List<Follower>(followers);
+        foreach (var follower in remainingFollowers)
         {
             follower.DecayCommitment(commitmentHit);
             Debug.Log($"Follower in {type} took {commitmentHit} commitment damage from room damage!");

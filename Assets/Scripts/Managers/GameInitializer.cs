@@ -20,7 +20,8 @@ public class GameInitializer : MonoBehaviour
     [SerializeField] private int startingFollowers = 5;
     [SerializeField] private int startingGodStrength = 100;
     [SerializeField] private int startingGodFavor = 50;
-    [SerializeField] private float startingMoney = 100f;
+    [SerializeField] private int startingMoney = 0;
+    [SerializeField] private int startingMaxMoney = 10;
     
     [Header("References")]
     [SerializeField] private GameManager gameManager;
@@ -248,7 +249,8 @@ public class GameInitializer : MonoBehaviour
         cult.god = god;
         cult.church = church;
         
-        // Add starting money
+        // Set max money cap and add starting money
+        cult.IncreaseMaxMoney(startingMaxMoney - 10); // Default is 10, so add the difference
         cult.AddMoney(startingMoney);
         
         // Create starting rooms

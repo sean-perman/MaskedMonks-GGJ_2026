@@ -145,7 +145,7 @@ public static class GameActions
     /// </summary>
     /// <param name="cult">The cult to give money to.</param>
     /// <param name="value">Amount of money to generate.</param>
-    public static void GenerateMoney(Cult cult, float value)
+    public static void GenerateMoney(Cult cult, int value)
     {
         if (cult == null)
         {
@@ -161,7 +161,7 @@ public static class GameActions
     /// <param name="cult">The cult to take money from.</param>
     /// <param name="value">Amount of money to decrease.</param>
     /// <returns>True if the cult had enough money, false otherwise.</returns>
-    public static bool DecreaseMoney(Cult cult, float value)
+    public static bool DecreaseMoney(Cult cult, int value)
     {
         if (cult == null)
         {

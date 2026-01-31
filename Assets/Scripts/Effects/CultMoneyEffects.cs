@@ -7,7 +7,7 @@ using UnityEngine;
 public class GenerateMoneyEffect : GameEffect
 {
     [Header("Money Settings")]
-    public float amount = 100f;
+    public int amount = 100;
     
     public override void Apply(EffectContext context)
     {
@@ -27,7 +27,7 @@ public class GenerateMoneyEffect : GameEffect
 public class DecreaseMoneyEffect : GameEffect
 {
     [Header("Money Settings")]
-    public float amount = 100f;
+    public int amount = 100;
     
     public override void Apply(EffectContext context)
     {

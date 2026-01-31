@@ -15,13 +15,15 @@ public class Cult : MonoBehaviour
     [SerializeField] private List<Follower> followers = new();
     
     [Header("Resources")]
-    [SerializeField] private float money = 0f;
+    [SerializeField] private int money = 0;
+    [SerializeField] private int maxMoney = 10;
     
     // === Properties ===
     
     public IReadOnlyList<Follower> Followers => followers;
     public int FollowerCount => followers.Count;
-    public float Money => money;
+    public int Money => money;
+    public int MaxMoney => maxMoney;
     
     // === Initialization ===
     
@@ -98,12 +100,12 @@ public class Cult : MonoBehaviour
     
     // === Money Management ===
     
-    public void AddMoney(float value)
+    public void AddMoney(int value)
     {
-        money += Mathf.Max(0f, value);
+        money = Mathf.Min(maxMoney, money + Mathf.Max(0, value));
     }
 
-    public bool SpendMoney(float value)
+    public bool SpendMoney(int value)
     {
         if (value <= money)
         {
@@ -111,6 +113,11 @@ public class Cult : MonoBehaviour
             return true;
         }
         return false;
+    }
+    
+    public void IncreaseMaxMoney(int amount)
+    {
+        maxMoney += Mathf.Max(0, amount);
     }
     
     // === Loss Conditions ===

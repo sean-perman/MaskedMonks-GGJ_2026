@@ -33,6 +33,8 @@ public class RoomVisual : MonoBehaviour
     [SerializeField] private Color levelFilledColor = new Color(0.9f, 0.9f, 0.9f);
     [SerializeField] private Color levelEmptyColor = new Color(0.4f, 0.4f, 0.4f, 0.5f);
     [SerializeField] private Color damageOutlineColor = new Color(1f, 0.2f, 0.2f);
+    [SerializeField] private Color orangeDamageColor = new Color(1f, 0.6f, 0.2f); // Orange damage outline
+    [SerializeField] private Color redDamageColor = new Color(0.8f, 0.1f, 0.1f); // Red damage (slot unusable)
     [SerializeField] private Color repairBarColor = new Color(0.3f, 0.8f, 0.3f);
     
     private Room room;
@@ -40,6 +42,7 @@ public class RoomVisual : MonoBehaviour
     private SpriteRenderer progressBar;
     private SpriteRenderer repairBar;
     private SpriteRenderer[] followerIcons;
+    private SpriteRenderer[] followerDamageOutlines; // Damage indicator outlines
     private SpriteRenderer highlightBorder;
     private TextMesh labelText;
     private LevelPipVisual[] levelPips;
@@ -116,6 +119,7 @@ public class RoomVisual : MonoBehaviour
         
         // Follower icons (create max capacity icons, hide unused)
         followerIcons = new SpriteRenderer[6]; // Max possible capacity
+        followerDamageOutlines = new SpriteRenderer[6]; // Damage outlines for each slot
         for (int i = 0; i < followerIcons.Length; i++)
         {
             var iconObj = new GameObject($"FollowerIcon_{i}");
@@ -127,6 +131,16 @@ public class RoomVisual : MonoBehaviour
             followerIcons[i].transform.localScale = new Vector3(followerIconSize, followerIconSize, 1f);
             followerIcons[i].sortingOrder = 3;
             followerIcons[i].enabled = false;
+            
+            // Damage outline (larger circle behind the icon)
+            var outlineObj = new GameObject($"DamageOutline_{i}");
+            outlineObj.transform.SetParent(transform);
+            outlineObj.transform.localPosition = new Vector3(xOffset, 0, 0);
+            followerDamageOutlines[i] = outlineObj.AddComponent<SpriteRenderer>();
+            followerDamageOutlines[i].sprite = CreateCircleSprite();
+            followerDamageOutlines[i].transform.localScale = new Vector3(followerIconSize + 0.08f, followerIconSize + 0.08f, 1f);
+            followerDamageOutlines[i].sortingOrder = 2;
+            followerDamageOutlines[i].enabled = false;
         }
         
         // Level pips (top-right corner)
@@ -222,18 +236,68 @@ public class RoomVisual : MonoBehaviour
     
     private void UpdateFollowerIcons()
     {
-        int capacity = room.Capacity;
+        int level = room.Level;
         int followerCount = room.Followers.Count;
+        int orangeDamage = room.OrangeDamage;
+        int redDamage = room.RedDamage;
+        int capacity = room.Capacity; // Level - RedDamage (slots that can hold pawns)
+        int functionalCapacity = room.FunctionalCapacity; // Level - TotalDamage (undamaged slots)
         
         for (int i = 0; i < followerIcons.Length; i++)
         {
-            if (i < capacity)
+            // Calculate slot state from right to left (rightmost slots are damaged first)
+            int slotFromRight = level - 1 - i;
+            bool isRedSlot = slotFromRight < redDamage;
+            bool isOrangeSlot = !isRedSlot && slotFromRight < orangeDamage;
+            bool isWithinLevel = i < level;
+            
+            if (!isWithinLevel)
             {
+                // Beyond room level - hide everything
+                followerIcons[i].enabled = false;
+                followerDamageOutlines[i].enabled = false;
+                continue;
+            }
+            
+            if (isRedSlot)
+            {
+                // Red damage slot - show red circle, no pawn can be here
                 followerIcons[i].enabled = true;
-                if (i < followerCount)
+                followerIcons[i].color = redDamageColor;
+                followerDamageOutlines[i].enabled = false;
+            }
+            else if (isOrangeSlot)
+            {
+                // Orange damage slot - pawn can be here but slot is damaged
+                followerIcons[i].enabled = true;
+                followerDamageOutlines[i].enabled = true;
+                followerDamageOutlines[i].color = orangeDamageColor;
+                
+                // Check if there's a follower in this slot
+                int slotIndex = i - redDamage; // Adjust index for followers array (which doesn't include red slots)
+                if (slotIndex >= 0 && slotIndex < followerCount)
                 {
-                    // Filled slot - show follower commitment color
-                    var follower = room.Followers[i];
+                    var follower = room.Followers[slotIndex];
+                    followerIcons[i].color = GetCommitmentColor(follower.Commitment);
+                }
+                else
+                {
+                    // Empty orange slot
+                    followerIcons[i].color = new Color(0.5f, 0.5f, 0.5f, 0.3f);
+                }
+            }
+            else
+            {
+                // Undamaged slot
+                followerIcons[i].enabled = true;
+                followerDamageOutlines[i].enabled = false;
+                
+                int slotIndex = i - redDamage - orangeDamage + functionalCapacity;
+                // Simpler: pawns fill from left, so just check follower index
+                int adjustedIndex = i;
+                if (adjustedIndex < followerCount)
+                {
+                    var follower = room.Followers[adjustedIndex];
                     followerIcons[i].color = GetCommitmentColor(follower.Commitment);
                 }
                 else
@@ -241,10 +305,6 @@ public class RoomVisual : MonoBehaviour
                     // Empty slot
                     followerIcons[i].color = new Color(0.5f, 0.5f, 0.5f, 0.3f);
                 }
-            }
-            else
-            {
-                followerIcons[i].enabled = false;
             }
         }
     }

@@ -9,7 +9,7 @@ public class FundraisingRoom : Room
 {
     [Header("Fundraising Settings")]
     [Tooltip("Money generated per trigger")]
-    [SerializeField] private float moneyPerTrigger = 3f;
+    [SerializeField] private int moneyPerTrigger = 3;
     
     [Tooltip("Favor cost per trigger")]
     [SerializeField] private int favorCostPerTrigger = 2;

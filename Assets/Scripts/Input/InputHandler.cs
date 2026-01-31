@@ -279,14 +279,14 @@ public class InputHandler : MonoBehaviour
     {
         if (selectedRoom == null) return;
         
-        // TODO: Define upgrade costs
-        int upgradeCost = selectedRoom.Level * 50;
+        // nth upgrade costs n wealth (level 1->2 costs 1, level 2->3 costs 2, etc.)
+        int upgradeCost = selectedRoom.Level;
         
         if (cult.SpendMoney(upgradeCost))
         {
             selectedRoom.IncreaseLevel();
             OnRoomUpgraded?.Invoke(selectedRoom);
-            Debug.Log($"Upgraded {selectedRoom.Type} to level {selectedRoom.Level}");
+            Debug.Log($"Upgraded {selectedRoom.Type} to level {selectedRoom.Level} (cost: {upgradeCost})");
         }
         else
         {
