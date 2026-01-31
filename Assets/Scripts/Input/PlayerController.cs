@@ -67,11 +67,11 @@ public class PlayerInputBindings
             sendToSanctuary = KeyCode.Comma,
             sendFromSanctuary = KeyCode.Period,
             upgradeRoom = KeyCode.Slash,
-            useMask1 = KeyCode.Keypad1,
-            useMask2 = KeyCode.Keypad2,
-            useMask3 = KeyCode.Keypad3,
-            useMask4 = KeyCode.Keypad4,
-            confirmTarget = KeyCode.KeypadEnter,
+            useMask1 = KeyCode.K,
+            useMask2 = KeyCode.L,
+            useMask3 = KeyCode.Semicolon,
+            useMask4 = KeyCode.Quote,
+            confirmTarget = KeyCode.Return,
             cancelTarget = KeyCode.RightControl
         };
     }

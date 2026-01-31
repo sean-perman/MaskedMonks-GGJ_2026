@@ -229,7 +229,7 @@ MonoBehaviour:
   churchSeparation: 15
   startingFollowers: 5
   startingGodStrength: 100
-  startingGodFavor: 50
+  startingGodFavor: 5
   startingMoney: 0
   startingMaxMoney: 10
   gameManager: {fileID: 0}
