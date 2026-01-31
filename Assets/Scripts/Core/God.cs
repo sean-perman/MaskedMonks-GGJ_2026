@@ -1,56 +1,181 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// The floating deity above each church.
+/// Handles combat, mask management, and favor/strength resources.
+/// </summary>
 public class God : MonoBehaviour
 {
-    [Header("Health")]
-    public float maxHealth = 100f;
-    public float currentHealth = 100f;
+    [Header("Strength (Health & Attack Power)")]
+    [SerializeField] private int strength = 100;
+    [SerializeField] private int maxStrength = 100;
     
     [Header("Favor")]
-    public float maxFavor = 100f;
-    public float currentFavor = 50f;
+    [SerializeField] private int favor = 50;
+    [SerializeField] private int maxFavor = 100;
+    
+    [Header("Masks")]
+    [SerializeField] private Mask currentMask;
+    [SerializeField] private List<Mask> storedMasks = new();
+    [SerializeField] private int maxStoredMasks = 4;
     
     [Header("Over Time Effects")]
-    public float bleedDPS = 0f;   // Damage per second (bleeding)
-    public float regenHPS = 0f;   // Healing per second (regeneration)
-
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField] private float bleedDPS = 0f;
+    [SerializeField] private float regenHPS = 0f;
+    
+    // Accumulator for fractional damage/healing
+    private float damageAccumulator = 0f;
+    private float healingAccumulator = 0f;
+    
+    // === Properties ===
+    
+    public int Strength => strength;
+    public int MaxStrength => maxStrength;
+    public int Favor => favor;
+    public int MaxFavor => maxFavor;
+    public Mask CurrentMask => currentMask;
+    public IReadOnlyList<Mask> StoredMasks => storedMasks;
+    public int MaskStorageRemaining => maxStoredMasks - storedMasks.Count;
+    
+    // === Unity Lifecycle ===
+    
+    private void Start()
     {
-        currentHealth = maxHealth;
+        strength = maxStrength;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
         // Apply over-time effects
         if (bleedDPS > 0f)
         {
-            ApplyDamage(bleedDPS * Time.deltaTime);
+            damageAccumulator += bleedDPS * Time.deltaTime;
+            if (damageAccumulator >= 1f)
+            {
+                int damage = Mathf.FloorToInt(damageAccumulator);
+                DecreaseStrength(damage);
+                damageAccumulator -= damage;
+            }
         }
         if (regenHPS > 0f)
         {
-            ApplyHealing(regenHPS * Time.deltaTime);
+            healingAccumulator += regenHPS * Time.deltaTime;
+            if (healingAccumulator >= 1f)
+            {
+                int healing = Mathf.FloorToInt(healingAccumulator);
+                IncreaseStrength(healing);
+                healingAccumulator -= healing;
+            }
+        }
+        
+        // Tick shelf life on stored masks
+        for (int i = storedMasks.Count - 1; i >= 0; i--)
+        {
+            if (storedMasks[i] != null)
+            {
+                storedMasks[i].TickShelfLife(Time.deltaTime);
+                if (storedMasks[i].IsExpired)
+                {
+                    Debug.Log($"Mask {storedMasks[i].Type} expired in storage!");
+                    storedMasks.RemoveAt(i);
+                }
+            }
         }
     }
-
-    public void ApplyDamage(float value)
+    
+    // === Strength (Health/Attack) ===
+    
+    public void IncreaseStrength(int amount)
     {
-        currentHealth = Mathf.Max(0f, currentHealth - value);
+        strength = Mathf.Min(maxStrength, strength + amount);
     }
-
-    public void ApplyHealing(float value)
+    
+    public void DecreaseStrength(int amount)
     {
-        currentHealth = Mathf.Min(maxHealth, currentHealth + value);
+        strength = Mathf.Max(0, strength - amount);
+        
+        if (strength <= 0)
+        {
+            OnStrengthDepleted();
+        }
     }
-
-    public void ModifyFavor(float value)
+    
+    // === Favor ===
+    
+    public void IncreaseFavor(int amount)
     {
-        currentFavor = Mathf.Clamp(currentFavor + value, 0f, maxFavor);
+        favor = Mathf.Min(maxFavor, favor + amount);
     }
-
+    
+    public void DecreaseFavor(int amount)
+    {
+        favor = Mathf.Max(0, favor - amount);
+        
+        if (favor <= 0)
+        {
+            OnFavorDepleted();
+        }
+    }
+    
+    public bool CanAffordFavor(int cost)
+    {
+        return favor >= cost;
+    }
+    
+    // === Mask Management ===
+    
+    /// <summary>
+    /// Add a mask to storage if there's room.
+    /// </summary>
+    public bool AddMaskToStorage(Mask mask)
+    {
+        if (mask == null) return false;
+        
+        if (storedMasks.Count >= maxStoredMasks)
+        {
+            Debug.LogWarning("Mask storage is full!");
+            return false;
+        }
+        
+        storedMasks.Add(mask);
+        return true;
+    }
+    
+    /// <summary>
+    /// Equip a mask from storage (replaces current mask).
+    /// </summary>
+    public bool SetMask(int storageIndex)
+    {
+        if (storageIndex < 0 || storageIndex >= storedMasks.Count)
+        {
+            return false;
+        }
+        
+        // Unequip current mask (it's consumed/lost)
+        currentMask = storedMasks[storageIndex];
+        storedMasks.RemoveAt(storageIndex);
+        return true;
+    }
+    
+    /// <summary>
+    /// Equip a specific mask directly.
+    /// </summary>
+    public void SetMask(Mask mask)
+    {
+        currentMask = mask;
+    }
+    
+    /// <summary>
+    /// Clear the currently worn mask.
+    /// </summary>
+    public void ClearMask()
+    {
+        currentMask = null;
+    }
+    
+    // === Over-Time Effects ===
+    
     public void SetBleed(float dps)
     {
         bleedDPS = Mathf.Max(0f, dps);
@@ -59,5 +184,19 @@ public class God : MonoBehaviour
     public void SetRegen(float hps)
     {
         regenHPS = Mathf.Max(0f, hps);
+    }
+    
+    // === Loss Conditions ===
+    
+    private void OnStrengthDepleted()
+    {
+        Debug.LogWarning($"God strength depleted! LOSS CONDITION.");
+        // TODO: Notify GameManager of loss
+    }
+    
+    private void OnFavorDepleted()
+    {
+        Debug.LogWarning($"God favor depleted! LOSS CONDITION.");
+        // TODO: Notify GameManager of loss
     }
 }

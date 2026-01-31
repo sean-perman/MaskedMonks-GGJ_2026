@@ -1,13 +1,13 @@
 using UnityEngine;
 
 /// <summary>
-/// Effect that repairs a room's condition.
+/// Effect that repairs a room's damage level.
 /// </summary>
 [CreateAssetMenu(fileName = "FixRoom", menuName = "Effects/Room/Fix Room")]
 public class FixRoomEffect : GameEffect
 {
     [Header("Fix Settings")]
-    public float repairAmount = 10f;
+    public int repairAmount = 1;
     
     public override void Apply(EffectContext context)
     {
@@ -21,13 +21,13 @@ public class FixRoomEffect : GameEffect
 }
 
 /// <summary>
-/// Effect that damages a room's condition.
+/// Effect that damages a room's damage level.
 /// </summary>
 [CreateAssetMenu(fileName = "DamageRoom", menuName = "Effects/Room/Damage Room")]
 public class DamageRoomEffect : GameEffect
 {
     [Header("Damage Settings")]
-    public float damageAmount = 10f;
+    public int damageAmount = 1;
     
     public override void Apply(EffectContext context)
     {

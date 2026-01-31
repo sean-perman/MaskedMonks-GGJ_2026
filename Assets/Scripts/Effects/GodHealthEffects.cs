@@ -7,7 +7,7 @@ using UnityEngine;
 public class InjureGodEffect : GameEffect
 {
     [Header("Damage Settings")]
-    public float damageAmount = 10f;
+    public int damageAmount = 10;
     
     public override void Apply(EffectContext context)
     {
@@ -47,7 +47,7 @@ public class BleedGodEffect : GameEffect
 public class HealGodEffect : GameEffect
 {
     [Header("Heal Settings")]
-    public float healAmount = 10f;
+    public int healAmount = 10;
     
     public override void Apply(EffectContext context)
     {

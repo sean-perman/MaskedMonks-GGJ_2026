@@ -7,7 +7,7 @@ using UnityEngine;
 public class LowerFavorEffect : GameEffect
 {
     [Header("Favor Settings")]
-    public float amount = 10f;
+    public int amount = 10;
     
     public override void Apply(EffectContext context)
     {
@@ -27,7 +27,7 @@ public class LowerFavorEffect : GameEffect
 public class RaiseFavorEffect : GameEffect
 {
     [Header("Favor Settings")]
-    public float amount = 10f;
+    public int amount = 10;
     
     public override void Apply(EffectContext context)
     {

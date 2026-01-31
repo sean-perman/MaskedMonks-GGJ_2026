@@ -25,7 +25,7 @@ public abstract class GameEffect : ScriptableObject
 public class EffectContext
 {
     public God targetGod;
-    public Church targetRoom;
+    public Room targetRoom;
     public Cult targetCult;
     
     // Optional: source information for effects that need it
@@ -33,7 +33,7 @@ public class EffectContext
     
     public EffectContext() { }
     
-    public EffectContext(God god, Church room, Cult cult)
+    public EffectContext(God god, Room room, Cult cult)
     {
         targetGod = god;
         targetRoom = room;

@@ -14,7 +14,7 @@ public class EffectApplier : MonoBehaviour
     [Header("Target References")]
     [Tooltip("If left empty, will try to find targets automatically")]
     public God targetGod;
-    public Church targetRoom;
+    public Room targetRoom;
     public Cult targetCult;
     
     [Header("Auto-Find Settings")]
@@ -41,7 +41,7 @@ public class EffectApplier : MonoBehaviour
         if (targetGod == null)
             targetGod = FindFirstObjectByType<God>();
         if (targetRoom == null)
-            targetRoom = FindFirstObjectByType<Church>();
+            targetRoom = FindFirstObjectByType<Room>();
     }
     
     private void BuildContext()
@@ -116,7 +116,7 @@ public class EffectApplier : MonoBehaviour
     /// <summary>
     /// Update the target references and rebuild the context.
     /// </summary>
-    public void SetTargets(God god = null, Church room = null, Cult cult = null)
+    public void SetTargets(God god = null, Room room = null, Cult cult = null)
     {
         if (god != null) targetGod = god;
         if (room != null) targetRoom = room;

@@ -1,0 +1,14 @@
+/// <summary>
+/// Targeting modes for masks.
+/// </summary>
+public enum MaskTargetType
+{
+    /// <summary>Global effect, no targeting needed.</summary>
+    None,
+    /// <summary>Must select an enemy room to target.</summary>
+    EnemyRoom,
+    /// <summary>Must select one of your own rooms to target.</summary>
+    OwnRoom,
+    /// <summary>Must select an empty slot in your own church.</summary>
+    OwnEmptySlot
+}

@@ -9,33 +9,33 @@ public static class GameActions
     #region Room Actions
 
     /// <summary>
-    /// Repairs a room by increasing its condition.
+    /// Repairs a room by reducing its damage level.
     /// </summary>
-    /// <param name="room">The room (Church) to repair.</param>
-    /// <param name="value">Amount of condition to restore.</param>
-    public static void FixRoom(Church room, float value)
+    /// <param name="room">The room to repair.</param>
+    /// <param name="value">Amount of damage to repair.</param>
+    public static void FixRoom(Room room, int value = 1)
     {
         if (room == null)
         {
             Debug.LogWarning("GameActions.FixRoom: room is null!");
             return;
         }
-        room.ApplyRepair(value);
+        room.RepairDamage(value);
     }
 
     /// <summary>
-    /// Damages a room by decreasing its condition.
+    /// Damages a room by increasing its damage level.
     /// </summary>
-    /// <param name="room">The room (Church) to damage.</param>
+    /// <param name="room">The room to damage.</param>
     /// <param name="value">Amount of damage to apply.</param>
-    public static void DamageRoom(Church room, float value)
+    public static void DamageRoom(Room room, int value = 1)
     {
         if (room == null)
         {
             Debug.LogWarning("GameActions.DamageRoom: room is null!");
             return;
         }
-        room.ApplyDamage(value);
+        room.TakeDamage(value);
     }
 
     #endregion
@@ -43,18 +43,18 @@ public static class GameActions
     #region God Health Actions
 
     /// <summary>
-    /// Instantly injures a god by reducing their health.
+    /// Instantly injures a god by reducing their strength.
     /// </summary>
     /// <param name="god">The god to injure.</param>
     /// <param name="value">Amount of damage to deal.</param>
-    public static void InjureGod(God god, float value)
+    public static void InjureGod(God god, int value)
     {
         if (god == null)
         {
             Debug.LogWarning("GameActions.InjureGod: god is null!");
             return;
         }
-        god.ApplyDamage(value);
+        god.DecreaseStrength(value);
     }
 
     /// <summary>
@@ -73,18 +73,18 @@ public static class GameActions
     }
 
     /// <summary>
-    /// Instantly heals a god by restoring health.
+    /// Instantly heals a god by restoring strength.
     /// </summary>
     /// <param name="god">The god to heal.</param>
-    /// <param name="value">Amount of health to restore.</param>
-    public static void HealGod(God god, float value)
+    /// <param name="value">Amount of strength to restore.</param>
+    public static void HealGod(God god, int value)
     {
         if (god == null)
         {
             Debug.LogWarning("GameActions.HealGod: god is null!");
             return;
         }
-        god.ApplyHealing(value);
+        god.IncreaseStrength(value);
     }
 
     /// <summary>
@@ -111,14 +111,14 @@ public static class GameActions
     /// </summary>
     /// <param name="god">The god whose favor to lower.</param>
     /// <param name="value">Amount to decrease favor by.</param>
-    public static void LowerFavor(God god, float value)
+    public static void LowerFavor(God god, int value)
     {
         if (god == null)
         {
             Debug.LogWarning("GameActions.LowerFavor: god is null!");
             return;
         }
-        god.ModifyFavor(-Mathf.Abs(value));
+        god.DecreaseFavor(value);
     }
 
     /// <summary>
@@ -126,14 +126,14 @@ public static class GameActions
     /// </summary>
     /// <param name="god">The god whose favor to raise.</param>
     /// <param name="value">Amount to increase favor by.</param>
-    public static void RaiseFavor(God god, float value)
+    public static void RaiseFavor(God god, int value)
     {
         if (god == null)
         {
             Debug.LogWarning("GameActions.RaiseFavor: god is null!");
             return;
         }
-        god.ModifyFavor(Mathf.Abs(value));
+        god.IncreaseFavor(value);
     }
 
     #endregion
