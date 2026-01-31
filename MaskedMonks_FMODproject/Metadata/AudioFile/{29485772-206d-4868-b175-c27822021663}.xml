@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{29485772-206d-4868-b175-c27822021663}">
+		<property name="assetPath">
+			<value>GGJ_Masked_Monks_.aif</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>141.47368750000001</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{189495d9-054b-491f-9371-087c0283c0b7}</destination>
+		</relationship>
+	</object>
+</objects>

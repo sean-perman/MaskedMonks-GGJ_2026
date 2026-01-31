@@ -482,13 +482,24 @@ public class PlayerController : MonoBehaviour
         {
             var mask = cult.god.Masks[activeMaskSlot];
             
+            // Check if we can afford the mask
+            if (!mask.CanAfford(cult))
+            {
+                Debug.Log($"Cannot afford {mask.Type} mask! Need {mask.FavorCost} favor.");
+                CancelTargeting();
+                return;
+            }
+            
+            // Pay the cost first
+            mask.PayCost(cult);
+            
             // Apply mask effect to target (sourceCult, targetRoom, targetGod)
             mask.ApplyEffect(cult, targetRoom, opponent.god);
             
             // Remove mask after use by re-getting from storage and removing at index
             cult.god.RemoveMaskFromStorage(activeMaskSlot);
             
-            Debug.Log($"Used {mask.Type} on enemy {targetRoom?.Type.ToString() ?? "empty slot"}");
+            Debug.Log($"Used {mask.Type} on enemy {targetRoom?.Type.ToString() ?? "empty slot"} (spent {mask.FavorCost} favor)");
             OnTargetConfirmed?.Invoke(targetRoom);
         }
         
@@ -512,6 +523,16 @@ public class PlayerController : MonoBehaviour
     {
         var mask = cult.god.Masks[slot];
         
+        // Check if we can afford the mask
+        if (!mask.CanAfford(cult))
+        {
+            Debug.Log($"Cannot afford {mask.Type} mask! Need {mask.FavorCost} favor.");
+            return;
+        }
+        
+        // Pay the cost first
+        mask.PayCost(cult);
+        
         // Apply to own room at cursor (sourceCult, targetRoom, targetGod)
         var selfRoom = cult.church.GetRoomAt(cursorPosition);
         mask.ApplyEffect(cult, selfRoom, cult.god);
@@ -519,7 +540,7 @@ public class PlayerController : MonoBehaviour
         // Remove mask after use
         cult.god.RemoveMaskFromStorage(slot);
         
-        Debug.Log($"Applied {mask.Type} to own {selfRoom?.Type.ToString() ?? "empty slot"}");
+        Debug.Log($"Applied {mask.Type} to own {selfRoom?.Type.ToString() ?? "empty slot"} (spent {mask.FavorCost} favor)");
     }
     
     /// <summary>

@@ -4,6 +4,8 @@
 public enum MaskType
 {
     // === Combat Masks ===
+    /// <summary>Deal damage to a targeted enemy room.</summary>
+    Strike,
     /// <summary>Damage followers in target enemy room.</summary>
     Smiting,
     /// <summary>Direct damage to enemy god strength.</summary>
