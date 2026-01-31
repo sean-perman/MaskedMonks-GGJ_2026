@@ -45,48 +45,127 @@ A player loses if ANY of these reach zero:
 
 ---
 
+## Prefab System
+
+### Overview
+All game objects should use prefabs where possible. GameInitializer has prefab reference fields for every object type. If a prefab is assigned, it will be instantiated; otherwise, the system falls back to programmatic creation.
+
+### Required Prefabs (Assets/Prefabs/)
+
+| Prefab | Components Required | Notes |
+|--------|---------------------|-------|
+| `Cult.prefab` | Cult | Root container for player |
+| `God.prefab` | God, SpriteRenderer | Deity visual + logic |
+| `Church.prefab` | Church | Room container |
+| `Follower.prefab` | Follower, SpriteRenderer | Cultist visual + logic |
+| `SanctuaryRoom.prefab` | SanctuaryRoom, RoomVisual, SpriteRenderer | Recovery room |
+| `AltarRoom.prefab` | AltarRoom, RoomVisual, SpriteRenderer | Strength generation |
+| `PewsRoom.prefab` | PewsRoom, RoomVisual, SpriteRenderer | Favor generation |
+| `MissionRoom.prefab` | MissionRoom, RoomVisual, SpriteRenderer | Recruitment |
+| `RitualHallRoom.prefab` | RitualHallRoom, RoomVisual, SpriteRenderer | Mask generation |
+| `WorkshopRoom.prefab` | WorkshopRoom, RoomVisual, SpriteRenderer | Money generation |
+| `EmptySlot.prefab` | RoomSlot, SpriteRenderer | Buildable slot visual |
+| `Marketplace.prefab` | Marketplace, SpriteRenderer | Citizen pool |
+| `Background.prefab` | SpriteRenderer | Background visual |
+| `Cursor.prefab` | CursorVisual, SpriteRenderer | Selection highlight |
+| `PlayerController.prefab` | PlayerController | Input handler |
+| `ControlsMenu.prefab` | ControlsMenu | Rebinding UI |
+
+### Creating New Objects at Runtime
+
+**IMPORTANT**: When creating new objects at runtime (e.g., spawning followers, building rooms), always:
+1. Check if a prefab reference exists
+2. Use `Instantiate(prefab)` if available
+3. Fall back to `new GameObject()` only if no prefab
+
+Example pattern:
+```csharp
+GameObject obj;
+if (prefab != null)
+{
+    obj = Instantiate(prefab);
+    // Ensure required component exists
+    var component = obj.GetComponent<MyComponent>() ?? obj.AddComponent<MyComponent>();
+}
+else
+{
+    obj = new GameObject("MyObject");
+    obj.AddComponent<MyComponent>();
+}
+```
+
+### GameInitializer Public Methods for Runtime Creation
+
+| Method | Returns | Use Case |
+|--------|---------|----------|
+| `CreateFollower(Cult, string)` | Follower | Spawning new followers |
+| `GetRoomPrefab(RoomType)` | GameObject | Getting room prefab for building |
+
+---
+
 ## File Structure
 
 ```
-Assets/Scripts/
-├── Core/
-│   ├── Cult.cs           - Top-level player container
-│   ├── God.cs            - Deity with strength/favor/masks
-│   ├── Church.cs         - Room grid container (3x4)
-│   ├── Room.cs           - Abstract base for all rooms
-│   ├── Follower.cs       - Cultist with commitment
-│   ├── Mask.cs           - One-use ability
-│   └── RoomSlot.cs       - Empty buildable slot
-├── Rooms/
-│   ├── SanctuaryRoom.cs  - Commitment recovery
-│   ├── AltarRoom.cs      - God strength generation
-│   ├── PewsRoom.cs       - Favor generation
-│   ├── MissionRoom.cs    - Citizen recruitment
-│   ├── RitualHallRoom.cs - Mask generation
-│   └── WorkshopRoom.cs   - Money generation
-├── Enums/
-│   ├── RoomType.cs
-│   ├── MaskType.cs
-│   └── MaskTargetType.cs
-├── Managers/
-│   ├── GameManager.cs    - Singleton, game loop
-│   ├── GameInitializer.cs - Scene setup
-│   ├── Marketplace.cs    - Neutral citizen pool
-│   └── GameActions.cs    - Static utility methods
-├── Input/
-│   ├── PlayerController.cs - Per-player input handling
-│   └── InputHandler.cs     - (Legacy) controller input
-├── Visuals/
-│   ├── RoomVisual.cs     - Room display component
-│   └── CursorVisual.cs   - Selection highlight
-├── UI/
-│   └── ControlsMenu.cs   - Rebindable controls menu
-├── Debug/
-│   ├── DebugDashboard.cs - IMGUI overlay (F12)
-│   ├── DebugConsole.cs   - Log display (`)
-│   └── ...StatusDisplay.cs files
-└── Testing/
-    └── GameTester.cs     - F-key test functions
+Assets/
+├── Prefabs/              - **CREATE PREFABS HERE**
+│   ├── Core/
+│   │   ├── Cult.prefab
+│   │   ├── God.prefab
+│   │   ├── Church.prefab
+│   │   └── Follower.prefab
+│   ├── Rooms/
+│   │   ├── SanctuaryRoom.prefab
+│   │   ├── AltarRoom.prefab
+│   │   ├── PewsRoom.prefab
+│   │   ├── MissionRoom.prefab
+│   │   ├── RitualHallRoom.prefab
+│   │   ├── WorkshopRoom.prefab
+│   │   └── EmptySlot.prefab
+│   ├── UI/
+│   │   ├── Cursor.prefab
+│   │   ├── ControlsMenu.prefab
+│   │   └── Background.prefab
+│   └── World/
+│       └── Marketplace.prefab
+└── Scripts/
+    ├── Core/
+    │   ├── Cult.cs           - Top-level player container
+    │   ├── God.cs            - Deity with strength/favor/masks
+    │   ├── Church.cs         - Room grid container (3x4)
+    │   ├── Room.cs           - Abstract base for all rooms
+    │   ├── Follower.cs       - Cultist with commitment
+    │   ├── Mask.cs           - One-use ability
+    │   └── RoomSlot.cs       - Empty buildable slot
+    ├── Rooms/
+    │   ├── SanctuaryRoom.cs  - Commitment recovery
+    │   ├── AltarRoom.cs      - God strength generation
+    │   ├── PewsRoom.cs       - Favor generation
+    │   ├── MissionRoom.cs    - Citizen recruitment
+    │   ├── RitualHallRoom.cs - Mask generation
+    │   └── WorkshopRoom.cs   - Money generation
+    ├── Enums/
+    │   ├── RoomType.cs
+    │   ├── MaskType.cs
+    │   └── MaskTargetType.cs
+    ├── Managers/
+    │   ├── GameManager.cs    - Singleton, game loop
+    │   ├── GameInitializer.cs - Scene setup, prefab instantiation
+    │   ├── Marketplace.cs    - Neutral citizen pool
+    │   └── GameActions.cs    - Static utility methods
+    ├── Input/
+    │   ├── PlayerController.cs - Per-player input handling
+    │   └── InputHandler.cs     - (Legacy) controller input
+    ├── Visuals/
+    │   ├── RoomVisual.cs     - Room display component
+    │   └── CursorVisual.cs   - Selection highlight
+    ├── UI/
+    │   └── ControlsMenu.cs   - Rebindable controls menu
+    ├── Debug/
+    │   ├── DebugDashboard.cs - IMGUI overlay (F12)
+    │   ├── DebugConsole.cs   - Log display (`)
+    │   └── ...StatusDisplay.cs files
+    └── Testing/
+        └── GameTester.cs     - F-key test functions
 ```
 
 ---

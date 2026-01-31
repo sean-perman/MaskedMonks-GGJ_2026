@@ -4,6 +4,9 @@ using UnityEngine;
 /// <summary>
 /// Initializes the game with both cults, churches, rooms, and followers.
 /// Attach this to the GameManager or a dedicated setup object.
+/// 
+/// PREFAB USAGE: Assign prefabs in the inspector. If a prefab is null,
+/// the system will fall back to programmatic creation (legacy behavior).
 /// </summary>
 public class GameInitializer : MonoBehaviour
 {
@@ -21,6 +24,57 @@ public class GameInitializer : MonoBehaviour
     
     [Header("References")]
     [SerializeField] private GameManager gameManager;
+    
+    [Header("Prefabs - Core Objects")]
+    [Tooltip("Prefab for the cult container object")]
+    [SerializeField] private GameObject cultPrefab;
+    
+    [Tooltip("Prefab for the god object (should have God component)")]
+    [SerializeField] private GameObject godPrefab;
+    
+    [Tooltip("Prefab for the church container object")]
+    [SerializeField] private GameObject churchPrefab;
+    
+    [Tooltip("Prefab for follower objects (should have Follower component)")]
+    [SerializeField] private GameObject followerPrefab;
+    
+    [Header("Prefabs - Rooms")]
+    [Tooltip("Prefab for Sanctuary room")]
+    [SerializeField] private GameObject sanctuaryRoomPrefab;
+    
+    [Tooltip("Prefab for Altar room")]
+    [SerializeField] private GameObject altarRoomPrefab;
+    
+    [Tooltip("Prefab for Pews room")]
+    [SerializeField] private GameObject pewsRoomPrefab;
+    
+    [Tooltip("Prefab for Mission room")]
+    [SerializeField] private GameObject missionRoomPrefab;
+    
+    [Tooltip("Prefab for Ritual Hall room")]
+    [SerializeField] private GameObject ritualHallRoomPrefab;
+    
+    [Tooltip("Prefab for Workshop room")]
+    [SerializeField] private GameObject workshopRoomPrefab;
+    
+    [Tooltip("Prefab for empty buildable slot")]
+    [SerializeField] private GameObject emptySlotPrefab;
+    
+    [Header("Prefabs - UI & Visuals")]
+    [Tooltip("Prefab for the marketplace")]
+    [SerializeField] private GameObject marketplacePrefab;
+    
+    [Tooltip("Prefab for the background")]
+    [SerializeField] private GameObject backgroundPrefab;
+    
+    [Tooltip("Prefab for player cursor visual")]
+    [SerializeField] private GameObject cursorPrefab;
+    
+    [Tooltip("Prefab for player controller")]
+    [SerializeField] private GameObject playerControllerPrefab;
+    
+    [Tooltip("Prefab for controls menu")]
+    [SerializeField] private GameObject controlsMenuPrefab;
     
     // Created objects
     private Cult cult1;
@@ -84,48 +138,78 @@ public class GameInitializer : MonoBehaviour
     
     private void CreateBackground()
     {
-        var bgObj = new GameObject("Background");
-        bgObj.transform.position = new Vector3(0, 0, 10); // Behind everything
+        GameObject bgObj;
         
-        var sr = bgObj.AddComponent<SpriteRenderer>();
-        sr.sortingOrder = -100;
-        
-        // Create gradient texture
-        int width = 64;
-        int height = 64;
-        Texture2D tex = new Texture2D(width, height);
-        
-        Color topColor = new Color(0.15f, 0.1f, 0.25f); // Dark purple
-        Color bottomColor = new Color(0.05f, 0.05f, 0.1f); // Near black
-        
-        for (int y = 0; y < height; y++)
+        if (backgroundPrefab != null)
         {
-            float t = (float)y / height;
-            Color color = Color.Lerp(bottomColor, topColor, t);
-            for (int x = 0; x < width; x++)
-            {
-                tex.SetPixel(x, y, color);
-            }
+            bgObj = Instantiate(backgroundPrefab);
+            bgObj.name = "Background";
+            bgObj.transform.position = new Vector3(0, 0, 10);
         }
-        tex.Apply();
-        tex.filterMode = FilterMode.Bilinear;
-        
-        sr.sprite = Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 1f);
-        sr.transform.localScale = new Vector3(50f, 30f, 1f); // Cover screen
+        else
+        {
+            // Fallback: programmatic creation
+            bgObj = new GameObject("Background");
+            bgObj.transform.position = new Vector3(0, 0, 10); // Behind everything
+            
+            var sr = bgObj.AddComponent<SpriteRenderer>();
+            sr.sortingOrder = -100;
+            
+            // Create gradient texture
+            int width = 64;
+            int height = 64;
+            Texture2D tex = new Texture2D(width, height);
+            
+            Color topColor = new Color(0.15f, 0.1f, 0.25f); // Dark purple
+            Color bottomColor = new Color(0.05f, 0.05f, 0.1f); // Near black
+            
+            for (int y = 0; y < height; y++)
+            {
+                float t = (float)y / height;
+                Color color = Color.Lerp(bottomColor, topColor, t);
+                for (int x = 0; x < width; x++)
+                {
+                    tex.SetPixel(x, y, color);
+                }
+            }
+            tex.Apply();
+            tex.filterMode = FilterMode.Bilinear;
+            
+            sr.sprite = Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 1f);
+            sr.transform.localScale = new Vector3(50f, 30f, 1f); // Cover screen
+        }
     }
     
     private void CreateMarketplace()
     {
-        var marketObj = new GameObject("Marketplace");
-        marketObj.transform.position = new Vector3(0, -8f, 0); // Bottom center
-        var marketplace = marketObj.AddComponent<Marketplace>();
+        GameObject marketObj;
         
-        // Add visual representation
-        var sr = marketObj.AddComponent<SpriteRenderer>();
-        sr.sprite = CreateSquareSprite();
-        sr.color = new Color(0.4f, 0.3f, 0.2f, 0.8f);
-        sr.transform.localScale = new Vector3(6f, 2f, 1f);
-        sr.sortingOrder = -1;
+        if (marketplacePrefab != null)
+        {
+            marketObj = Instantiate(marketplacePrefab);
+            marketObj.name = "Marketplace";
+            marketObj.transform.position = new Vector3(0, -8f, 0);
+            
+            // Ensure Marketplace component exists
+            if (marketObj.GetComponent<Marketplace>() == null)
+            {
+                marketObj.AddComponent<Marketplace>();
+            }
+        }
+        else
+        {
+            // Fallback: programmatic creation
+            marketObj = new GameObject("Marketplace");
+            marketObj.transform.position = new Vector3(0, -8f, 0); // Bottom center
+            marketObj.AddComponent<Marketplace>();
+            
+            // Add visual representation
+            var sr = marketObj.AddComponent<SpriteRenderer>();
+            sr.sprite = CreateSquareSprite();
+            sr.color = new Color(0.4f, 0.3f, 0.2f, 0.8f);
+            sr.transform.localScale = new Vector3(6f, 2f, 1f);
+            sr.sortingOrder = -1;
+        }
         
         Debug.Log("Marketplace created");
     }
@@ -133,9 +217,22 @@ public class GameInitializer : MonoBehaviour
     private Cult CreateCult(string cultName, Vector3 position, bool isPlayer1)
     {
         // Create cult root object
-        var cultObj = new GameObject(cultName);
+        GameObject cultObj;
+        Cult cult;
+        
+        if (cultPrefab != null)
+        {
+            cultObj = Instantiate(cultPrefab);
+            cultObj.name = cultName;
+            cult = cultObj.GetComponent<Cult>();
+            if (cult == null) cult = cultObj.AddComponent<Cult>();
+        }
+        else
+        {
+            cultObj = new GameObject(cultName);
+            cult = cultObj.AddComponent<Cult>();
+        }
         cultObj.transform.position = position;
-        var cult = cultObj.AddComponent<Cult>();
         
         // Create church
         var church = CreateChurch(cultObj.transform, isPlayer1);
@@ -162,20 +259,46 @@ public class GameInitializer : MonoBehaviour
     
     private Church CreateChurch(Transform parent, bool isPlayer1)
     {
-        var churchObj = new GameObject("Church");
-        churchObj.transform.SetParent(parent);
+        GameObject churchObj;
+        Church church;
+        
+        if (churchPrefab != null)
+        {
+            churchObj = Instantiate(churchPrefab, parent);
+            churchObj.name = "Church";
+            church = churchObj.GetComponent<Church>();
+            if (church == null) church = churchObj.AddComponent<Church>();
+        }
+        else
+        {
+            churchObj = new GameObject("Church");
+            churchObj.transform.SetParent(parent);
+            church = churchObj.AddComponent<Church>();
+        }
         churchObj.transform.localPosition = Vector3.zero;
-        var church = churchObj.AddComponent<Church>();
         
         return church;
     }
     
     private God CreateGod(Transform parent)
     {
-        var godObj = new GameObject("God");
-        godObj.transform.SetParent(parent);
+        GameObject godObj;
+        God god;
+        
+        if (godPrefab != null)
+        {
+            godObj = Instantiate(godPrefab, parent);
+            godObj.name = "God";
+            god = godObj.GetComponent<God>();
+            if (god == null) god = godObj.AddComponent<God>();
+        }
+        else
+        {
+            godObj = new GameObject("God");
+            godObj.transform.SetParent(parent);
+            god = godObj.AddComponent<God>();
+        }
         godObj.transform.localPosition = new Vector3(0, 5f, 0); // Position above church
-        var god = godObj.AddComponent<God>();
         
         // Initialize with starting stats
         god.Initialize(startingGodStrength, startingGodFavor);
@@ -195,16 +318,16 @@ public class GameInitializer : MonoBehaviour
         
         // Bottom row (y=0): Core rooms
         // Create a Sanctuary at (0, 0)
-        CreateRoom<SanctuaryRoom>(church, new Vector2Int(0, 0), churchTransform, gridOffset);
+        CreateRoomFromPrefab<SanctuaryRoom>(church, new Vector2Int(0, 0), churchTransform, gridOffset, sanctuaryRoomPrefab);
         
         // Create an Altar at (1, 0)
-        CreateRoom<AltarRoom>(church, new Vector2Int(1, 0), churchTransform, gridOffset);
+        CreateRoomFromPrefab<AltarRoom>(church, new Vector2Int(1, 0), churchTransform, gridOffset, altarRoomPrefab);
         
         // Create Pews at (2, 0)
-        CreateRoom<PewsRoom>(church, new Vector2Int(2, 0), churchTransform, gridOffset);
+        CreateRoomFromPrefab<PewsRoom>(church, new Vector2Int(2, 0), churchTransform, gridOffset, pewsRoomPrefab);
         
         // Second row (y=1): Mission for converting citizens
-        CreateRoom<MissionRoom>(church, new Vector2Int(1, 1), churchTransform, gridOffset);
+        CreateRoomFromPrefab<MissionRoom>(church, new Vector2Int(1, 1), churchTransform, gridOffset, missionRoomPrefab);
         
         // Create empty slots for remaining positions
         for (int x = 0; x < church.GridWidth; x++)
@@ -220,11 +343,33 @@ public class GameInitializer : MonoBehaviour
         }
     }
     
-    private T CreateRoom<T>(Church church, Vector2Int gridPos, Transform parent, Vector3 gridOffset) where T : Room
+    private T CreateRoomFromPrefab<T>(Church church, Vector2Int gridPos, Transform parent, Vector3 gridOffset, GameObject prefab) where T : Room
     {
         string roomName = typeof(T).Name.Replace("Room", "");
-        var roomObj = new GameObject($"{roomName} [{gridPos.x},{gridPos.y}]");
-        roomObj.transform.SetParent(parent);
+        GameObject roomObj;
+        T room;
+        
+        if (prefab != null)
+        {
+            roomObj = Instantiate(prefab, parent);
+            roomObj.name = $"{roomName} [{gridPos.x},{gridPos.y}]";
+            room = roomObj.GetComponent<T>();
+            if (room == null) room = roomObj.AddComponent<T>();
+            
+            // Ensure RoomVisual exists
+            if (roomObj.GetComponent<RoomVisual>() == null)
+            {
+                roomObj.AddComponent<RoomVisual>();
+            }
+        }
+        else
+        {
+            // Fallback: programmatic creation
+            roomObj = new GameObject($"{roomName} [{gridPos.x},{gridPos.y}]");
+            roomObj.transform.SetParent(parent);
+            room = roomObj.AddComponent<T>();
+            roomObj.AddComponent<RoomVisual>();
+        }
         
         // Calculate world position
         Vector3 localPos = new Vector3(
@@ -234,22 +379,54 @@ public class GameInitializer : MonoBehaviour
         ) + gridOffset;
         roomObj.transform.localPosition = localPos;
         
-        // Add room component
-        var room = roomObj.AddComponent<T>();
-        
-        // Add visual
-        roomObj.AddComponent<RoomVisual>();
-        
         // Register with church
         church.AddRoom(room, gridPos);
         
         return room;
     }
     
+    /// <summary>
+    /// Gets the appropriate prefab for a room type. Used for runtime room creation.
+    /// </summary>
+    public GameObject GetRoomPrefab(RoomType type)
+    {
+        return type switch
+        {
+            RoomType.Sanctuary => sanctuaryRoomPrefab,
+            RoomType.Altar => altarRoomPrefab,
+            RoomType.Pews => pewsRoomPrefab,
+            RoomType.Mission => missionRoomPrefab,
+            RoomType.RitualHall => ritualHallRoomPrefab,
+            RoomType.Workshop => workshopRoomPrefab,
+            _ => null
+        };
+    }
+    
     private void CreateEmptySlot(Church church, Vector2Int gridPos, Transform parent, Vector3 gridOffset)
     {
-        var slotObj = new GameObject($"Empty Slot [{gridPos.x},{gridPos.y}]");
-        slotObj.transform.SetParent(parent);
+        GameObject slotObj;
+        RoomSlot slot;
+        
+        if (emptySlotPrefab != null)
+        {
+            slotObj = Instantiate(emptySlotPrefab, parent);
+            slotObj.name = $"Empty Slot [{gridPos.x},{gridPos.y}]";
+            slot = slotObj.GetComponent<RoomSlot>();
+            if (slot == null) slot = slotObj.AddComponent<RoomSlot>();
+        }
+        else
+        {
+            // Fallback: programmatic creation
+            slotObj = new GameObject($"Empty Slot [{gridPos.x},{gridPos.y}]");
+            slotObj.transform.SetParent(parent);
+            slot = slotObj.AddComponent<RoomSlot>();
+            
+            // Add visual indicator
+            var sr = slotObj.AddComponent<SpriteRenderer>();
+            sr.sprite = CreateSquareSprite();
+            sr.color = new Color(0.2f, 0.2f, 0.2f, 0.3f);
+            sr.transform.localScale = new Vector3(roomWidth * 0.9f, roomHeight * 0.9f, 1f);
+        }
         
         // Calculate world position
         Vector3 localPos = new Vector3(
@@ -259,19 +436,8 @@ public class GameInitializer : MonoBehaviour
         ) + gridOffset;
         slotObj.transform.localPosition = localPos;
         
-        // Add empty slot component
-        var slot = slotObj.AddComponent<RoomSlot>();
+        // Initialize slot
         slot.Initialize(church, gridPos);
-        
-        // Add visual indicator
-        var sr = slotObj.GetComponent<SpriteRenderer>();
-        if (sr == null)
-        {
-            sr = slotObj.AddComponent<SpriteRenderer>();
-        }
-        sr.sprite = CreateSquareSprite();
-        sr.color = new Color(0.2f, 0.2f, 0.2f, 0.3f);
-        sr.transform.localScale = new Vector3(roomWidth * 0.9f, roomHeight * 0.9f, 1f);
     }
     
     private void CreateStartingFollowers(Cult cult, Church church)
@@ -280,11 +446,7 @@ public class GameInitializer : MonoBehaviour
         
         for (int i = 0; i < startingFollowers; i++)
         {
-            var followerObj = new GameObject($"Follower {i + 1}");
-            followerObj.transform.SetParent(cult.transform);
-            
-            var follower = followerObj.AddComponent<Follower>();
-            follower.Initialize(cult);
+            Follower follower = CreateFollower(cult, $"Follower {i + 1}");
             
             // Add to cult (this also tries to place in sanctuary)
             cult.AddFollower(follower);
@@ -299,32 +461,96 @@ public class GameInitializer : MonoBehaviour
         Debug.Log($"Created {startingFollowers} followers for {cult.name}");
     }
     
+    /// <summary>
+    /// Creates a follower using prefab if available. Public for runtime follower creation.
+    /// </summary>
+    public Follower CreateFollower(Cult cult, string name = "Follower")
+    {
+        GameObject followerObj;
+        Follower follower;
+        
+        if (followerPrefab != null)
+        {
+            followerObj = Instantiate(followerPrefab, cult.transform);
+            followerObj.name = name;
+            follower = followerObj.GetComponent<Follower>();
+            if (follower == null) follower = followerObj.AddComponent<Follower>();
+        }
+        else
+        {
+            followerObj = new GameObject(name);
+            followerObj.transform.SetParent(cult.transform);
+            follower = followerObj.AddComponent<Follower>();
+        }
+        
+        follower.Initialize(cult);
+        return follower;
+    }
+    
     private PlayerController CreatePlayerController(int playerIndex, Cult cult)
     {
-        var controllerObj = new GameObject($"Player {playerIndex + 1} Controller");
-        controllerObj.transform.SetParent(transform);
+        GameObject controllerObj;
+        PlayerController controller;
         
-        var controller = controllerObj.AddComponent<PlayerController>();
+        if (playerControllerPrefab != null)
+        {
+            controllerObj = Instantiate(playerControllerPrefab, transform);
+            controllerObj.name = $"Player {playerIndex + 1} Controller";
+            controller = controllerObj.GetComponent<PlayerController>();
+            if (controller == null) controller = controllerObj.AddComponent<PlayerController>();
+        }
+        else
+        {
+            controllerObj = new GameObject($"Player {playerIndex + 1} Controller");
+            controllerObj.transform.SetParent(transform);
+            controller = controllerObj.AddComponent<PlayerController>();
+        }
+        
         controller.Initialize(playerIndex, cult);
-        
         return controller;
     }
     
     private void CreateCursorVisual(PlayerController controller, string name, Color tint)
     {
-        var cursorObj = new GameObject(name);
-        cursorObj.transform.SetParent(transform);
+        GameObject cursorObj;
+        CursorVisual cursor;
         
-        var cursor = cursorObj.AddComponent<CursorVisual>();
+        if (cursorPrefab != null)
+        {
+            cursorObj = Instantiate(cursorPrefab, transform);
+            cursorObj.name = name;
+            cursor = cursorObj.GetComponent<CursorVisual>();
+            if (cursor == null) cursor = cursorObj.AddComponent<CursorVisual>();
+        }
+        else
+        {
+            cursorObj = new GameObject(name);
+            cursorObj.transform.SetParent(transform);
+            cursor = cursorObj.AddComponent<CursorVisual>();
+        }
+        
         cursor.SetController(controller);
     }
     
     private void CreateControlsMenu()
     {
-        var menuObj = new GameObject("Controls Menu");
-        menuObj.transform.SetParent(transform);
+        GameObject menuObj;
+        ControlsMenu menu;
         
-        var menu = menuObj.AddComponent<ControlsMenu>();
+        if (controlsMenuPrefab != null)
+        {
+            menuObj = Instantiate(controlsMenuPrefab, transform);
+            menuObj.name = "Controls Menu";
+            menu = menuObj.GetComponent<ControlsMenu>();
+            if (menu == null) menu = menuObj.AddComponent<ControlsMenu>();
+        }
+        else
+        {
+            menuObj = new GameObject("Controls Menu");
+            menuObj.transform.SetParent(transform);
+            menu = menuObj.AddComponent<ControlsMenu>();
+        }
+        
         menu.SetControllers(player1Controller, player2Controller);
     }
     
