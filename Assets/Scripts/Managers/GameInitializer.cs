@@ -346,6 +346,9 @@ public class GameInitializer : MonoBehaviour
         // Create Fundraising at (2, 1) for generating money
         CreateRoomFromPrefab<FundraisingRoom>(church, new Vector2Int(2, 1), churchTransform, gridOffset, fundraisingRoomPrefab);
         
+        // Third row (y=2): Ritual Hall for generating offensive masks
+        CreateRoomFromPrefab<RitualHallRoom>(church, new Vector2Int(1, 2), churchTransform, gridOffset, ritualHallRoomPrefab);
+        
         // Create empty slots for remaining positions
         for (int x = 0; x < church.GridWidth; x++)
         {

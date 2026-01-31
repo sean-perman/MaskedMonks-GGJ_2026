@@ -115,6 +115,15 @@ public class Mask
     {
         switch (type)
         {
+            case MaskType.Strike:
+                // Deal damage to a targeted enemy room
+                if (targetRoom != null)
+                {
+                    targetRoom.TakeDamage(effectValue);
+                    Debug.Log($"Strike dealt {effectValue} damage to enemy room {targetRoom.Type}!");
+                }
+                break;
+                
             case MaskType.Smiting:
                 // Damage followers in target enemy room
                 if (targetRoom != null)
