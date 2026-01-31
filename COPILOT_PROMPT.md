@@ -540,24 +540,27 @@ OwnEmptySlot    // Target empty slot (for building)
 |-------|---------|----------|
 | `follower_assign` | Follower sent to room | High |
 | `follower_unassign` | Follower returned to sanctuary | High |
+| `follower_swap` | Follower swapped with sanctuary | Medium |
 | `follower_abandon` | Follower leaves cult (0 commitment) | High |
 | `follower_recruited` | Citizen converted to follower | High |
-| `follower_sacrifice` | Follower sacrificed for mask | Medium |
+| `follower_kicked` | Follower kicked from room due to damage | Medium |
 | `follower_working_loop` | Ambient loop when followers in room | Low |
 
 ### Room Sounds
 | Sound | Trigger | Priority |
 |-------|---------|----------|
-| `room_trigger_sanctuary` | Sanctuary effect activates | High |
+| `room_trigger_sanctuary` | Sanctuary recovers commitment | Medium |
 | `room_trigger_altar` | Altar generates strength | High |
 | `room_trigger_pews` | Pews generates favor | High |
 | `room_trigger_mission` | Mission recruits citizen | High |
-| `room_trigger_ritual` | Ritual hall creates mask | High |
-| `room_trigger_workshop` | Workshop generates money | Medium |
+| `room_trigger_ritual` | Ritual hall creates offensive mask | High |
+| `room_trigger_workshop` | Workshop generates architecture mask | High |
+| `room_trigger_fundraising` | Fundraising generates money | High |
 | `room_upgrade` | Room level increased | Medium |
-| `room_damaged` | Room takes damage | High |
-| `room_repaired` | Room damage healed | Medium |
-| `room_built` | New room constructed | Medium |
+| `room_damaged_orange` | Room takes damage (orange level) | High |
+| `room_damaged_red` | Room takes damage (red level - slot lost) | High |
+| `room_repaired` | Room damage healed one level | Medium |
+| `room_built` | New room constructed from blueprint | High |
 
 ### God Sounds
 | Sound | Trigger | Priority |
@@ -567,22 +570,29 @@ OwnEmptySlot    // Target empty slot (for building)
 | `god_heal` | God strength restored | Medium |
 | `god_favor_gain` | Favor increased | Low |
 | `god_favor_spend` | Favor spent on mask | Medium |
+| `god_money_gain` | Money increased | Low |
+| `god_money_spend` | Money spent (upgrade/build) | Medium |
 | `god_low_health` | God strength < 25% | High |
-| `god_low_favor` | Favor < 25% | Medium |
 | `god_death` | God strength hits 0 | High |
 
 ### Mask Sounds
 | Sound | Trigger | Priority |
 |-------|---------|----------|
-| `mask_equip` | Mask equipped | Medium |
+| `mask_generated` | New mask added to storage | High |
+| `mask_storage_full` | Mask generation blocked (no space) | Medium |
+| `mask_activate_strike` | Strike mask used (room damage) | High |
 | `mask_activate_smiting` | Smiting mask used | High |
 | `mask_activate_wrath` | Wrath mask used | High |
 | `mask_activate_whispers` | Whispers mask used | High |
 | `mask_activate_sanctuary` | Sanctuary mask used | Medium |
 | `mask_activate_plenty` | Plenty mask used | Medium |
 | `mask_activate_sacrifice` | Sacrifice mask used | High |
+| `mask_activate_architect` | Architecture mask used (build room) | High |
 | `mask_expire` | Mask decays in storage | Low |
-| `mask_target_confirm` | Target selected | Medium |
+| `mask_target_enter` | Enter targeting mode | Medium |
+| `mask_target_confirm` | Target selected and mask fired | High |
+| `mask_target_cancel` | Targeting cancelled | Low |
+| `mask_cannot_afford` | Not enough favor/money for mask | Medium |
 
 ### Game State Sounds
 | Sound | Trigger | Priority |
