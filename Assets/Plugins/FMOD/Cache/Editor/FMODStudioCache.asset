@@ -15,15 +15,45 @@ MonoBehaviour:
   EditorBanks:
   - {fileID: 4649782515055195362}
   - {fileID: 7307415330121218631}
-  EditorEvents: []
+  EditorEvents:
+  - {fileID: 3835487562721842371}
   EditorParameters: []
   MasterBanks:
   - {fileID: 7307415330121218631}
   StringsBanks:
   - {fileID: 4649782515055195362}
   cacheVersion: 131858
-  cacheTime: 639054691846911845
-  SerializableEventsDict: []
+  cacheTime: 639054734776868613
+  SerializableEventsDict:
+  - key: event:/UI/ui_cursor_move
+    index: 0
+--- !u!114 &3835487562721842371
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/UI/ui_cursor_move
+  m_EditorClassIdentifier: FMODUnityEditor::FMODUnity.EditorEventRef
+  Path: event:/UI/ui_cursor_move
+  Guid:
+    Data1: 478217462
+    Data2: 1259652506
+    Data3: 618664863
+    Data4: -1547787367
+  Banks:
+  - {fileID: 7307415330121218631}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
 --- !u!114 &4649782515055195362
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -39,10 +69,10 @@ MonoBehaviour:
   Path: MaskedMonks_FMODproject/Build/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 639054691846911845
+  lastModified: 639054734776868613
   FileSizes:
   - Name: Desktop
-    Value: 724
+    Value: 836
   Exists: 1
 --- !u!114 &7307415330121218631
 MonoBehaviour:
@@ -59,8 +89,8 @@ MonoBehaviour:
   Path: MaskedMonks_FMODproject/Build/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 639054691846887334
+  lastModified: 639054734776667955
   FileSizes:
   - Name: Desktop
-    Value: 1074
+    Value: 1612
   Exists: 1
