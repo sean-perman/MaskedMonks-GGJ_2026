@@ -8,8 +8,8 @@ using UnityEngine;
 public class Church : MonoBehaviour
 {
     [Header("Grid Configuration")]
-    [SerializeField] private int gridWidth = 4;
-    [SerializeField] private int gridHeight = 3;
+    [SerializeField] private int gridWidth = 3;
+    [SerializeField] private int gridHeight = 4;
     
     [Header("Rooms")]
     [SerializeField] private List<Room> rooms = new();

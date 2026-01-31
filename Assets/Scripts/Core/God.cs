@@ -36,7 +36,21 @@ public class God : MonoBehaviour
     public int MaxFavor => maxFavor;
     public Mask CurrentMask => currentMask;
     public IReadOnlyList<Mask> StoredMasks => storedMasks;
+    public IReadOnlyList<Mask> Masks => storedMasks; // Alias for convenience
     public int MaskStorageRemaining => maxStoredMasks - storedMasks.Count;
+    
+    // === Initialization ===
+    
+    /// <summary>
+    /// Initialize the god with starting stats.
+    /// </summary>
+    public void Initialize(int startStrength, int startFavor)
+    {
+        maxStrength = startStrength;
+        strength = startStrength;
+        maxFavor = startFavor > 0 ? startFavor * 2 : 100;
+        favor = startFavor;
+    }
     
     // === Unity Lifecycle ===
     
@@ -164,6 +178,27 @@ public class God : MonoBehaviour
     public void SetMask(Mask mask)
     {
         currentMask = mask;
+    }
+    
+    /// <summary>
+    /// Remove a mask from storage by index.
+    /// </summary>
+    public bool RemoveMaskFromStorage(int index)
+    {
+        if (index < 0 || index >= storedMasks.Count)
+        {
+            return false;
+        }
+        storedMasks.RemoveAt(index);
+        return true;
+    }
+    
+    /// <summary>
+    /// Remove a specific mask from storage.
+    /// </summary>
+    public bool RemoveMaskFromStorage(Mask mask)
+    {
+        return storedMasks.Remove(mask);
     }
     
     /// <summary>

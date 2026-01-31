@@ -37,6 +37,24 @@ public class GameManager : MonoBehaviour
     public bool IsGameRunning => gameRunning;
     public float GameTime => gameTime;
     
+    // === Public Methods ===
+    
+    /// <summary>
+    /// Register cults with the game manager (called by GameInitializer).
+    /// </summary>
+    public void SetCults(Cult c1, Cult c2)
+    {
+        cult1 = c1;
+        cult2 = c2;
+        Debug.Log($"GameManager: Cults registered - {c1?.name}, {c2?.name}");
+        
+        // Auto-start if both cults are now assigned
+        if (cult1 != null && cult2 != null && !gameRunning)
+        {
+            StartGame();
+        }
+    }
+    
     // === Unity Lifecycle ===
     
     private void Awake()

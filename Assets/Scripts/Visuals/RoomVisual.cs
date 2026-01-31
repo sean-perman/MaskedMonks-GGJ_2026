@@ -1,0 +1,280 @@
+using UnityEngine;
+
+/// <summary>
+/// Visual representation of a room with follower count, capacity, and progress indicators.
+/// Attach this to Room GameObjects for visual feedback.
+/// </summary>
+[RequireComponent(typeof(Room))]
+public class RoomVisual : MonoBehaviour
+{
+    [Header("Visual Settings")]
+    [SerializeField] private float roomWidth = 1.8f;
+    [SerializeField] private float roomHeight = 1.4f;
+    [SerializeField] private float followerIconSize = 0.25f;
+    
+    [Header("Colors")]
+    [SerializeField] private Color sanctuaryColor = new Color(0.2f, 0.8f, 0.4f);
+    [SerializeField] private Color altarColor = new Color(0.8f, 0.6f, 0.2f);
+    [SerializeField] private Color pewsColor = new Color(0.6f, 0.6f, 0.8f);
+    [SerializeField] private Color missionColor = new Color(0.3f, 0.5f, 0.8f);
+    [SerializeField] private Color ritualColor = new Color(0.8f, 0.3f, 0.5f);
+    [SerializeField] private Color workshopColor = new Color(0.7f, 0.5f, 0.3f);
+    [SerializeField] private Color emptySlotColor = new Color(0.3f, 0.3f, 0.3f, 0.5f);
+    [SerializeField] private Color highlightColor = new Color(1f, 1f, 0.5f);
+    [SerializeField] private Color targetColor = new Color(1f, 0.3f, 0.3f);
+    
+    private Room room;
+    private SpriteRenderer backgroundSprite;
+    private SpriteRenderer progressBar;
+    private SpriteRenderer[] followerIcons;
+    private SpriteRenderer highlightBorder;
+    private TextMesh labelText;
+    
+    private bool isHighlighted = false;
+    private bool isTargeted = false;
+    
+    private void Awake()
+    {
+        room = GetComponent<Room>();
+        CreateVisuals();
+    }
+    
+    private void CreateVisuals()
+    {
+        // Background
+        var bgObj = new GameObject("Background");
+        bgObj.transform.SetParent(transform);
+        bgObj.transform.localPosition = Vector3.zero;
+        backgroundSprite = bgObj.AddComponent<SpriteRenderer>();
+        backgroundSprite.sprite = CreateSquareSprite();
+        backgroundSprite.transform.localScale = new Vector3(roomWidth, roomHeight, 1f);
+        backgroundSprite.sortingOrder = 0;
+        
+        // Highlight border
+        var borderObj = new GameObject("HighlightBorder");
+        borderObj.transform.SetParent(transform);
+        borderObj.transform.localPosition = Vector3.zero;
+        highlightBorder = borderObj.AddComponent<SpriteRenderer>();
+        highlightBorder.sprite = CreateBorderSprite();
+        highlightBorder.transform.localScale = new Vector3(roomWidth + 0.1f, roomHeight + 0.1f, 1f);
+        highlightBorder.sortingOrder = 2;
+        highlightBorder.enabled = false;
+        
+        // Progress bar background
+        var progressBgObj = new GameObject("ProgressBarBg");
+        progressBgObj.transform.SetParent(transform);
+        progressBgObj.transform.localPosition = new Vector3(0, -roomHeight / 2 + 0.15f, 0);
+        var progressBgSprite = progressBgObj.AddComponent<SpriteRenderer>();
+        progressBgSprite.sprite = CreateSquareSprite();
+        progressBgSprite.transform.localScale = new Vector3(roomWidth - 0.2f, 0.15f, 1f);
+        progressBgSprite.color = new Color(0.2f, 0.2f, 0.2f);
+        progressBgSprite.sortingOrder = 1;
+        
+        // Progress bar fill
+        var progressObj = new GameObject("ProgressBar");
+        progressObj.transform.SetParent(transform);
+        progressObj.transform.localPosition = new Vector3(-(roomWidth - 0.2f) / 2, -roomHeight / 2 + 0.15f, 0);
+        progressBar = progressObj.AddComponent<SpriteRenderer>();
+        progressBar.sprite = CreateSquareSprite();
+        progressBar.color = Color.cyan;
+        progressBar.sortingOrder = 2;
+        
+        // Label text
+        var labelObj = new GameObject("Label");
+        labelObj.transform.SetParent(transform);
+        labelObj.transform.localPosition = new Vector3(0, roomHeight / 2 - 0.2f, 0);
+        labelText = labelObj.AddComponent<TextMesh>();
+        labelText.anchor = TextAnchor.MiddleCenter;
+        labelText.alignment = TextAlignment.Center;
+        labelText.fontSize = 20;
+        labelText.characterSize = 0.1f;
+        labelText.color = Color.white;
+        
+        // Follower icons (create max capacity icons, hide unused)
+        followerIcons = new SpriteRenderer[6]; // Max possible capacity
+        for (int i = 0; i < followerIcons.Length; i++)
+        {
+            var iconObj = new GameObject($"FollowerIcon_{i}");
+            iconObj.transform.SetParent(transform);
+            float xOffset = (i - (followerIcons.Length - 1) / 2f) * (followerIconSize + 0.1f);
+            iconObj.transform.localPosition = new Vector3(xOffset, 0, 0);
+            followerIcons[i] = iconObj.AddComponent<SpriteRenderer>();
+            followerIcons[i].sprite = CreateCircleSprite();
+            followerIcons[i].transform.localScale = new Vector3(followerIconSize, followerIconSize, 1f);
+            followerIcons[i].sortingOrder = 3;
+            followerIcons[i].enabled = false;
+        }
+        
+        UpdateColor();
+    }
+    
+    private void Update()
+    {
+        if (room == null) return;
+        
+        UpdateProgressBar();
+        UpdateFollowerIcons();
+        UpdateLabel();
+    }
+    
+    private void UpdateColor()
+    {
+        if (room == null) return;
+        
+        Color color = room.Type switch
+        {
+            RoomType.Sanctuary => sanctuaryColor,
+            RoomType.Altar => altarColor,
+            RoomType.Pews => pewsColor,
+            RoomType.Mission => missionColor,
+            RoomType.RitualHall => ritualColor,
+            RoomType.Workshop => workshopColor,
+            _ => emptySlotColor
+        };
+        
+        backgroundSprite.color = color;
+    }
+    
+    private void UpdateProgressBar()
+    {
+        float progress = room.Progress;
+        float maxWidth = roomWidth - 0.2f;
+        progressBar.transform.localScale = new Vector3(maxWidth * progress, 0.15f, 1f);
+        progressBar.transform.localPosition = new Vector3(
+            -(maxWidth / 2) + (maxWidth * progress / 2),
+            -roomHeight / 2 + 0.15f,
+            0
+        );
+    }
+    
+    private void UpdateFollowerIcons()
+    {
+        int capacity = room.Capacity;
+        int followerCount = room.Followers.Count;
+        
+        for (int i = 0; i < followerIcons.Length; i++)
+        {
+            if (i < capacity)
+            {
+                followerIcons[i].enabled = true;
+                if (i < followerCount)
+                {
+                    // Filled slot - show follower commitment color
+                    var follower = room.Followers[i];
+                    followerIcons[i].color = GetCommitmentColor(follower.Commitment);
+                }
+                else
+                {
+                    // Empty slot
+                    followerIcons[i].color = new Color(0.5f, 0.5f, 0.5f, 0.3f);
+                }
+            }
+            else
+            {
+                followerIcons[i].enabled = false;
+            }
+        }
+    }
+    
+    private Color GetCommitmentColor(float commitment)
+    {
+        if (commitment < 25) return Color.red;
+        if (commitment < 50) return new Color(1f, 0.5f, 0f); // Orange
+        if (commitment < 75) return Color.yellow;
+        return Color.green;
+    }
+    
+    private void UpdateLabel()
+    {
+        string roomName = room.Type.ToString();
+        labelText.text = $"{roomName} L{room.Level}";
+        
+        if (room.Damage > 0)
+        {
+            labelText.text += $" (-{room.Damage})";
+            labelText.color = Color.red;
+        }
+        else
+        {
+            labelText.color = Color.white;
+        }
+    }
+    
+    public void SetHighlight(bool highlighted)
+    {
+        isHighlighted = highlighted;
+        UpdateBorder();
+    }
+    
+    public void SetTargeted(bool targeted)
+    {
+        isTargeted = targeted;
+        UpdateBorder();
+    }
+    
+    private void UpdateBorder()
+    {
+        if (isTargeted)
+        {
+            highlightBorder.enabled = true;
+            highlightBorder.color = targetColor;
+        }
+        else if (isHighlighted)
+        {
+            highlightBorder.enabled = true;
+            highlightBorder.color = highlightColor;
+        }
+        else
+        {
+            highlightBorder.enabled = false;
+        }
+    }
+    
+    // === Sprite Creation Helpers ===
+    
+    private Sprite CreateSquareSprite()
+    {
+        Texture2D tex = new Texture2D(1, 1);
+        tex.SetPixel(0, 0, Color.white);
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
+    }
+    
+    private Sprite CreateCircleSprite()
+    {
+        int size = 32;
+        Texture2D tex = new Texture2D(size, size);
+        float radius = size / 2f;
+        Vector2 center = new Vector2(radius, radius);
+        
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                float dist = Vector2.Distance(new Vector2(x, y), center);
+                tex.SetPixel(x, y, dist < radius ? Color.white : Color.clear);
+            }
+        }
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+    }
+    
+    private Sprite CreateBorderSprite()
+    {
+        int size = 32;
+        int borderWidth = 2;
+        Texture2D tex = new Texture2D(size, size);
+        
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                bool isBorder = x < borderWidth || x >= size - borderWidth ||
+                               y < borderWidth || y >= size - borderWidth;
+                tex.SetPixel(x, y, isBorder ? Color.white : Color.clear);
+            }
+        }
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+    }
+}

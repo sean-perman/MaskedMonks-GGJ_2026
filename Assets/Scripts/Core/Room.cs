@@ -186,6 +186,15 @@ public abstract class Room : MonoBehaviour
     }
     
     /// <summary>
+    /// Upgrade the room by one level. Alias for IncreaseLevel(1).
+    /// </summary>
+    public void Upgrade()
+    {
+        IncreaseLevel(1);
+        Debug.Log($"{type} upgraded to level {level}");
+    }
+    
+    /// <summary>
     /// Set the duration threshold for triggering the room effect.
     /// </summary>
     public virtual void SetDuration(float newDuration)
