@@ -229,8 +229,26 @@ MonoBehaviour:
   startingFollowers: 5
   startingGodStrength: 100
   startingGodFavor: 50
-  startingMoney: 100
+  startingMoney: 0
+  startingMaxMoney: 10
   gameManager: {fileID: 0}
+  cultPrefab: {fileID: 0}
+  godPrefab: {fileID: 0}
+  churchPrefab: {fileID: 0}
+  followerPrefab: {fileID: 0}
+  sanctuaryRoomPrefab: {fileID: 0}
+  altarRoomPrefab: {fileID: 0}
+  pewsRoomPrefab: {fileID: 0}
+  missionRoomPrefab: {fileID: 0}
+  ritualHallRoomPrefab: {fileID: 0}
+  workshopRoomPrefab: {fileID: 0}
+  fundraisingRoomPrefab: {fileID: 0}
+  emptySlotPrefab: {fileID: 0}
+  marketplacePrefab: {fileID: 0}
+  backgroundPrefab: {fileID: 0}
+  cursorPrefab: {fileID: 0}
+  playerControllerPrefab: {fileID: 0}
+  controlsMenuPrefab: {fileID: 0}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
