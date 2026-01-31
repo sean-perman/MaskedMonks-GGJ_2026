@@ -1,3 +1,12 @@
 ﻿<Solution>
+<<<<<<< Updated upstream
+  <Project Path="FMODUnityEditor.csproj" />
+  <Project Path="FMODUnityResonanceEditor.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="FMODUnity.csproj" />
+  <Project Path="FMODUnityHaptics.csproj" />
+  <Project Path="FMODUnityResonance.csproj" />
+=======
+  <Project Path="Assembly-CSharp.csproj" />
+>>>>>>> Stashed changes
 </Solution>
