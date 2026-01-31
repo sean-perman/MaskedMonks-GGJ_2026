@@ -1,8 +1,13 @@
 using UnityEngine;
 
 /// <summary>
-/// Visual representation of a room with follower count, capacity, and progress indicators.
+/// Visual representation of a room with follower count, capacity, progress, and level indicators.
 /// Attach this to Room GameObjects for visual feedback.
+/// 
+/// Level is shown as circles in the top-right corner:
+/// - Filled circles = current level
+/// - Empty/greyed circles = potential upgrade slots
+/// - Red outline on circles = damage levels
 /// </summary>
 [RequireComponent(typeof(Room))]
 public class RoomVisual : MonoBehaviour
@@ -11,6 +16,9 @@ public class RoomVisual : MonoBehaviour
     [SerializeField] private float roomWidth = 1.8f;
     [SerializeField] private float roomHeight = 1.4f;
     [SerializeField] private float followerIconSize = 0.25f;
+    [SerializeField] private float levelPipSize = 0.12f;
+    [SerializeField] private float levelPipSpacing = 0.04f;
+    [SerializeField] private int maxLevelDisplay = 5;
     
     [Header("Colors")]
     [SerializeField] private Color sanctuaryColor = new Color(0.2f, 0.8f, 0.4f);
@@ -22,6 +30,9 @@ public class RoomVisual : MonoBehaviour
     [SerializeField] private Color emptySlotColor = new Color(0.3f, 0.3f, 0.3f, 0.5f);
     [SerializeField] private Color highlightColor = new Color(1f, 1f, 0.5f);
     [SerializeField] private Color targetColor = new Color(1f, 0.3f, 0.3f);
+    [SerializeField] private Color levelFilledColor = new Color(0.9f, 0.9f, 0.9f);
+    [SerializeField] private Color levelEmptyColor = new Color(0.4f, 0.4f, 0.4f, 0.5f);
+    [SerializeField] private Color damageOutlineColor = new Color(1f, 0.2f, 0.2f);
     
     private Room room;
     private SpriteRenderer backgroundSprite;
@@ -29,6 +40,7 @@ public class RoomVisual : MonoBehaviour
     private SpriteRenderer[] followerIcons;
     private SpriteRenderer highlightBorder;
     private TextMesh labelText;
+    private LevelPipVisual[] levelPips;
     
     private bool isHighlighted = false;
     private bool isTargeted = false;
@@ -105,7 +117,32 @@ public class RoomVisual : MonoBehaviour
             followerIcons[i].enabled = false;
         }
         
+        // Level pips (top-right corner)
+        CreateLevelPips();
+        
         UpdateColor();
+    }
+    
+    private void CreateLevelPips()
+    {
+        levelPips = new LevelPipVisual[maxLevelDisplay];
+        
+        float startX = roomWidth / 2 - levelPipSize / 2 - 0.05f;
+        float startY = roomHeight / 2 - levelPipSize / 2 - 0.05f;
+        
+        for (int i = 0; i < maxLevelDisplay; i++)
+        {
+            var pipObj = new GameObject($"LevelPip_{i}");
+            pipObj.transform.SetParent(transform);
+            pipObj.transform.localPosition = new Vector3(
+                startX - i * (levelPipSize + levelPipSpacing),
+                startY,
+                0
+            );
+            
+            levelPips[i] = new LevelPipVisual();
+            levelPips[i].Create(pipObj.transform, levelPipSize);
+        }
     }
     
     private void Update()
@@ -115,6 +152,7 @@ public class RoomVisual : MonoBehaviour
         UpdateProgressBar();
         UpdateFollowerIcons();
         UpdateLabel();
+        UpdateLevelPips();
     }
     
     private void UpdateColor()
@@ -187,16 +225,23 @@ public class RoomVisual : MonoBehaviour
     private void UpdateLabel()
     {
         string roomName = room.Type.ToString();
-        labelText.text = $"{roomName} L{room.Level}";
+        labelText.text = roomName;
+        labelText.color = Color.white;
+    }
+    
+    private void UpdateLevelPips()
+    {
+        int level = room.Level;
+        int damage = room.Damage;
         
-        if (room.Damage > 0)
+        for (int i = 0; i < levelPips.Length; i++)
         {
-            labelText.text += $" (-{room.Damage})";
-            labelText.color = Color.red;
-        }
-        else
-        {
-            labelText.color = Color.white;
+            if (i < maxLevelDisplay)
+            {
+                bool isFilled = i < level;
+                bool isDamaged = i >= (level - damage) && i < level;
+                levelPips[i].SetState(isFilled, isDamaged, levelFilledColor, levelEmptyColor, damageOutlineColor);
+            }
         }
     }
     
@@ -276,5 +321,84 @@ public class RoomVisual : MonoBehaviour
         }
         tex.Apply();
         return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+    }
+    
+    /// <summary>
+    /// Helper class for level pip visualization.
+    /// Shows filled/empty circles with optional red damage outline.
+    /// </summary>
+    private class LevelPipVisual
+    {
+        private SpriteRenderer fill;
+        private SpriteRenderer outline;
+        
+        public void Create(Transform parent, float size)
+        {
+            // Outline (slightly larger, behind fill)
+            var outlineObj = new GameObject("Outline");
+            outlineObj.transform.SetParent(parent);
+            outlineObj.transform.localPosition = Vector3.zero;
+            outline = outlineObj.AddComponent<SpriteRenderer>();
+            outline.sprite = CreateCircleOutlineSprite();
+            outline.transform.localScale = new Vector3(size * 1.3f, size * 1.3f, 1f);
+            outline.sortingOrder = 4;
+            outline.enabled = false;
+            
+            // Fill circle
+            var fillObj = new GameObject("Fill");
+            fillObj.transform.SetParent(parent);
+            fillObj.transform.localPosition = Vector3.zero;
+            fill = fillObj.AddComponent<SpriteRenderer>();
+            fill.sprite = CreateFilledCircleSprite();
+            fill.transform.localScale = new Vector3(size, size, 1f);
+            fill.sortingOrder = 5;
+        }
+        
+        public void SetState(bool isFilled, bool isDamaged, Color filledColor, Color emptyColor, Color damageColor)
+        {
+            fill.color = isFilled ? filledColor : emptyColor;
+            outline.enabled = isDamaged;
+            outline.color = damageColor;
+        }
+        
+        private static Sprite CreateFilledCircleSprite()
+        {
+            int size = 32;
+            Texture2D tex = new Texture2D(size, size);
+            float radius = size / 2f;
+            Vector2 center = new Vector2(radius, radius);
+            
+            for (int x = 0; x < size; x++)
+            {
+                for (int y = 0; y < size; y++)
+                {
+                    float dist = Vector2.Distance(new Vector2(x, y), center);
+                    tex.SetPixel(x, y, dist < radius - 1 ? Color.white : Color.clear);
+                }
+            }
+            tex.Apply();
+            return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        }
+        
+        private static Sprite CreateCircleOutlineSprite()
+        {
+            int size = 32;
+            Texture2D tex = new Texture2D(size, size);
+            float radius = size / 2f;
+            float innerRadius = radius - 3f;
+            Vector2 center = new Vector2(radius, radius);
+            
+            for (int x = 0; x < size; x++)
+            {
+                for (int y = 0; y < size; y++)
+                {
+                    float dist = Vector2.Distance(new Vector2(x, y), center);
+                    bool isRing = dist < radius && dist > innerRadius;
+                    tex.SetPixel(x, y, isRing ? Color.white : Color.clear);
+                }
+            }
+            tex.Apply();
+            return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        }
     }
 }

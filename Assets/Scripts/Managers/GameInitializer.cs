@@ -300,6 +300,12 @@ public class GameInitializer : MonoBehaviour
         }
         godObj.transform.localPosition = new Vector3(0, 5f, 0); // Position above church
         
+        // Add GodVisual if not present
+        if (godObj.GetComponent<GodVisual>() == null)
+        {
+            godObj.AddComponent<GodVisual>();
+        }
+        
         // Initialize with starting stats
         god.Initialize(startingGodStrength, startingGodFavor);
         
