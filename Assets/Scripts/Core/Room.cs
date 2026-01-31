@@ -16,9 +16,15 @@ public abstract class Room : MonoBehaviour
     [SerializeField] protected int damage = 0;
     [SerializeField] protected float duration = 10f; // Seconds of work needed to trigger
     
+    [Header("Damage Settings")]
+    [SerializeField] protected float commitmentDamagePerLevel = 15f; // Commitment hit when damaged
+    [SerializeField] protected float repairRatePerFollowerPerSecond = 0.1f; // Repair progress per follower per second
+    [SerializeField] protected float repairThreshold = 1f; // Accumulated repair needed to fix one level
+    
     [Header("Runtime State")]
     [SerializeField] protected float clock = 0f;
     [SerializeField] protected List<Follower> followers = new();
+    [SerializeField] protected float repairProgress = 0f; // Accumulator for repair
     
     /// <summary>Reference to the church this room belongs to.</summary>
     protected Church church;
@@ -38,9 +44,14 @@ public abstract class Room : MonoBehaviour
     
     /// <summary>
     /// Maximum number of followers this room can hold.
-    /// Capacity = Level - Damage (minimum 0).
+    /// Capacity equals Level (damage doesn't reduce capacity, but damaged slots need repair).
     /// </summary>
-    public int Capacity => Mathf.Max(0, level - damage);
+    public int Capacity => level;
+    
+    /// <summary>
+    /// Number of undamaged slots (functional capacity).
+    /// </summary>
+    public int FunctionalCapacity => Mathf.Max(0, level - damage);
     
     /// <summary>
     /// Whether this room has space for more followers.
@@ -84,6 +95,12 @@ public abstract class Room : MonoBehaviour
         if (followers.Count > 0)
         {
             AccumulateClock();
+            
+            // If room is damaged, followers work to repair it
+            if (damage > 0)
+            {
+                AccumulateRepair();
+            }
         }
     }
     
@@ -109,6 +126,31 @@ public abstract class Room : MonoBehaviour
     /// Override in subclasses to implement room-specific effects.
     /// </summary>
     protected abstract void OnClockTrigger();
+    
+    // === Repair System ===
+    
+    /// <summary>
+    /// Accumulate repair progress based on follower count.
+    /// When enough progress is accumulated, repair one level of damage.
+    /// </summary>
+    protected virtual void AccumulateRepair()
+    {
+        if (damage <= 0) return;
+        
+        repairProgress += followers.Count * repairRatePerFollowerPerSecond * Time.deltaTime;
+        
+        if (repairProgress >= repairThreshold)
+        {
+            RepairDamage(1);
+            repairProgress = 0f;
+            Debug.Log($"{type} at {location} repaired! Damage now: {damage}");
+        }
+    }
+    
+    /// <summary>
+    /// Get the current repair progress as a percentage (0-1).
+    /// </summary>
+    public float RepairProgress => damage > 0 ? Mathf.Clamp01(repairProgress / repairThreshold) : 0f;
     
     // === Follower Management ===
     
@@ -153,20 +195,28 @@ public abstract class Room : MonoBehaviour
     // === Damage & Upgrades ===
     
     /// <summary>
-    /// Apply damage to the room, reducing effective capacity.
-    /// Excess followers are ejected if capacity drops below current count.
+    /// Apply damage to the room.
+    /// Followers inside take a commitment hit that scales with damage.
+    /// Followers can still occupy damaged slots to repair them.
     /// </summary>
     public virtual void TakeDamage(int amount = 1)
     {
+        int previousDamage = damage;
         damage += amount;
         
-        // Eject excess followers if capacity dropped
-        while (followers.Count > Capacity && followers.Count > 0)
+        // Cap damage at level (can't have more damage than levels)
+        damage = Mathf.Min(damage, level);
+        
+        // Apply commitment damage to all followers in the room
+        // Scales with the amount of damage taken
+        float commitmentHit = commitmentDamagePerLevel * amount;
+        foreach (var follower in followers)
         {
-            var excessFollower = followers[followers.Count - 1];
-            RemoveFollower(excessFollower);
-            // TODO: Move ejected follower somewhere (Sanctuary?)
+            follower.DecayCommitment(commitmentHit);
+            Debug.Log($"Follower in {type} took {commitmentHit} commitment damage from room damage!");
         }
+        
+        Debug.Log($"{type} at {location} took {amount} damage! Total damage: {damage}");
     }
     
     /// <summary>
@@ -175,6 +225,12 @@ public abstract class Room : MonoBehaviour
     public virtual void RepairDamage(int amount = 1)
     {
         damage = Mathf.Max(0, damage - amount);
+        
+        // Reset repair progress if fully repaired
+        if (damage <= 0)
+        {
+            repairProgress = 0f;
+        }
     }
     
     /// <summary>

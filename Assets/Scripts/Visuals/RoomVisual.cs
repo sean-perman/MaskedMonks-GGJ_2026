@@ -33,10 +33,12 @@ public class RoomVisual : MonoBehaviour
     [SerializeField] private Color levelFilledColor = new Color(0.9f, 0.9f, 0.9f);
     [SerializeField] private Color levelEmptyColor = new Color(0.4f, 0.4f, 0.4f, 0.5f);
     [SerializeField] private Color damageOutlineColor = new Color(1f, 0.2f, 0.2f);
+    [SerializeField] private Color repairBarColor = new Color(0.3f, 0.8f, 0.3f);
     
     private Room room;
     private SpriteRenderer backgroundSprite;
     private SpriteRenderer progressBar;
+    private SpriteRenderer repairBar;
     private SpriteRenderer[] followerIcons;
     private SpriteRenderer highlightBorder;
     private TextMesh labelText;
@@ -90,6 +92,16 @@ public class RoomVisual : MonoBehaviour
         progressBar.sprite = CreateSquareSprite();
         progressBar.color = Color.cyan;
         progressBar.sortingOrder = 2;
+        
+        // Repair bar (shown above progress bar when room is damaged)
+        var repairObj = new GameObject("RepairBar");
+        repairObj.transform.SetParent(transform);
+        repairObj.transform.localPosition = new Vector3(-(roomWidth - 0.2f) / 2, -roomHeight / 2 + 0.35f, 0);
+        repairBar = repairObj.AddComponent<SpriteRenderer>();
+        repairBar.sprite = CreateSquareSprite();
+        repairBar.color = repairBarColor;
+        repairBar.sortingOrder = 2;
+        repairBar.enabled = false;
         
         // Label text
         var labelObj = new GameObject("Label");
@@ -150,6 +162,7 @@ public class RoomVisual : MonoBehaviour
         if (room == null) return;
         
         UpdateProgressBar();
+        UpdateRepairBar();
         UpdateFollowerIcons();
         UpdateLabel();
         UpdateLevelPips();
@@ -183,6 +196,28 @@ public class RoomVisual : MonoBehaviour
             -roomHeight / 2 + 0.15f,
             0
         );
+    }
+    
+    private void UpdateRepairBar()
+    {
+        // Only show repair bar when room is damaged
+        if (room.Damage > 0)
+        {
+            repairBar.enabled = true;
+            
+            float progress = room.RepairProgress;
+            float maxWidth = roomWidth - 0.2f;
+            repairBar.transform.localScale = new Vector3(maxWidth * progress, 0.1f, 1f);
+            repairBar.transform.localPosition = new Vector3(
+                -(maxWidth / 2) + (maxWidth * progress / 2),
+                -roomHeight / 2 + 0.35f,
+                0
+            );
+        }
+        else
+        {
+            repairBar.enabled = false;
+        }
     }
     
     private void UpdateFollowerIcons()

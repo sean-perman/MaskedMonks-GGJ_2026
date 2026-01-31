@@ -60,9 +60,16 @@ public class GameTester : MonoBehaviour
         Debug.Log("F8 = Spawn follower for Cult 2");
         Debug.Log("F9 = Damage random room (Cult 1)");
         Debug.Log("F10 = Trigger god combat manually");
+        Debug.Log("F11 = Damage random room (Cult 2)");
+        Debug.Log("F12 = Toggle Debug Dashboard");
+        Debug.Log("");
+        Debug.Log("--- ROOM DAMAGE KEYS (Numpad) ---");
+        Debug.Log("Numpad 7 = Damage Cult 1 selected room");
+        Debug.Log("Numpad 8 = Repair Cult 1 selected room");
+        Debug.Log("Numpad 4 = Damage Cult 2 selected room");
+        Debug.Log("Numpad 5 = Repair Cult 2 selected room");
         Debug.Log("");
         Debug.Log("--- UI KEYS ---");
-        Debug.Log("F12 = Toggle Debug Dashboard");
         Debug.Log("` (backtick) = Toggle Debug Console");
         Debug.Log("Escape = Controls Menu");
         Debug.Log("==========================");
@@ -86,6 +93,13 @@ public class GameTester : MonoBehaviour
         
         // Room tests
         if (Input.GetKeyDown(KeyCode.F9)) TestDamageRoom(1);
+        if (Input.GetKeyDown(KeyCode.F11)) TestDamageRoom(2);
+        
+        // Room damage/repair with numpad (uses player cursor position)
+        if (Input.GetKeyDown(KeyCode.Keypad7)) TestDamageSelectedRoom(1);
+        if (Input.GetKeyDown(KeyCode.Keypad8)) TestRepairSelectedRoom(1);
+        if (Input.GetKeyDown(KeyCode.Keypad4)) TestDamageSelectedRoom(2);
+        if (Input.GetKeyDown(KeyCode.Keypad5)) TestRepairSelectedRoom(2);
         
         // Combat tests
         if (Input.GetKeyDown(KeyCode.F10)) TestGodCombat();
@@ -202,6 +216,58 @@ public class GameTester : MonoBehaviour
         randomRoom.TakeDamage(1);
         
         Debug.Log($"[TEST] Damaged {randomRoom.Type} in Cult {cultNumber}. Damage: {randomRoom.Damage}, Capacity: {randomRoom.Capacity}");
+    }
+    
+    private void TestDamageSelectedRoom(int cultNumber)
+    {
+        var controller = GetPlayerController(cultNumber);
+        if (controller == null)
+        {
+            Debug.LogWarning($"Player {cultNumber} controller not found!");
+            return;
+        }
+        
+        var room = controller.GetSelectedRoom();
+        if (room == null)
+        {
+            Debug.LogWarning($"No room selected for Player {cultNumber}!");
+            return;
+        }
+        
+        room.TakeDamage(1);
+        Debug.Log($"[TEST] Damaged {room.Type} at {room.Location}. Damage: {room.Damage}, Capacity: {room.Capacity}");
+    }
+    
+    private void TestRepairSelectedRoom(int cultNumber)
+    {
+        var controller = GetPlayerController(cultNumber);
+        if (controller == null)
+        {
+            Debug.LogWarning($"Player {cultNumber} controller not found!");
+            return;
+        }
+        
+        var room = controller.GetSelectedRoom();
+        if (room == null)
+        {
+            Debug.LogWarning($"No room selected for Player {cultNumber}!");
+            return;
+        }
+        
+        if (room.Damage <= 0)
+        {
+            Debug.Log($"[TEST] {room.Type} at {room.Location} has no damage to repair!");
+            return;
+        }
+        
+        room.RepairDamage(1);
+        Debug.Log($"[TEST] Repaired {room.Type} at {room.Location}. Damage: {room.Damage}, Capacity: {room.Capacity}");
+    }
+    
+    private PlayerController GetPlayerController(int playerNumber)
+    {
+        if (initializer == null) return null;
+        return playerNumber == 1 ? initializer.Player1Controller : initializer.Player2Controller;
     }
     
     private void TestGodCombat()
