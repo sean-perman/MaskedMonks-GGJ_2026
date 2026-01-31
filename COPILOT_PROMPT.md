@@ -1,6 +1,26 @@
-# Masked Gods - Code Generation Prompt
+# Masked Gods - Game Documentation
 
-You are helping build a Unity game called "Masked Gods" - a real-time competitive cult management game for two players using controllers on a shared screen.
+## Current Implementation Status (January 2026)
+
+### ✅ COMPLETED SYSTEMS
+- **Core Classes**: Cult, God, Church, Room, Follower, Mask - all implemented
+- **Room Types**: Sanctuary, Altar, Pews, Mission, RitualHall, Workshop - all with clock/trigger logic
+- **Game Loop**: Win/loss detection, god combat timer, commitment decay
+- **Input System**: Keyboard controls for 2 players, rebindable via in-game menu
+- **Visual Systems**: Room visuals, cursor/targeting, debug dashboard
+- **Marketplace**: Citizen spawning, abandoned follower return
+
+### 🔄 IN PROGRESS
+- Controller support (currently keyboard only)
+- Room building with Architecture masks
+
+### ❌ NOT YET IMPLEMENTED
+- Audio system / Sound effects
+- Visual polish / Animations
+- Main menu / Game over screens
+- Save/load system
+
+---
 
 ## Game Overview
 
@@ -13,8 +33,6 @@ A player loses if ANY of these reach zero:
 - **Favor** (god's goodwill toward the cult)
 - **God Strength** (god's health)
 
-To win, reduce any one of your opponent's three resources to zero.
-
 ### Core Loop
 
 1. Followers are assigned to rooms
@@ -22,203 +40,8 @@ To win, reduce any one of your opponent's three resources to zero.
 3. When a room's progress reaches its duration threshold, it triggers an effect and resets
 4. Followers lose commitment over time while working (except in Sanctuary and Pews)
 5. Followers at zero commitment abandon the cult and return to the neutral Marketplace
-6. Gods attack each other automatically every few seconds (damage based on Strength)
+6. Gods attack each other automatically every 5 seconds (damage = Strength / 10)
 7. Players activate masks by spending Favor to trigger powerful effects
-
-### Room Types
-
-- **Sanctuary**: Followers recover commitment. No decay. Hub for reassigning followers.
-- **Altar**: Generates God Strength when triggered. Followers decay commitment.
-- **Pews**: Generates Favor when triggered. Followers do NOT decay commitment.
-- **Mission**: Recruits a citizen from the Marketplace when triggered. Followers decay commitment.
-- **Ritual Hall**: Generates a new Mask when triggered. Followers decay commitment.
-
-### Masks
-
-Masks are one-use abilities. Gods can wear one mask at a time (active effect) and store additional masks. Masks have:
-- A type (determines effect)
-- A duration (how long the effect lasts, or instant)
-- A shelf life (how long before it decays in storage)
-- A cost (Favor required, and optionally a follower sacrifice)
-
-Masks can target: nothing (global), an enemy room, or the player's own room.
-
----
-
-## Class Specifications
-
-Generate Unity C# scripts for the following classes. Use the exact field names and method signatures specified. Add appropriate Unity attributes, serialization, and documentation comments.
-
-### Cult
-
-The top-level container for one player's game state.
-
-**Fields:**
-- `God` : God - The deity this cult worships
-- `Church` : Church - The building containing rooms
-- `Followers` : List<Follower> - All followers belonging to this cult
-
-**Methods:**
-- `AddFollower()` - Add a new follower to the cult
-- `RemoveFollower()` - Remove a follower from the cult (when they die or abandon)
-
----
-
-### God
-
-The floating deity above each church. Handles combat and mask management.
-
-**Fields:**
-- `Strength` : int - Health and attack power (higher = more damage dealt)
-- `Mask` : Mask - Currently worn mask (can be null)
-- `Masks` : List<Mask> - Masks in storage, available to equip
-- `Favor` : int - Resource spent to activate masks; loss condition if zero
-
-**Methods:**
-- `SetMask()` - Equip a mask from storage (replaces current mask)
-- `IncreaseStrength()` - Add to god's strength (from Altar)
-- `DecreaseStrength()` - Reduce god's strength (from enemy attacks/masks)
-
----
-
-### Church
-
-Container for the room layout.
-
-**Fields:**
-- `Rooms` : List<Room> - All rooms in this church
-
-**Methods:**
-- `AddRoom()` - Add a room to the church (used during setup)
-
----
-
-### Room
-
-A location where followers work. Base class - consider making abstract with subclasses per room type.
-
-**Fields:**
-- `Level` : int - Upgrade tier (affects capacity and effect strength)
-- `Damage` : int - Current damage level (reduces effective capacity)
-- `Type` : RoomType (struct/enum) - What kind of room this is
-- `Followers` : List<Follower> - Followers currently assigned to this room
-- `Location` : Tuple<int, int> or Vector2Int - Grid position in the church
-- `Duration` : float - Clock threshold (pawn-seconds needed to trigger effect)
-
-**Methods:**
-- `TakeDamage()` - Increase damage level (from enemy mask attacks)
-- `IncreaseLevel()` - Upgrade the room
-- `AddFollower()` - Assign a follower to this room
-- `RemoveFollower()` - Remove a follower from this room
-- `SetDuration()` - Modify the clock threshold
-- `ReduceDamage()` - Repair damage to the room
-
-**Additional logic needed:**
-- Clock accumulation: each Update, add `assignedFollowers.Count * Time.deltaTime` to internal clock
-- When clock >= Duration, trigger room effect and reset clock
-- Capacity = Level - Damage (cannot add followers beyond capacity)
-
----
-
-### Follower
-
-A single cultist that can be assigned to rooms.
-
-**Fields:**
-- `Commitment` : int - Loyalty level (0-100). At zero, follower abandons cult.
-
-**Methods:**
-- `DecayLevel()` - Reduce commitment (called each frame when working in most rooms)
-- `IncreaseLevel()` - Increase commitment (called when in Sanctuary)
-
-**Additional logic needed:**
-- Reference to current Room assignment
-- Reference to owning Cult
-- When Commitment reaches 0, trigger abandonment (remove from cult, add to Marketplace)
-
----
-
-### Mask
-
-A one-use ability that can be equipped by a god.
-
-**Fields:**
-- `Type` : MaskType (struct/enum) - Determines what effect this mask has
-- `Duration` : float - How long the effect lasts when worn (0 = instant)
-- `ShelfLife` : float - Time remaining before this mask decays in storage
-- `Cost` : Tuple<int, int> or (int favor, int sacrifice) - Resources required to activate
-
-**Additional logic needed:**
-- Method to check if player can afford this mask
-- Method to apply the mask's effect based on Type
-- Shelf life should tick down while in storage; at zero, mask is destroyed
-
----
-
-## Enums/Structs Needed
-
-### RoomType
-```csharp
-public enum RoomType
-{
-    Sanctuary,
-    Altar,
-    Pews,
-    Mission,
-    RitualHall
-}
-```
-
-### MaskType
-```csharp
-public enum MaskType
-{
-    Smiting,      // Damage followers in target enemy room
-    Wrath,        // Direct damage to enemy god strength
-    Whispers,     // Reduce commitment in target enemy room
-    Sanctuary,    // Boost commitment in target own room
-    Plenty,       // Instant favor gain
-    Sacrifice     // Sacrifice follower to heal god strength
-}
-```
-
-### MaskTargetType
-```csharp
-public enum MaskTargetType
-{
-    None,         // Global effect, no targeting needed
-    EnemyRoom,    // Must select an enemy room
-    OwnRoom       // Must select one of your own rooms
-}
-```
-
----
-
-## Additional Systems Needed
-
-### GameManager
-Singleton that owns game state, runs the update loop, and checks win/loss conditions.
-- References to both Cult instances
-- Reference to Marketplace
-- Game timer
-- Win/loss detection each frame
-
-### Marketplace
-Central area where neutral citizens spawn.
-- List of available citizens
-- Spawn timer (one citizen every ~10 seconds)
-- Max capacity (spawning pauses when full)
-- Method to remove a citizen (when recruited)
-- Abandoned followers return here
-
-### InputHandler
-Reads controller input for one player and translates to game actions.
-- Left stick: navigate own church rooms
-- Right stick: target enemy rooms (during mask targeting)
-- A button: select/confirm
-- B button: cancel
-- Plus button: assign follower from Sanctuary
-- D-pad: activate mask slots
 
 ---
 
@@ -227,39 +50,498 @@ Reads controller input for one player and translates to game actions.
 ```
 Assets/Scripts/
 ├── Core/
-│   ├── Cult.cs
-│   ├── God.cs
-│   ├── Church.cs
-│   ├── Room.cs
-│   ├── Follower.cs
-│   └── Mask.cs
+│   ├── Cult.cs           - Top-level player container
+│   ├── God.cs            - Deity with strength/favor/masks
+│   ├── Church.cs         - Room grid container (3x4)
+│   ├── Room.cs           - Abstract base for all rooms
+│   ├── Follower.cs       - Cultist with commitment
+│   ├── Mask.cs           - One-use ability
+│   └── RoomSlot.cs       - Empty buildable slot
+├── Rooms/
+│   ├── SanctuaryRoom.cs  - Commitment recovery
+│   ├── AltarRoom.cs      - God strength generation
+│   ├── PewsRoom.cs       - Favor generation
+│   ├── MissionRoom.cs    - Citizen recruitment
+│   ├── RitualHallRoom.cs - Mask generation
+│   └── WorkshopRoom.cs   - Money generation
 ├── Enums/
 │   ├── RoomType.cs
-│   └── MaskType.cs
-├── Rooms/
-│   ├── SanctuaryRoom.cs
-│   ├── AltarRoom.cs
-│   ├── PewsRoom.cs
-│   ├── MissionRoom.cs
-│   └── RitualHallRoom.cs
+│   ├── MaskType.cs
+│   └── MaskTargetType.cs
 ├── Managers/
-│   ├── GameManager.cs
-│   └── Marketplace.cs
-└── Input/
-    └── InputHandler.cs
+│   ├── GameManager.cs    - Singleton, game loop
+│   ├── GameInitializer.cs - Scene setup
+│   ├── Marketplace.cs    - Neutral citizen pool
+│   └── GameActions.cs    - Static utility methods
+├── Input/
+│   ├── PlayerController.cs - Per-player input handling
+│   └── InputHandler.cs     - (Legacy) controller input
+├── Visuals/
+│   ├── RoomVisual.cs     - Room display component
+│   └── CursorVisual.cs   - Selection highlight
+├── UI/
+│   └── ControlsMenu.cs   - Rebindable controls menu
+├── Debug/
+│   ├── DebugDashboard.cs - IMGUI overlay (F12)
+│   ├── DebugConsole.cs   - Log display (`)
+│   └── ...StatusDisplay.cs files
+└── Testing/
+    └── GameTester.cs     - F-key test functions
 ```
 
 ---
 
-## Implementation Notes
+## Complete API Reference
 
-1. Use `[SerializeField]` for private fields that need inspector access
-2. Use ScriptableObjects for room/mask data definitions if time permits
-3. Room subclasses should override a virtual `OnClockTrigger()` method
-4. Follower commitment decay rate: ~1 per second while working
-5. Sanctuary recovery rate: ~2 per second
-6. God attack interval: ~5 seconds
-7. God attack damage: `Strength / 10` (minimum 1)
-8. Starting values: 5 followers, 50 favor, 100 god strength
+### Cult (MonoBehaviour)
+Container for one player's game state.
 
-Generate clean, well-documented C# code following Unity conventions. Include TODO comments for areas that need game-specific tuning or additional implementation.
+| Property | Type | Description |
+|----------|------|-------------|
+| `god` | God | The deity (public field) |
+| `church` | Church | The building (public field) |
+| `Followers` | IReadOnlyList<Follower> | All followers |
+| `FollowerCount` | int | Number of followers |
+| `Money` | float | Currency resource |
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `AddFollower(Follower)` | void | Add follower to cult |
+| `RemoveFollower(Follower)` | void | Remove follower |
+| `GetFollowersInSanctuary()` | List<Follower> | Followers in sanctuary |
+| `AddMoney(float)` | void | Add currency |
+| `SpendMoney(float)` | bool | Spend currency (returns success) |
+
+---
+
+### God (MonoBehaviour)
+The floating deity with combat and mask management.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Strength` | int | Health and attack power |
+| `MaxStrength` | int | Maximum strength |
+| `Favor` | int | Mask activation resource |
+| `MaxFavor` | int | Maximum favor |
+| `CurrentMask` | Mask | Currently worn mask |
+| `Masks` / `StoredMasks` | IReadOnlyList<Mask> | Masks in storage (max 4) |
+| `MaskStorageRemaining` | int | Empty mask slots |
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `Initialize(int strength, int favor)` | void | Set starting stats |
+| `IncreaseStrength(int)` | void | Heal god |
+| `DecreaseStrength(int)` | void | Damage god |
+| `IncreaseFavor(int)` | void | Add favor |
+| `DecreaseFavor(int)` | void | Spend/lose favor |
+| `CanAffordFavor(int)` | bool | Check if can afford cost |
+| `AddMaskToStorage(Mask)` | bool | Store a mask |
+| `SetMask(int index)` | bool | Equip mask from storage |
+| `SetMask(Mask)` | void | Equip mask directly |
+| `RemoveMaskFromStorage(int)` | bool | Remove by index |
+| `RemoveMaskFromStorage(Mask)` | bool | Remove by reference |
+| `ClearMask()` | void | Unequip current mask |
+| `SetBleed(float dps)` | void | Apply damage over time |
+| `SetRegen(float hps)` | void | Apply healing over time |
+
+---
+
+### Church (MonoBehaviour)
+Container for the 3x4 room grid.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `GridWidth` | int | 3 columns |
+| `GridHeight` | int | 4 rows |
+| `Rooms` | IReadOnlyList<Room> | All built rooms |
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `Initialize(Cult)` | void | Link to owning cult |
+| `AddRoom(Room, Vector2Int)` | bool | Place room at position |
+| `RemoveRoom(Room)` | bool | Remove a room |
+| `GetRoomAt(Vector2Int)` | Room | Get room at grid position |
+| `GetRoomAt(int x, int y)` | Room | Get room at coordinates |
+| `IsValidPosition(Vector2Int)` | bool | Check if position in bounds |
+| `GetEmptyPositions()` | List<Vector2Int> | Get buildable positions |
+| `GetRoomOfType(RoomType)` | Room | Find first room of type |
+| `GetRoomsOfType(RoomType)` | List<Room> | Find all rooms of type |
+
+---
+
+### Room (MonoBehaviour, Abstract)
+Base class for all room types.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Type` | RoomType | Room type enum |
+| `Location` | Vector2Int | Grid position |
+| `Level` | int | Upgrade tier (affects capacity) |
+| `Damage` | int | Current damage |
+| `Duration` | float | Seconds to trigger effect |
+| `Clock` | float | Current progress |
+| `Progress` | float | Clock/Duration (0-1) |
+| `Followers` | IReadOnlyList<Follower> | Assigned followers |
+| `Capacity` | int | Level - Damage (min 0) |
+| `HasSpace` | bool | Can accept more followers |
+| `CausesCommitmentDecay` | bool | Virtual, override in subclass |
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `Initialize(Church, Cult, Vector2Int)` | void | Setup references |
+| `AddFollower(Follower)` | bool | Assign follower |
+| `RemoveFollower(Follower)` | bool | Unassign follower |
+| `TakeDamage(int)` | void | Apply damage |
+| `RepairDamage(int)` | void | Repair damage |
+| `IncreaseLevel(int)` | void | Upgrade level |
+| `Upgrade()` | void | Shortcut for IncreaseLevel(1) |
+| `SetDuration(float)` | void | Change clock threshold |
+| `OnClockTrigger()` | void | **Abstract** - effect logic |
+
+**Room Subclasses:**
+- `SanctuaryRoom` - `CausesCommitmentDecay = false`, recovers commitment
+- `AltarRoom` - Triggers `god.IncreaseStrength()`
+- `PewsRoom` - `CausesCommitmentDecay = false`, triggers `god.IncreaseFavor()`
+- `MissionRoom` - Recruits citizen from Marketplace
+- `RitualHallRoom` - Generates random Mask
+- `WorkshopRoom` - Generates Money
+
+---
+
+### Follower (MonoBehaviour)
+A single cultist with loyalty tracking.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Commitment` | float | 0-100 loyalty |
+| `MaxCommitment` | float | Maximum (100) |
+| `CommitmentPercent` | float | 0-1 ratio |
+| `CurrentRoom` | Room | Assigned room |
+| `CurrentCult` | Cult | Owning cult |
+| `IsAssigned` | bool | Has a room |
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `Initialize(Cult)` | void | Setup with cult |
+| `SetRoom(Room)` | void | Change room assignment |
+| `SetCult(Cult)` | void | Change cult ownership |
+| `DecayCommitment(float)` | void | Reduce commitment |
+| `RecoverCommitment(float)` | void | Increase commitment |
+| `SetCommitment(float)` | void | Set exact value |
+
+---
+
+### Mask (Serializable Class)
+One-use ability with targeting and effects.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Type` | MaskType | Effect type |
+| `TargetType` | MaskTargetType | Targeting mode |
+| `Duration` | float | Effect duration (0 = instant) |
+| `ShelfLife` | float | Time until decay |
+| `MaxShelfLife` | float | Original shelf life |
+| `ShelfLifePercent` | float | Remaining % |
+| `FavorCost` | int | Favor to activate |
+| `MoneyCost` | int | Money to activate |
+| `FollowerSacrifice` | int | Followers to sacrifice |
+| `EffectValue` | int | Damage/healing amount |
+| `IsExpired` | bool | ShelfLife <= 0 |
+| `IsInstant` | bool | Duration <= 0 |
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `Constructor(...)` | Mask | Create with all params |
+| `TickShelfLife(float)` | void | Reduce shelf life |
+| `CanAfford(Cult)` | bool | Check if can pay cost |
+| `PayCost(Cult)` | void | Deduct cost |
+| `ApplyEffect(Cult, Room, God)` | void | Execute effect |
+
+---
+
+### GameManager (MonoBehaviour, Singleton)
+Central game loop controller.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Instance` | GameManager | Singleton |
+| `Cult1` | Cult | Player 1's cult |
+| `Cult2` | Cult | Player 2's cult |
+| `IsGameRunning` | bool | Game active |
+| `GameTime` | float | Elapsed seconds |
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `SetCults(Cult, Cult)` | void | Register cults |
+| `StartGame()` | void | Begin game |
+| `EndGame(Cult winner, Cult loser, string)` | void | End with result |
+| `GetOpponent(Cult)` | Cult | Get the other cult |
+
+| Event | Signature | Description |
+|-------|-----------|-------------|
+| `OnCultLost` | Action<Cult> | Cult reached loss condition |
+| `OnCultWon` | Action<Cult> | Cult won |
+| `OnGameStarted` | Action | Game began |
+| `OnGameEnded` | Action | Game finished |
+
+---
+
+### Marketplace (MonoBehaviour, Singleton)
+Neutral citizen spawning area.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Instance` | Marketplace | Singleton |
+| `Citizens` | IReadOnlyList<Follower> | Available citizens |
+| `CitizenCount` | int | Number available |
+| `HasCitizens` | bool | Any available |
+| `IsFull` | bool | At max capacity (10) |
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `RemoveCitizen(Follower)` | bool | Take citizen (recruitment) |
+| `AddAbandonedFollower(Follower)` | void | Return abandoned follower |
+
+---
+
+### PlayerController (MonoBehaviour)
+Per-player input handling.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `PlayerIndex` | int | 0 or 1 |
+| `Cult` | Cult | Controlled cult |
+| `CursorPosition` | Vector2Int | Selected grid position |
+| `TargetPosition` | Vector2Int | Enemy target position |
+| `IsTargeting` | bool | In targeting mode |
+| `ActiveMaskSlot` | int | Mask being used (-1 = none) |
+| `Bindings` | PlayerInputBindings | Key bindings |
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `Initialize(int index, Cult)` | void | Setup controller |
+| `GetSelectedRoom()` | Room | Room at cursor |
+| `GetTargetedRoom()` | Room | Enemy room at target |
+
+| Event | Signature |
+|-------|-----------|
+| `OnCursorMoved` | Action<Vector2Int> |
+| `OnRoomSelected` | Action<Room> |
+| `OnMaskActivated` | Action<int> |
+| `OnTargetConfirmed` | Action<Room> |
+| `OnTargetCancelled` | Action |
+
+---
+
+### GameActions (Static Class)
+Utility methods for common game actions.
+
+| Method | Description |
+|--------|-------------|
+| `FixRoom(Room, int)` | Repair room damage |
+| `DamageRoom(Room, int)` | Apply room damage |
+| `InjureGod(God, int)` | Damage god strength |
+| `BleedGod(God, float)` | Apply damage over time |
+| `HealGod(God, int)` | Restore god strength |
+| `RegenGod(God, float)` | Apply healing over time |
+| `LowerFavor(God, int)` | Reduce favor |
+| `RaiseFavor(God, int)` | Increase favor |
+| `GenerateMoney(Cult, float)` | Add money |
+| `DecreaseMoney(Cult, float)` | Spend money |
+
+---
+
+## Enums
+
+### RoomType
+```csharp
+Sanctuary, Altar, Pews, Mission, RitualHall, Workshop
+```
+
+### MaskType
+```csharp
+Smiting,              // Damage followers in enemy room
+Wrath,                // Direct damage to enemy god
+Whispers,             // Reduce commitment in enemy room
+Sanctuary,            // Boost commitment in own room
+Plenty,               // Instant favor gain
+Sacrifice,            // Sacrifice follower for god healing
+ArchitectSanctuary,   // Build Sanctuary room
+ArchitectAltar,       // Build Altar room
+ArchitectPews,        // Build Pews room
+ArchitectMission,     // Build Mission room
+ArchitectRitualHall,  // Build Ritual Hall room
+ArchitectWorkshop     // Build Workshop room
+```
+
+### MaskTargetType
+```csharp
+None,           // Global effect
+EnemyRoom,      // Target enemy room
+OwnRoom,        // Target own room
+OwnEmptySlot    // Target empty slot (for building)
+```
+
+---
+
+## Default Controls
+
+### Player 1 (Keyboard - Left Side)
+| Action | Key |
+|--------|-----|
+| Cursor Up | W |
+| Cursor Down | S |
+| Cursor Left | A |
+| Cursor Right | D |
+| Send to Sanctuary | Z |
+| Send from Sanctuary | X |
+| Upgrade Room | Q |
+| Use Mask 1-4 | 1, 2, 3, 4 |
+| Confirm Target | ` (Backtick) |
+| Cancel Target | Left Ctrl |
+
+### Player 2 (Keyboard - Right Side)
+| Action | Key |
+|--------|-----|
+| Cursor Up | Up Arrow |
+| Cursor Down | Down Arrow |
+| Cursor Left | Left Arrow |
+| Cursor Right | Right Arrow |
+| Send to Sanctuary | Comma (,) |
+| Send from Sanctuary | Period (.) |
+| Upgrade Room | Slash (/) |
+| Use Mask 1-4 | Numpad 1-4 |
+| Confirm Target | Numpad Enter |
+| Cancel Target | Right Ctrl |
+
+### System Keys
+| Key | Action |
+|-----|--------|
+| F12 | Toggle Debug Dashboard |
+| ` (Backtick) | Toggle Debug Console |
+| Escape | Controls Menu |
+| F1-F10 | Test functions (see GameTester) |
+
+---
+
+## Game Constants
+
+| Constant | Value | Location |
+|----------|-------|----------|
+| God Attack Interval | 5 seconds | GameManager |
+| God Attack Damage | Strength / 10 (min 1) | GameManager |
+| Starting Followers | 5 | GameInitializer |
+| Starting God Strength | 100 | GameInitializer |
+| Starting God Favor | 50 | GameInitializer |
+| Starting Money | 100 | GameInitializer |
+| Max Marketplace Citizens | 10 | Marketplace |
+| Starting Marketplace Citizens | 5 | Marketplace |
+| Citizen Spawn Interval | 10 seconds | Marketplace |
+| Commitment Decay Rate | ~1/sec | Follower.Update() |
+| Commitment Recovery Rate | ~2/sec | SanctuaryRoom |
+| Church Grid Size | 3 wide x 4 tall | Church |
+| Max Masks in Storage | 4 | God |
+
+---
+
+## Sound Effects Needed
+
+### UI Sounds
+| Sound | Trigger | Priority |
+|-------|---------|----------|
+| `ui_cursor_move` | Cursor moves to new room | High |
+| `ui_select` | Confirm selection | High |
+| `ui_cancel` | Cancel action | High |
+| `ui_error` | Invalid action attempted | Medium |
+| `ui_menu_open` | Open controls menu | Low |
+| `ui_menu_close` | Close controls menu | Low |
+
+### Follower Sounds
+| Sound | Trigger | Priority |
+|-------|---------|----------|
+| `follower_assign` | Follower sent to room | High |
+| `follower_unassign` | Follower returned to sanctuary | High |
+| `follower_abandon` | Follower leaves cult (0 commitment) | High |
+| `follower_recruited` | Citizen converted to follower | High |
+| `follower_sacrifice` | Follower sacrificed for mask | Medium |
+| `follower_working_loop` | Ambient loop when followers in room | Low |
+
+### Room Sounds
+| Sound | Trigger | Priority |
+|-------|---------|----------|
+| `room_trigger_sanctuary` | Sanctuary effect activates | High |
+| `room_trigger_altar` | Altar generates strength | High |
+| `room_trigger_pews` | Pews generates favor | High |
+| `room_trigger_mission` | Mission recruits citizen | High |
+| `room_trigger_ritual` | Ritual hall creates mask | High |
+| `room_trigger_workshop` | Workshop generates money | Medium |
+| `room_upgrade` | Room level increased | Medium |
+| `room_damaged` | Room takes damage | High |
+| `room_repaired` | Room damage healed | Medium |
+| `room_built` | New room constructed | Medium |
+
+### God Sounds
+| Sound | Trigger | Priority |
+|-------|---------|----------|
+| `god_attack` | God deals damage (every 5s) | High |
+| `god_hit` | God takes damage | High |
+| `god_heal` | God strength restored | Medium |
+| `god_favor_gain` | Favor increased | Low |
+| `god_favor_spend` | Favor spent on mask | Medium |
+| `god_low_health` | God strength < 25% | High |
+| `god_low_favor` | Favor < 25% | Medium |
+| `god_death` | God strength hits 0 | High |
+
+### Mask Sounds
+| Sound | Trigger | Priority |
+|-------|---------|----------|
+| `mask_equip` | Mask equipped | Medium |
+| `mask_activate_smiting` | Smiting mask used | High |
+| `mask_activate_wrath` | Wrath mask used | High |
+| `mask_activate_whispers` | Whispers mask used | High |
+| `mask_activate_sanctuary` | Sanctuary mask used | Medium |
+| `mask_activate_plenty` | Plenty mask used | Medium |
+| `mask_activate_sacrifice` | Sacrifice mask used | High |
+| `mask_expire` | Mask decays in storage | Low |
+| `mask_target_confirm` | Target selected | Medium |
+
+### Game State Sounds
+| Sound | Trigger | Priority |
+|-------|---------|----------|
+| `game_start` | Match begins | High |
+| `game_win` | Player wins | High |
+| `game_lose` | Player loses | High |
+| `marketplace_spawn` | New citizen appears | Low |
+
+### Ambient/Music
+| Sound | Description | Priority |
+|-------|-------------|----------|
+| `music_gameplay` | Main gameplay loop | High |
+| `music_tension` | Plays when either player low on resources | Medium |
+| `ambient_church` | Background church atmosphere | Low |
+| `ambient_marketplace` | Marketplace crowd noise | Low |
+
+---
+
+## Testing Checklist
+
+### Quick Test Setup
+1. Create empty scene
+2. Add empty GameObject named "Game"
+3. Add components: `GameManager`, `GameInitializer`, `GameTester`, `DebugDashboard`
+4. Press Play
+
+### Test Keys (GameTester.cs)
+| Key | Test |
+|-----|------|
+| F1 | Damage Cult 1 God |
+| F2 | Heal Cult 1 God |
+| F3 | Damage Cult 2 God |
+| F4 | Heal Cult 2 God |
+| F5 | Give Cult 1 a random mask |
+| F6 | Give Cult 2 a random mask |
+| F7 | Spawn follower for Cult 1 |
+| F8 | Spawn follower for Cult 2 |
+| F9 | Damage random room |
+| F10 | Trigger god combat |
+| H | Print help to console |
