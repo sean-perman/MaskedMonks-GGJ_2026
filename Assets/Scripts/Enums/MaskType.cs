@@ -31,5 +31,7 @@ public enum MaskType
     /// <summary>Build a Ritual Hall room.</summary>
     ArchitectRitualHall,
     /// <summary>Build a Workshop room.</summary>
-    ArchitectWorkshop
+    ArchitectWorkshop,
+    /// <summary>Build a Fundraising room.</summary>
+    ArchitectFundraising
 }

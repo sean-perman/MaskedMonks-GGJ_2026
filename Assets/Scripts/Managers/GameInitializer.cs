@@ -57,6 +57,9 @@ public class GameInitializer : MonoBehaviour
     [Tooltip("Prefab for Workshop room")]
     [SerializeField] private GameObject workshopRoomPrefab;
     
+    [Tooltip("Prefab for Fundraising room")]
+    [SerializeField] private GameObject fundraisingRoomPrefab;
+    
     [Tooltip("Prefab for empty buildable slot")]
     [SerializeField] private GameObject emptySlotPrefab;
     
@@ -335,6 +338,12 @@ public class GameInitializer : MonoBehaviour
         // Second row (y=1): Mission for converting citizens
         CreateRoomFromPrefab<MissionRoom>(church, new Vector2Int(1, 1), churchTransform, gridOffset, missionRoomPrefab);
         
+        // Create Workshop at (0, 1) for generating architecture masks
+        CreateRoomFromPrefab<WorkshopRoom>(church, new Vector2Int(0, 1), churchTransform, gridOffset, workshopRoomPrefab);
+        
+        // Create Fundraising at (2, 1) for generating money
+        CreateRoomFromPrefab<FundraisingRoom>(church, new Vector2Int(2, 1), churchTransform, gridOffset, fundraisingRoomPrefab);
+        
         // Create empty slots for remaining positions
         for (int x = 0; x < church.GridWidth; x++)
         {
@@ -404,6 +413,7 @@ public class GameInitializer : MonoBehaviour
             RoomType.Mission => missionRoomPrefab,
             RoomType.RitualHall => ritualHallRoomPrefab,
             RoomType.Workshop => workshopRoomPrefab,
+            RoomType.Fundraising => fundraisingRoomPrefab,
             _ => null
         };
     }

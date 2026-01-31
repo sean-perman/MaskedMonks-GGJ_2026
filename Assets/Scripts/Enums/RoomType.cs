@@ -16,5 +16,7 @@ public enum RoomType
     /// <summary>Generates a new Mask when triggered. Followers decay commitment.</summary>
     RitualHall,
     /// <summary>Generates Architecture masks for building new rooms. Followers decay.</summary>
-    Workshop
+    Workshop,
+    /// <summary>Generates money at the expense of favor. Followers decay commitment.</summary>
+    Fundraising
 }
