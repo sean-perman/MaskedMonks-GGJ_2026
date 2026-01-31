@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{b3409ed4-cf1c-4685-88af-42632650de49}">
+		<property name="assetPath">
+			<value>GGJ_Masked_Monks_Low_Resources.aif</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>103.384625</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{189495d9-054b-491f-9371-087c0283c0b7}</destination>
+		</relationship>
+	</object>
+</objects>
