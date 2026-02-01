@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{12bb2940-c06c-4e20-b221-12013a5a2258}">
+		<property name="assetPath">
+			<value>sfx/masked_monks_sfx_Master_room_upgrade.wav</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>1</value>
+		</property>
+		<property name="length">
+			<value>0.1213125</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{6b5830bd-aa80-43e1-ae19-096d33af2b27}</destination>
+		</relationship>
+	</object>
+</objects>
