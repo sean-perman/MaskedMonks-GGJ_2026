@@ -418,12 +418,18 @@ public class GameInitializer : MonoBehaviour
         spriteObj.transform.SetParent(churchTransform);
         // Position at center, slightly down to be behind rooms
         spriteObj.transform.localPosition = new Vector3(0f, -1f, 0f);
-        spriteObj.transform.localScale = new Vector3(2.5f, 2.5f, 1f); // Scale to fit behind room grid
 
         // Add sprite renderer
         SpriteRenderer sr = spriteObj.AddComponent<SpriteRenderer>();
         sr.sprite = randomSprite;
         sr.sortingOrder = -10; // Render behind all rooms and UI (rooms are at 0+)
+
+        // Scale sprite to fit behind room grid based on sprite's native size
+        // Target size: approximately 7 units wide to fit behind 3-column room grid
+        float targetWidth = 7f;
+        float spriteNativeWidth = randomSprite.bounds.size.x;
+        float scale = targetWidth / spriteNativeWidth;
+        spriteObj.transform.localScale = new Vector3(scale, scale, 1f);
 
         Debug.Log($"Added church building sprite: {randomSprite.name}");
     }
