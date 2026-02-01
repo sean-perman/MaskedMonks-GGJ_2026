@@ -119,7 +119,7 @@ public class RoomStatusDisplay : MonoBehaviour
             RoomType.Altar => new Color(0.5f, 0.2f, 0.2f, 0.8f),
             RoomType.Pews => new Color(0.5f, 0.5f, 0.2f, 0.8f),
             RoomType.Mission => new Color(0.2f, 0.4f, 0.5f, 0.8f),
-            RoomType.RitualHall => new Color(0.4f, 0.2f, 0.5f, 0.8f),
+            RoomType.WrathRitualHall => new Color(0.4f, 0.2f, 0.5f, 0.8f),
             RoomType.Workshop => new Color(0.5f, 0.4f, 0.2f, 0.8f),
             _ => new Color(0.3f, 0.3f, 0.3f, 0.8f)
         };

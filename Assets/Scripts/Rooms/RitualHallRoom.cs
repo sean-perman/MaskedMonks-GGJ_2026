@@ -22,7 +22,7 @@ public class RitualHallRoom : Room
     
     protected override void Awake()
     {
-        type = RoomType.RitualHall;
+        type = RoomType.WrathRitualHall;
         duration = GameConfig.Instance.ritualHallDuration;
     }
     

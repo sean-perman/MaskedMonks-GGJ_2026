@@ -44,11 +44,11 @@ public class GameConfig : ScriptableObject
     [Tooltip("Pawn-seconds to generate 1 strength")]
     public float altarDuration = 30f;
     [Tooltip("Strength generated per trigger")]
-    public int altarStrengthPerTrigger = 1;
+    public int altarStrengthPerTrigger = 3;
     
     [Header("Pews")]
     [Tooltip("Pawn-seconds to generate 1 favor")]
-    public float pewsDuration = 15f;
+    public float pewsDuration = 10f;
     [Tooltip("Favor generated per trigger")]
     public int pewsFavorPerTrigger = 1;
     
@@ -60,7 +60,7 @@ public class GameConfig : ScriptableObject
     
     [Header("Fundraising")]
     [Tooltip("Pawn-seconds to generate money")]
-    public float fundraisingDuration = 20f;
+    public float fundraisingDuration = 30f;
     [Tooltip("Money generated per trigger")]
     public int fundraisingMoneyPerTrigger = 3;
     [Tooltip("Favor cost per trigger")]
@@ -68,19 +68,19 @@ public class GameConfig : ScriptableObject
     
     [Header("Workshop")]
     [Tooltip("Pawn-seconds to generate a blueprint")]
-    public float workshopBlueprintDuration = 60f;
+    public float workshopBlueprintDuration = 45f;
     [Tooltip("Shelf life for blueprint masks (seconds)")]
     public float workshopBlueprintShelfLife = 120f;
     
     [Header("Ritual Hall (Strike Mask)")]
     [Tooltip("Pawn-seconds to generate a Strike mask")]
-    public float ritualHallDuration = 45f;
+    public float ritualHallDuration = 15f;
     [Tooltip("Favor cost for Strike masks")]
-    public int ritualHallMaskFavorCost = 1;
+    public int ritualHallMaskFavorCost = 2;
     [Tooltip("Damage dealt by Strike mask")]
     public int ritualHallMaskEffectValue = 1;
     [Tooltip("Shelf life for Strike masks (seconds)")]
-    public float ritualHallMaskShelfLife = 60f;
+    public float ritualHallMaskShelfLife = 30f;
     
     [Header("Lightning Ritual")]
     [Tooltip("Pawn-seconds to generate a Lightning mask")]
@@ -91,8 +91,6 @@ public class GameConfig : ScriptableObject
     public int lightningDamagePerRoom = 1;
     [Tooltip("Shelf life for Lightning masks (seconds)")]
     public float lightningMaskShelfLife = 30f;
-    [Tooltip("Cooldown between Lightning mask uses (seconds)")]
-    public float lightningMaskCooldown = 20f;
     
     [Header("Flood Ritual")]
     [Tooltip("Pawn-seconds to generate a Flood mask")]
@@ -102,7 +100,7 @@ public class GameConfig : ScriptableObject
     [Tooltip("Damage per room in bottom row")]
     public int floodDamagePerRoom = 2;
     [Tooltip("Shelf life for Flood masks (seconds)")]
-    public float floodMaskShelfLife = 5f;
+    public float floodMaskShelfLife = 10f;
     
     [Header("Shield Ritual")]
     [Tooltip("Pawn-seconds to generate a Shield mask")]
@@ -189,7 +187,7 @@ public class GameConfig : ScriptableObject
             RoomType.Mission => missionBuildCost,
             RoomType.Fundraising => fundraisingBuildCost,
             RoomType.Workshop => workshopBuildCost,
-            RoomType.RitualHall => ritualHallBuildCost,
+            RoomType.WrathRitualHall => ritualHallBuildCost,
             RoomType.LightningRitual => lightningRitualBuildCost,
             RoomType.FloodRitual => floodRitualBuildCost,
             RoomType.ShieldRitual => shieldRitualBuildCost,
@@ -209,7 +207,7 @@ public class GameConfig : ScriptableObject
             RoomType.Mission => missionDuration,
             RoomType.Fundraising => fundraisingDuration,
             RoomType.Workshop => workshopBlueprintDuration,
-            RoomType.RitualHall => ritualHallDuration,
+            RoomType.WrathRitualHall => ritualHallDuration,
             RoomType.LightningRitual => lightningRitualDuration,
             RoomType.FloodRitual => floodRitualDuration,
             RoomType.ShieldRitual => shieldRitualDuration,

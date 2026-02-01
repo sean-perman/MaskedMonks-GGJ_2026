@@ -17,9 +17,9 @@ public class GameInitializer : MonoBehaviour
     [SerializeField] private float churchSeparation = 12f; // Distance between churches
     
     [Header("Starting Configuration")]
-    [SerializeField] private int startingFollowers = 5;
+    [SerializeField] private int startingFollowers = 1;
     [SerializeField] private int startingGodStrength = 100;
-    [SerializeField] private int startingGodFavor = 50;
+    [SerializeField] private int startingGodFavor = 5;
     [SerializeField] private int startingMoney = 0;
     [SerializeField] private int startingMaxMoney = 10;
     
@@ -416,7 +416,7 @@ public class GameInitializer : MonoBehaviour
             RoomType.Altar => altarRoomPrefab,
             RoomType.Pews => pewsRoomPrefab,
             RoomType.Mission => missionRoomPrefab,
-            RoomType.RitualHall => ritualHallRoomPrefab,
+            RoomType.WrathRitualHall => ritualHallRoomPrefab,
             RoomType.Workshop => workshopRoomPrefab,
             RoomType.Fundraising => fundraisingRoomPrefab,
             _ => null

@@ -17,15 +17,16 @@ public abstract class Room : MonoBehaviour
     [SerializeField] protected int damage = 0;
     [SerializeField] protected float duration = 10f; // Seconds of work needed to trigger
     
-    [Header("Damage Settings")]
-    [SerializeField] protected float commitmentDamagePerLevel = 15f; // Commitment hit when damaged
-    [SerializeField] protected float repairRatePerFollowerPerSecond = 0.1f; // Repair progress per follower per second
-    [SerializeField] protected float repairThreshold = 1f; // Accumulated repair needed to fix one level
-    
     [Header("Runtime State")]
     [SerializeField] protected float clock = 0f;
     [SerializeField] protected List<Follower> followers = new();
     [SerializeField] protected float repairProgress = 0f; // Accumulator for repair
+    
+    // Config properties
+    protected float CommitmentDamagePerLevel => GameConfig.Instance.commitmentDamagePerLevel;
+    protected float RepairRatePerFollowerPerSecond => GameConfig.Instance.repairRatePerFollowerPerSecond;
+    protected float RepairThreshold => GameConfig.Instance.repairThreshold;
+    protected int MaxRoomLevel => GameConfig.Instance.maxRoomLevel;
     
     /// <summary>Reference to the church this room belongs to.</summary>
     protected Church church;
@@ -209,9 +210,9 @@ public abstract class Room : MonoBehaviour
         int pawnsInOrangeSlots = Mathf.Max(0, followers.Count - undamagedSlots);
         
         // All pawns contribute to repair (simplified - all pawns help)
-        repairProgress += followers.Count * repairRatePerFollowerPerSecond * Time.deltaTime;
+        repairProgress += followers.Count * RepairRatePerFollowerPerSecond * Time.deltaTime;
         
-        if (repairProgress >= repairThreshold)
+        if (repairProgress >= RepairThreshold)
         {
             RepairDamage(1);
             repairProgress = 0f;
@@ -222,7 +223,7 @@ public abstract class Room : MonoBehaviour
     /// <summary>
     /// Get the current repair progress as a percentage (0-1).
     /// </summary>
-    public float RepairProgress => damage > 0 ? Mathf.Clamp01(repairProgress / repairThreshold) : 0f;
+    public float RepairProgress => damage > 0 ? Mathf.Clamp01(repairProgress / RepairThreshold) : 0f;
     
     // === Follower Management ===
     
@@ -314,7 +315,7 @@ public abstract class Room : MonoBehaviour
         
         // Apply commitment damage to all remaining followers in the room
         // Make a copy to avoid collection modified exception
-        float commitmentHit = commitmentDamagePerLevel * amount;
+        float commitmentHit = CommitmentDamagePerLevel * amount;
         var remainingFollowers = new List<Follower>(followers);
         foreach (var follower in remainingFollowers)
         {

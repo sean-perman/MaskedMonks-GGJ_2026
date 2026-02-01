@@ -14,7 +14,7 @@ public enum RoomType
     /// <summary>Recruits a citizen from the Marketplace when triggered. Followers decay.</summary>
     Mission,
     /// <summary>Generates Strike masks when triggered. Followers decay commitment.</summary>
-    RitualHall,
+    WrathRitualHall,
     /// <summary>Generates Architecture masks for building new rooms. Followers decay.</summary>
     Workshop,
     /// <summary>Generates money at the expense of favor. Followers decay commitment.</summary>

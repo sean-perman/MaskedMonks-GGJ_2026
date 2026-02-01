@@ -668,7 +668,7 @@ public class RoomVisual : MonoBehaviour
             RoomType.Altar => altarColor,
             RoomType.Pews => pewsColor,
             RoomType.Mission => missionColor,
-            RoomType.RitualHall => ritualColor,
+            RoomType.WrathRitualHall => ritualColor,
             RoomType.Workshop => workshopColor,
             _ => emptySlotColor
         };
