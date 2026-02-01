@@ -11,6 +11,9 @@ public class Cult : MonoBehaviour
     public God god;
     public Church church;
     
+    [Header("Input")]
+    [SerializeField] private PlayerController playerController;
+    
     [Header("Followers")]
     [SerializeField] private List<Follower> followers = new();
     
@@ -24,6 +27,7 @@ public class Cult : MonoBehaviour
     public int FollowerCount => followers.Count;
     public int Money => money;
     public int MaxMoney => maxMoney;
+    public PlayerController PlayerController => playerController;
     
     // === Initialization ===
     
@@ -118,6 +122,25 @@ public class Cult : MonoBehaviour
     public void IncreaseMaxMoney(int amount)
     {
         maxMoney += Mathf.Max(0, amount);
+    }
+    
+    // === Controller ===
+    
+    /// <summary>
+    /// Set the player controller for this cult.
+    /// </summary>
+    public void SetPlayerController(PlayerController controller)
+    {
+        playerController = controller;
+    }
+    
+    /// <summary>
+    /// Check if a room is currently selected by this cult's player.
+    /// </summary>
+    public bool IsRoomSelected(Room room)
+    {
+        if (playerController == null || church == null || room == null) return false;
+        return church.GetRoomAt(playerController.CursorPosition) == room;
     }
     
     // === Loss Conditions ===

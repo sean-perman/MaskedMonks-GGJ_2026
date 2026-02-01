@@ -272,10 +272,18 @@ public abstract class Room : MonoBehaviour
     /// Followers inside take a commitment hit that scales with damage.
     /// Followers can still occupy damaged slots to repair them.
     /// If the defending cult has a shield mask and enough favor, the attack is blocked.
+    /// If the room is currently selected by the player, it is immune to damage.
     /// </summary>
     public virtual void TakeDamage(int amount = 1)
     {
-        // Check for shield block first
+        // Selected rooms are immune to damage
+        if (cult != null && cult.IsRoomSelected(this))
+        {
+            Debug.Log($"Attack on {type} was blocked - room is currently selected!");
+            return;
+        }
+        
+        // Check for shield block
         if (cult != null && cult.god != null && cult.god.TryBlockAttackWithShield(this))
         {
             Debug.Log($"Attack on {type} was blocked by a Shield mask!");

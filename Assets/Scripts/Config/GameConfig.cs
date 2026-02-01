@@ -67,12 +67,8 @@ public class GameConfig : ScriptableObject
     public int fundraisingFavorCost = 2;
     
     [Header("Workshop (Room Repairs)")]
-    [Tooltip("Pawn-seconds to repair all damaged rooms (DEPRECATED - Workshop uses constant 20s)")]
-    [System.Obsolete("Workshop now uses internal constant. This field is kept for compatibility.")]
-    public float workshopBlueprintDuration = 20f;
-    [Tooltip("DEPRECATED - Architecture masks removed")]
-    [System.Obsolete("Architecture masks have been removed.")]
-    public float workshopBlueprintShelfLife = 120f;
+    [Tooltip("Pawn-seconds to repair all damaged rooms")]
+    public float workshopRepairDuration = 20f;
     
     [Header("Ritual Hall (Strike Mask)")]
     [Tooltip("Pawn-seconds to generate a Strike mask")]
@@ -208,7 +204,7 @@ public class GameConfig : ScriptableObject
             RoomType.Pews => pewsDuration,
             RoomType.Mission => missionDuration,
             RoomType.Fundraising => fundraisingDuration,
-            RoomType.Workshop => workshopBlueprintDuration,
+            RoomType.Workshop => workshopRepairDuration,
             RoomType.WrathRitualHall => ritualHallDuration,
             RoomType.LightningRitual => lightningRitualDuration,
             RoomType.FloodRitual => floodRitualDuration,

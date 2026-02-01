@@ -2,19 +2,17 @@ using UnityEngine;
 
 /// <summary>
 /// Workshop room - Repairs all rooms in the church.
-/// On a 20 pawn-second timer, applies one repair to every damaged room.
+/// On a configurable pawn-second timer, applies one repair to every damaged room.
 /// Followers decay commitment while working here.
 /// </summary>
 public class WorkshopRoom : Room
 {
-    private const float WORKSHOP_DURATION = 20f; // 20 pawn-seconds
-    
     public override ResourceType GeneratedResource => ResourceType.Repair;
     
     protected override void Awake()
     {
         type = RoomType.Workshop;
-        duration = WORKSHOP_DURATION;
+        duration = GameConfig.Instance.workshopRepairDuration;
     }
     
     /// <summary>

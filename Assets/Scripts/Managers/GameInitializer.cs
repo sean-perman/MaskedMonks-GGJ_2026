@@ -126,6 +126,10 @@ public class GameInitializer : MonoBehaviour
         player1Controller = CreatePlayerController(0, cult1);
         player2Controller = CreatePlayerController(1, cult2);
         
+        // Link player controllers to cults (for selected room immunity)
+        cult1.SetPlayerController(player1Controller);
+        cult2.SetPlayerController(player2Controller);
+        
         // Register with GameManager
         if (gameManager == null)
         {
