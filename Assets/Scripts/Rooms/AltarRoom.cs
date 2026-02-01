@@ -7,7 +7,7 @@ using UnityEngine;
 public class AltarRoom : Room
 {
     [Header("Altar Settings")]
-    [SerializeField] private int strengthPerTrigger = 5;
+    [SerializeField] private int strengthPerTrigger = 1;
     
     protected override void Awake()
     {
