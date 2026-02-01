@@ -125,12 +125,20 @@ public abstract class Room : MonoBehaviour
     
     /// <summary>
     /// Initialize the room with references to its church and cult.
+    /// Sets the room's level to the configured starting level for its type.
     /// </summary>
     public virtual void Initialize(Church church, Cult cult, Vector2Int location)
     {
         this.church = church;
         this.cult = cult;
         this.location = location;
+
+        // Set starting level from config
+        int startingLevel = GameConfig.Instance.GetRoomStartingLevel(type);
+        if (startingLevel > 0)
+        {
+            level = startingLevel;
+        }
     }
     
     // === Update Loop ===
