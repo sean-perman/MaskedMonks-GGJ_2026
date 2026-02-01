@@ -53,7 +53,7 @@
 			<destination>{5b3c7095-8f03-4f55-9d9c-6646d213118f}</destination>
 		</relationship>
 		<relationship name="output">
-			<destination>{378dc60a-f5cc-4f22-962f-08cfb734f456}</destination>
+			<destination>{8cb4ff06-bf5e-48c0-a001-944818c986e1}</destination>
 		</relationship>
 	</object>
 	<object class="EventAutomatableProperties" id="{c3aae443-9803-42c8-9b39-43efb4f2ceda}" />
@@ -69,6 +69,9 @@
 	<object class="Timeline" id="{66115301-dfac-4693-bfe0-f35cde1e51d2}">
 		<relationship name="modules">
 			<destination>{947292cd-b099-437e-b0b7-b40eae0c0a04}</destination>
+		</relationship>
+		<relationship name="markers">
+			<destination>{1d015a66-6136-4518-a833-b42483c53df8}</destination>
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{0ae8517c-0ef4-4788-9b21-b0747e70b608}">
@@ -90,7 +93,10 @@
 	<object class="MixerBusPanner" id="{5b3c7095-8f03-4f55-9d9c-6646d213118f}" />
 	<object class="SingleSound" id="{947292cd-b099-437e-b0b7-b40eae0c0a04}">
 		<property name="length">
-			<value>2.1754375000000001</value>
+			<value>2.0254375000000002</value>
+		</property>
+		<property name="timelockedOffset">
+			<value>0.15000000000000002</value>
 		</property>
 		<relationship name="audioFile">
 			<destination>{d0562c6e-fb9b-4ab3-a52b-3cd9223ba228}</destination>
@@ -108,6 +114,20 @@
 		</relationship>
 		<relationship name="output">
 			<destination>{0ae8517c-0ef4-4788-9b21-b0747e70b608}</destination>
+		</relationship>
+	</object>
+	<object class="LoopRegion" id="{1d015a66-6136-4518-a833-b42483c53df8}">
+		<property name="position">
+			<value>0</value>
+		</property>
+		<property name="length">
+			<value>2.0254375000000002</value>
+		</property>
+		<relationship name="timeline">
+			<destination>{66115301-dfac-4693-bfe0-f35cde1e51d2}</destination>
+		</relationship>
+		<relationship name="markerTrack">
+			<destination>{de7d0fcf-b9b4-472b-a430-19c89374dad2}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusEffectChain" id="{72477be3-3ade-4b68-8b3b-3e43e32dd3a2}">

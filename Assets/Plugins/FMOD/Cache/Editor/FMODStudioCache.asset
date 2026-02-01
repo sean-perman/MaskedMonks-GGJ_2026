@@ -148,7 +148,7 @@ MonoBehaviour:
   Path: MaskedMonks_FMODproject/Build/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 639055503222760831
+  lastModified: 639055508666823596
   FileSizes:
   - Name: Desktop
     Value: 2366
@@ -1038,7 +1038,7 @@ MonoBehaviour:
   StringsBanks:
   - {fileID: -8637072309252072968}
   cacheVersion: 131858
-  cacheTime: 639055503222760831
+  cacheTime: 639055508666823596
   SerializableEventsDict:
   - key: event:/RoomsOrMasks/room_trigger_workshop
     index: 0
@@ -1665,7 +1665,7 @@ MonoBehaviour:
   Path: MaskedMonks_FMODproject/Build/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 639055503222725813
+  lastModified: 639055508666813888
   FileSizes:
   - Name: Desktop
     Value: 3971840

@@ -5,7 +5,7 @@
 			<value>game_win</value>
 		</property>
 		<property name="outputFormat">
-			<value>0</value>
+			<value>1</value>
 		</property>
 		<relationship name="folder">
 			<destination>{b4209e94-1ed2-40fd-bb5b-aae4cb4283a7}</destination>
@@ -53,17 +53,24 @@
 			<destination>{0626ecfb-3cb0-43b7-9177-8d15e27efcc8}</destination>
 		</relationship>
 		<relationship name="output">
-			<destination>{378dc60a-f5cc-4f22-962f-08cfb734f456}</destination>
+			<destination>{4b0d62c7-b911-4686-9e37-f7509bcfd2ee}</destination>
 		</relationship>
 	</object>
 	<object class="EventAutomatableProperties" id="{f336ef58-6f89-474f-9040-40dbdfc02ff8}" />
 	<object class="MarkerTrack" id="{f900928d-9e30-4530-904c-e77fdcc28aa8}" />
 	<object class="GroupTrack" id="{ab7dbd07-3ae3-4b26-adf0-156056c1f934}">
+		<relationship name="modules">
+			<destination>{2c8af150-ef87-4cff-9ab6-e3d04da4bc6e}</destination>
+		</relationship>
 		<relationship name="mixerGroup">
 			<destination>{b5058de0-daa2-4dfc-ae80-95f1b19d9238}</destination>
 		</relationship>
 	</object>
-	<object class="Timeline" id="{eb01b0c3-3010-471d-be85-477e77f21ce4}" />
+	<object class="Timeline" id="{eb01b0c3-3010-471d-be85-477e77f21ce4}">
+		<relationship name="modules">
+			<destination>{2c8af150-ef87-4cff-9ab6-e3d04da4bc6e}</destination>
+		</relationship>
+	</object>
 	<object class="EventMixerMaster" id="{7861bcd1-82bd-4a02-bd3c-5fee40cae372}">
 		<relationship name="effectChain">
 			<destination>{38066583-dce9-4270-add2-96c0ec27f224}</destination>
@@ -81,7 +88,18 @@
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{0626ecfb-3cb0-43b7-9177-8d15e27efcc8}" />
+	<object class="SingleSound" id="{2c8af150-ef87-4cff-9ab6-e3d04da4bc6e}">
+		<property name="length">
+			<value>4</value>
+		</property>
+		<relationship name="audioFile">
+			<destination>{f11d48ac-e10d-43f4-93cf-b5912b482c2c}</destination>
+		</relationship>
+	</object>
 	<object class="EventMixerGroup" id="{b5058de0-daa2-4dfc-ae80-95f1b19d9238}">
+		<property name="volume">
+			<value>-10</value>
+		</property>
 		<property name="name">
 			<value>Audio 1</value>
 		</property>
