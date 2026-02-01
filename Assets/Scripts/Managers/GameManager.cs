@@ -23,6 +23,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float gameTime = 0f;
     [SerializeField] private float godAttackTimer = 0f;
     
+    [Header("UI References")]
+    [SerializeField] private GameOverScreen gameOverScreen;
+    
     // === Events ===
     
     public event Action<Cult> OnCultLost;
@@ -38,6 +41,14 @@ public class GameManager : MonoBehaviour
     public float GameTime => gameTime;
     
     // === Public Methods ===
+    
+    /// <summary>
+    /// Set the game over screen reference (called by GameInitializer).
+    /// </summary>
+    public void SetGameOverScreen(GameOverScreen screen)
+    {
+        gameOverScreen = screen;
+    }
     
     /// <summary>
     /// Register cults with the game manager (called by GameInitializer).
@@ -139,6 +150,12 @@ public class GameManager : MonoBehaviour
         Debug.Log($"Winner: {winner?.name ?? "None"}");
         Debug.Log($"Loser: {loser?.name ?? "None"}");
         Debug.Log($"Reason: {reason}");
+        
+        // Show game over screen
+        if (gameOverScreen != null)
+        {
+            gameOverScreen.Show(winner, loser, reason);
+        }
         
         OnCultLost?.Invoke(loser);
         OnCultWon?.Invoke(winner);

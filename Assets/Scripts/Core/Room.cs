@@ -48,6 +48,11 @@ public abstract class Room : MonoBehaviour
     /// </summary>
     public event Action<MaskType> OnMaskGenerated;
     
+    /// <summary>
+    /// Fired when damage is blocked (by selection or shield).
+    /// </summary>
+    public event Action OnDamageBlocked;
+    
     // === Properties ===
     
     public RoomType Type => type;
@@ -280,6 +285,7 @@ public abstract class Room : MonoBehaviour
         if (cult != null && cult.IsRoomSelected(this))
         {
             Debug.Log($"Attack on {type} was blocked - room is currently selected!");
+            OnDamageBlocked?.Invoke();
             return;
         }
         
@@ -287,6 +293,7 @@ public abstract class Room : MonoBehaviour
         if (cult != null && cult.god != null && cult.god.TryBlockAttackWithShield(this))
         {
             Debug.Log($"Attack on {type} was blocked by a Shield mask!");
+            OnDamageBlocked?.Invoke();
             return;
         }
         

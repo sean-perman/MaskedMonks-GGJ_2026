@@ -11,16 +11,23 @@ public class CursorVisual : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private Color normalColor = new Color(1f, 1f, 0.5f, 0.8f);
     [SerializeField] private Color targetingColor = new Color(1f, 0.3f, 0.3f, 0.8f);
+    [SerializeField] private Color shieldFlashColor = new Color(0.3f, 0.6f, 1f, 1f);
     [SerializeField] private float roomWidth = 1.8f;
     [SerializeField] private float roomHeight = 1.4f;
     [SerializeField] private float roomSpacing = 0.15f;
     [SerializeField] private float pulseSpeed = 3f;
     [SerializeField] private float pulseAmount = 0.1f;
+    [SerializeField] private float shieldFlashDuration = 2f;
     
     private SpriteRenderer cursorSprite;
     private SpriteRenderer targetSprite;
     private Transform churchTransform;
     private Transform enemyChurchTransform;
+    
+    // Shield flash state
+    private bool isShieldFlashing = false;
+    private float shieldFlashEndTime = 0f;
+    private Room currentlySubscribedRoom = null;
     
     private void Awake()
     {
@@ -68,9 +75,57 @@ public class CursorVisual : MonoBehaviour
     {
         if (controller == null) return;
         
+        UpdateRoomSubscription();
+        UpdateShieldFlash();
         UpdateCursorPosition();
         UpdateTargetPosition();
         UpdatePulse();
+    }
+    
+    private void UpdateRoomSubscription()
+    {
+        // Get the room we're currently hovering over
+        Room currentRoom = controller.Cult?.church?.GetRoomAt(controller.CursorPosition);
+        
+        // If room changed, update subscription
+        if (currentRoom != currentlySubscribedRoom)
+        {
+            // Unsubscribe from old room
+            if (currentlySubscribedRoom != null)
+            {
+                currentlySubscribedRoom.OnDamageBlocked -= OnDamageBlocked;
+            }
+            
+            // Subscribe to new room
+            currentlySubscribedRoom = currentRoom;
+            if (currentlySubscribedRoom != null)
+            {
+                currentlySubscribedRoom.OnDamageBlocked += OnDamageBlocked;
+            }
+        }
+    }
+    
+    private void OnDamageBlocked()
+    {
+        isShieldFlashing = true;
+        shieldFlashEndTime = Time.time + shieldFlashDuration;
+    }
+    
+    private void UpdateShieldFlash()
+    {
+        if (isShieldFlashing && Time.time >= shieldFlashEndTime)
+        {
+            isShieldFlashing = false;
+        }
+    }
+    
+    private void OnDestroy()
+    {
+        // Unsubscribe from any room we're still subscribed to
+        if (currentlySubscribedRoom != null)
+        {
+            currentlySubscribedRoom.OnDamageBlocked -= OnDamageBlocked;
+        }
     }
     
     private void UpdateCursorPosition()
@@ -85,7 +140,29 @@ public class CursorVisual : MonoBehaviour
             1f
         );
         
-        cursorSprite.color = controller.IsTargeting ? new Color(normalColor.r, normalColor.g, normalColor.b, 0.4f) : normalColor;
+        // Determine cursor color and visibility
+        if (isShieldFlashing)
+        {
+            // Flickering blue flash when damage is blocked
+            float flicker = Mathf.Sin(Time.time * 20f); // Fast flicker
+            cursorSprite.enabled = flicker > 0f; // On/off flicker
+            
+            float pulse = (Mathf.Sin(Time.time * 8f) + 1f) / 2f;
+            cursorSprite.color = Color.Lerp(shieldFlashColor * 0.7f, shieldFlashColor, pulse);
+        }
+        else
+        {
+            cursorSprite.enabled = true; // Always visible when not flashing
+            
+            if (controller.IsTargeting)
+            {
+                cursorSprite.color = new Color(normalColor.r, normalColor.g, normalColor.b, 0.4f);
+            }
+            else
+            {
+                cursorSprite.color = normalColor;
+            }
+        }
     }
     
     private void UpdateTargetPosition()

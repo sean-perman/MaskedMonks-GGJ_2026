@@ -151,6 +151,23 @@ public class GameInitializer : MonoBehaviour
         
         // Create controls menu
         CreateControlsMenu();
+        
+        // Create game over screen
+        CreateGameOverScreen();
+    }
+    
+    private void CreateGameOverScreen()
+    {
+        var gameOverObj = new GameObject("GameOverScreen");
+        var gameOverScreen = gameOverObj.AddComponent<GameOverScreen>();
+        
+        // Register with GameManager
+        if (gameManager != null)
+        {
+            gameManager.SetGameOverScreen(gameOverScreen);
+        }
+        
+        Debug.Log("Game Over Screen created.");
     }
     
     private void CreateBackground()
