@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.03.00">
 	<object class="AudioFile" id="{e1d6f9a6-c38f-4f2b-8f10-12b546323acf}">
 		<property name="assetPath">
-			<value>Music/GGJ_Masked_Monks_.aif</value>
+			<value>sfx/GGJ_Masked_Monks_.aif</value>
 		</property>
 		<property name="isStreaming">
 			<value>true</value>

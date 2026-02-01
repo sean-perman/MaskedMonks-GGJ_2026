@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{f11d48ac-e10d-43f4-93cf-b5912b482c2c}">
+		<property name="assetPath">
+			<value>sfx/mm_game_states_.wav</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>6.0759583333333333</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{71ef66a8-c7e6-4d2a-bada-c901b93ccbef}</destination>
+		</relationship>
+	</object>
+</objects>
