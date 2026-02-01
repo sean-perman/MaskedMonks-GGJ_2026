@@ -18,10 +18,8 @@ public class GameInitializer : MonoBehaviour
     
     [Header("Starting Configuration")]
     [SerializeField] private int startingFollowers = 1;
-    [SerializeField] private int startingGodStrength = 100;
-    [SerializeField] private int startingGodFavor = 5;
-    [SerializeField] private int startingMoney = 0;
     [SerializeField] private int startingMaxMoney = 10;
+    // Note: God strength, favor, and money now come from GameConfig
     
     [Header("References")]
     [SerializeField] private GameManager gameManager;
@@ -285,9 +283,9 @@ public class GameInitializer : MonoBehaviour
         cult.god = god;
         cult.church = church;
         
-        // Set max money cap and add starting money
+        // Set max money cap and add starting money from GameConfig
         cult.IncreaseMaxMoney(startingMaxMoney - 10); // Default is 10, so add the difference
-        cult.AddMoney(startingMoney);
+        cult.AddMoney(GameConfig.Instance.godStartingMoney);
         
         // Create starting rooms
         CreateStartingRooms(church, isPlayer1);
@@ -353,8 +351,8 @@ public class GameInitializer : MonoBehaviour
         // Add random god sprite
         AddGodSprite(godObj.transform);
 
-        // Initialize with starting stats
-        god.Initialize(startingGodStrength, startingGodFavor);
+        // Initialize with starting stats from GameConfig
+        god.Initialize();
 
         return god;
     }

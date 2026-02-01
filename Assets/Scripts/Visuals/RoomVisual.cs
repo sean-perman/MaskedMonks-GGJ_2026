@@ -711,6 +711,7 @@ public class RoomVisual : MonoBehaviour
             RoomType.LightningRitual => "rooms/alter_room_2",
             RoomType.FloodRitual => "rooms/alter_room_1",
             RoomType.ShieldRitual => "rooms/pews_room",
+            RoomType.SacrificialAltar => "rooms/sacrifice_room",
             _ => null
         };
 
