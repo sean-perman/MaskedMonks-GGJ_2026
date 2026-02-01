@@ -9,22 +9,15 @@ using UnityEngine;
 /// </summary>
 public class ShieldRitualRoom : Room
 {
-    [Header("Shield Ritual Settings")]
-    [Tooltip("Duration for mask generation (pawn-seconds)")]
-    [SerializeField] private float triggerDuration = 35f;
-    
-    [Tooltip("Favor cost to activate shield (auto-deducted when blocking)")]
-    [SerializeField] private int shieldFavorCost = 4;
-    
-    [Tooltip("Shelf life for generated masks in seconds")]
-    [SerializeField] private float maskShelfLife = 8f;
+    private int ShieldFavorCost => GameConfig.Instance.shieldFavorCost;
+    private float MaskShelfLife => GameConfig.Instance.shieldMaskShelfLife;
     
     public override ResourceType GeneratedResource => ResourceType.Mask;
     
     protected override void Awake()
     {
         type = RoomType.ShieldRitual;
-        duration = triggerDuration;
+        duration = GameConfig.Instance.shieldRitualDuration;
     }
     
     /// <summary>
@@ -46,8 +39,8 @@ public class ShieldRitualRoom : Room
             type: MaskType.Shield,
             targetType: MaskTargetType.Passive,
             duration: 0f, // Not applicable - passive effect
-            shelfLife: maskShelfLife,
-            favorCost: shieldFavorCost, // Cost when auto-activated
+            shelfLife: MaskShelfLife,
+            favorCost: ShieldFavorCost, // Cost when auto-activated
             moneyCost: 0,
             followerSacrifice: 0,
             effectValue: 1 // Blocks 1 attack
@@ -59,7 +52,7 @@ public class ShieldRitualRoom : Room
         {
             NotifyResourceGenerated(ResourceType.Mask, 1);
             NotifyMaskGenerated(MaskType.Shield);
-            Debug.Log($"Shield Ritual generated a Shield mask! (Auto-activates on attack if {shieldFavorCost}+ favor)");
+            Debug.Log($"Shield Ritual generated a Shield mask! (Auto-activates on attack if {ShieldFavorCost}+ favor)");
         }
     }
 }

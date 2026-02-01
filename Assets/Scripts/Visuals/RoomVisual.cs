@@ -169,6 +169,19 @@ public class RoomVisual : MonoBehaviour
             case MaskType.Shield:
                 DrawShieldMask(tex, size, centerX, centerY);
                 break;
+            // Architecture masks - draw building shape
+            case MaskType.ArchitectSanctuary:
+            case MaskType.ArchitectAltar:
+            case MaskType.ArchitectPews:
+            case MaskType.ArchitectMission:
+            case MaskType.ArchitectRitualHall:
+            case MaskType.ArchitectWorkshop:
+            case MaskType.ArchitectFundraising:
+            case MaskType.ArchitectLightningRitual:
+            case MaskType.ArchitectFloodRitual:
+            case MaskType.ArchitectShieldRitual:
+                DrawBlueprintMask(tex, size, centerX, centerY);
+                break;
             default:
                 DrawGenericMask(tex, size, centerX, centerY);
                 break;
@@ -176,6 +189,54 @@ public class RoomVisual : MonoBehaviour
         
         tex.Apply();
         return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+    }
+    
+    private void DrawBlueprintMask(Texture2D tex, int size, float cx, float cy)
+    {
+        // Simple building/house shape for blueprints
+        int padding = 4;
+        int roofHeight = size / 3;
+        int bodyTop = padding + roofHeight;
+        int bodyBottom = size - padding;
+        int bodyLeft = padding + 2;
+        int bodyRight = size - padding - 2;
+        
+        // Draw building body (rectangle)
+        for (int x = bodyLeft; x <= bodyRight; x++)
+        {
+            for (int y = padding; y < bodyBottom; y++)
+            {
+                if (y >= bodyTop)
+                    tex.SetPixel(x, y, Color.white);
+            }
+        }
+        
+        // Draw roof (triangle)
+        for (int y = bodyTop; y >= padding; y--)
+        {
+            float progress = (float)(bodyTop - y) / roofHeight;
+            int halfWidth = (int)((bodyRight - bodyLeft) / 2 * (1f - progress));
+            int roofCenterX = (int)cx;
+            for (int x = roofCenterX - halfWidth; x <= roofCenterX + halfWidth; x++)
+            {
+                if (x >= 0 && x < size)
+                    tex.SetPixel(x, y, Color.white);
+            }
+        }
+        
+        // Draw door (small rectangle at bottom center)
+        int doorWidth = 4;
+        int doorHeight = 6;
+        int doorLeft = (int)cx - doorWidth / 2;
+        int doorBottom = padding;
+        for (int x = doorLeft; x < doorLeft + doorWidth; x++)
+        {
+            for (int y = doorBottom; y < doorBottom + doorHeight; y++)
+            {
+                if (x >= 0 && x < size && y >= 0 && y < size)
+                    tex.SetPixel(x, y, Color.clear); // Cut out the door
+            }
+        }
     }
     
     private void DrawStrikeMask(Texture2D tex, int size, float cx, float cy)
@@ -286,6 +347,17 @@ public class RoomVisual : MonoBehaviour
             MaskType.Sanctuary => new Color(0.3f, 0.8f, 0.5f), // Green
             MaskType.Plenty => new Color(1f, 0.85f, 0.3f),     // Gold
             MaskType.Sacrifice => new Color(0.8f, 0.2f, 0.2f), // Dark red
+            // Architecture masks - all use a blueprint/construction color
+            MaskType.ArchitectSanctuary => new Color(0.6f, 0.8f, 0.4f),    // Light green
+            MaskType.ArchitectAltar => new Color(0.8f, 0.6f, 0.3f),        // Bronze
+            MaskType.ArchitectPews => new Color(0.6f, 0.5f, 0.4f),         // Wood brown
+            MaskType.ArchitectMission => new Color(0.4f, 0.6f, 0.8f),      // Sky blue
+            MaskType.ArchitectRitualHall => new Color(0.7f, 0.4f, 0.7f),   // Purple
+            MaskType.ArchitectWorkshop => new Color(0.7f, 0.7f, 0.5f),     // Khaki
+            MaskType.ArchitectFundraising => new Color(0.9f, 0.8f, 0.2f),  // Gold
+            MaskType.ArchitectLightningRitual => new Color(1f, 1f, 0.5f),  // Bright yellow
+            MaskType.ArchitectFloodRitual => new Color(0.4f, 0.6f, 0.9f),  // Water blue
+            MaskType.ArchitectShieldRitual => new Color(0.6f, 0.9f, 0.9f), // Cyan
             _ => Color.white
         };
     }

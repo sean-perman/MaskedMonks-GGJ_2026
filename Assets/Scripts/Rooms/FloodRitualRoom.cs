@@ -8,25 +8,16 @@ using UnityEngine;
 /// </summary>
 public class FloodRitualRoom : Room
 {
-    [Header("Flood Ritual Settings")]
-    [Tooltip("Duration for mask generation (pawn-seconds)")]
-    [SerializeField] private float triggerDuration = 60f;
-    
-    [Tooltip("Favor cost for Flood masks")]
-    [SerializeField] private int maskFavorCost = 2;
-    
-    [Tooltip("Damage dealt to each room in bottom row")]
-    [SerializeField] private int damagePerRoom = 2;
-    
-    [Tooltip("Shelf life for generated masks in seconds")]
-    [SerializeField] private float maskShelfLife = 5f;
+    private int MaskFavorCost => GameConfig.Instance.floodMaskFavorCost;
+    private int DamagePerRoom => GameConfig.Instance.floodDamagePerRoom;
+    private float MaskShelfLife => GameConfig.Instance.floodMaskShelfLife;
     
     public override ResourceType GeneratedResource => ResourceType.Mask;
     
     protected override void Awake()
     {
         type = RoomType.FloodRitual;
-        duration = triggerDuration;
+        duration = GameConfig.Instance.floodRitualDuration;
     }
     
     /// <summary>
@@ -48,11 +39,11 @@ public class FloodRitualRoom : Room
             type: MaskType.Flood,
             targetType: MaskTargetType.EnemyBottomRow,
             duration: 0f, // Instant effect
-            shelfLife: maskShelfLife,
-            favorCost: maskFavorCost,
+            shelfLife: MaskShelfLife,
+            favorCost: MaskFavorCost,
             moneyCost: 0,
             followerSacrifice: 0,
-            effectValue: damagePerRoom
+            effectValue: DamagePerRoom
         );
         
         // Add to god's storage
@@ -61,7 +52,7 @@ public class FloodRitualRoom : Room
         {
             NotifyResourceGenerated(ResourceType.Mask, 1);
             NotifyMaskGenerated(MaskType.Flood);
-            Debug.Log($"Flood Ritual generated a Flood mask! (Cost: {maskFavorCost} favor, Damage: {damagePerRoom} per room)");
+            Debug.Log($"Flood Ritual generated a Flood mask! (Cost: {MaskFavorCost} favor, Damage: {DamagePerRoom} per room)");
         }
     }
 }

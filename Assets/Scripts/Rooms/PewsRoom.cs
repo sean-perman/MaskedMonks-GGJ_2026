@@ -6,14 +6,14 @@ using UnityEngine;
 /// </summary>
 public class PewsRoom : Room
 {
-    [Header("Pews Settings")]
-    [SerializeField] private int favorPerTrigger = 1;
+    private int FavorPerTrigger => GameConfig.Instance.pewsFavorPerTrigger;
     
     public override ResourceType GeneratedResource => ResourceType.Favor;
     
     protected override void Awake()
     {
         type = RoomType.Pews;
+        duration = GameConfig.Instance.pewsDuration;
     }
     
     /// <summary>
@@ -28,9 +28,9 @@ public class PewsRoom : Room
     {
         if (cult != null && cult.god != null)
         {
-            cult.god.IncreaseFavor(favorPerTrigger);
-            NotifyResourceGenerated(ResourceType.Favor, favorPerTrigger);
-            Debug.Log($"Pews triggered! God gained {favorPerTrigger} favor.");
+            cult.god.IncreaseFavor(FavorPerTrigger);
+            NotifyResourceGenerated(ResourceType.Favor, FavorPerTrigger);
+            Debug.Log($"Pews triggered! God gained {FavorPerTrigger} favor.");
         }
     }
 }

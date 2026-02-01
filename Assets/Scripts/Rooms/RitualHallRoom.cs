@@ -14,24 +14,16 @@ public class RitualHallRoom : Room
         MaskType.Strike
     };
     
-    [Tooltip("Favor cost for generated masks")]
-    [SerializeField] private int maskFavorCost = 2;
-    
-    [Tooltip("Effect value for generated masks (damage, etc.)")]
-    [SerializeField] private int maskEffectValue = 2;
-    
-    [Tooltip("Shelf life for generated masks in seconds")]
-    [SerializeField] private float maskShelfLife = 60f;
-    
-    [Tooltip("Duration for mask triggers (pawn-seconds)")]
-    [SerializeField] private float triggerDuration = 15f;
+    private int MaskFavorCost => GameConfig.Instance.ritualHallMaskFavorCost;
+    private int MaskEffectValue => GameConfig.Instance.ritualHallMaskEffectValue;
+    private float MaskShelfLife => GameConfig.Instance.ritualHallMaskShelfLife;
     
     public override ResourceType GeneratedResource => ResourceType.Mask;
     
     protected override void Awake()
     {
         type = RoomType.RitualHall;
-        duration = triggerDuration;
+        duration = GameConfig.Instance.ritualHallDuration;
     }
     
     /// <summary>
@@ -58,11 +50,11 @@ public class RitualHallRoom : Room
             type: maskType,
             targetType: GetTargetTypeForMask(maskType),
             duration: 0f, // Instant effect
-            shelfLife: maskShelfLife,
-            favorCost: maskFavorCost,
+            shelfLife: MaskShelfLife,
+            favorCost: MaskFavorCost,
             moneyCost: 0,
             followerSacrifice: 0,
-            effectValue: maskEffectValue
+            effectValue: MaskEffectValue
         );
         
         // Add to god's storage
@@ -71,7 +63,7 @@ public class RitualHallRoom : Room
         {
             NotifyResourceGenerated(ResourceType.Mask, 1);
             NotifyMaskGenerated(maskType);
-            Debug.Log($"Ritual Hall generated a {maskType} mask! (Cost: {maskFavorCost} favor, Effect: {maskEffectValue})");
+            Debug.Log($"Ritual Hall generated a {maskType} mask! (Cost: {MaskFavorCost} favor, Effect: {MaskEffectValue})");
         }
     }
     

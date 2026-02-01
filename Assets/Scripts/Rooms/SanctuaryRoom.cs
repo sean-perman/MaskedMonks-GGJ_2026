@@ -6,8 +6,7 @@ using UnityEngine;
 /// </summary>
 public class SanctuaryRoom : Room
 {
-    [Header("Sanctuary Settings")]
-    [SerializeField] private float commitmentRecoveryPerSecond = 2f;
+    private float CommitmentRecoveryPerSecond => GameConfig.Instance.sanctuaryCommitmentRecoveryPerSecond;
     
     protected override void Awake()
     {
@@ -28,7 +27,7 @@ public class SanctuaryRoom : Room
         {
             if (follower != null)
             {
-                follower.RecoverCommitment(commitmentRecoveryPerSecond * Time.deltaTime);
+                follower.RecoverCommitment(CommitmentRecoveryPerSecond * Time.deltaTime);
             }
         }
     }

@@ -9,16 +9,16 @@ public class God : MonoBehaviour
 {
     [Header("Strength (Health & Attack Power)")]
     [SerializeField] private int strength = 100;
-    [SerializeField] private int maxStrength = 100;
+    private int maxStrength = 100;
     
     [Header("Favor")]
     [SerializeField] private int favor = 50;
-    [SerializeField] private int maxFavor = 100;
+    private int maxFavor = 100;
     
     [Header("Masks")]
     [SerializeField] private Mask currentMask;
     [SerializeField] private List<Mask> storedMasks = new();
-    [SerializeField] private int maxStoredMasks = 4;
+    private int MaxStoredMasks => GameConfig.Instance.godMaxStoredMasks;
     
     [Header("Over Time Effects")]
     [SerializeField] private float bleedDPS = 0f;
@@ -37,7 +37,7 @@ public class God : MonoBehaviour
     public Mask CurrentMask => currentMask;
     public IReadOnlyList<Mask> StoredMasks => storedMasks;
     public IReadOnlyList<Mask> Masks => storedMasks; // Alias for convenience
-    public int MaskStorageRemaining => maxStoredMasks - storedMasks.Count;
+    public int MaskStorageRemaining => MaxStoredMasks - storedMasks.Count;
     
     // === Initialization ===
     
@@ -146,7 +146,7 @@ public class God : MonoBehaviour
     {
         if (mask == null) return false;
         
-        if (storedMasks.Count >= maxStoredMasks)
+        if (storedMasks.Count >= MaxStoredMasks)
         {
             Debug.LogWarning("Mask storage is full!");
             return false;

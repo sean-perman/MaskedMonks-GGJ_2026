@@ -11,6 +11,7 @@ public class MissionRoom : Room
     protected override void Awake()
     {
         type = RoomType.Mission;
+        duration = GameConfig.Instance.missionDuration;
     }
     
     /// <summary>

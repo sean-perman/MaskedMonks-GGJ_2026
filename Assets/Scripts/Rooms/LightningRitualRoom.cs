@@ -8,28 +8,16 @@ using UnityEngine;
 /// </summary>
 public class LightningRitualRoom : Room
 {
-    [Header("Lightning Ritual Settings")]
-    [Tooltip("Duration for mask generation (pawn-seconds)")]
-    [SerializeField] private float triggerDuration = 25f;
-    
-    [Tooltip("Favor cost for Lightning masks")]
-    [SerializeField] private int maskFavorCost = 3;
-    
-    [Tooltip("Damage dealt to each room in the column")]
-    [SerializeField] private int damagePerRoom = 1;
-    
-    [Tooltip("Shelf life for generated masks in seconds")]
-    [SerializeField] private float maskShelfLife = 30f;
-    
-    [Tooltip("Cooldown between mask uses in seconds")]
-    [SerializeField] private float maskCooldown = 20f;
+    private int MaskFavorCost => GameConfig.Instance.lightningMaskFavorCost;
+    private int DamagePerRoom => GameConfig.Instance.lightningDamagePerRoom;
+    private float MaskShelfLife => GameConfig.Instance.lightningMaskShelfLife;
     
     public override ResourceType GeneratedResource => ResourceType.Mask;
     
     protected override void Awake()
     {
         type = RoomType.LightningRitual;
-        duration = triggerDuration;
+        duration = GameConfig.Instance.lightningRitualDuration;
     }
     
     /// <summary>
@@ -51,11 +39,11 @@ public class LightningRitualRoom : Room
             type: MaskType.Lightning,
             targetType: MaskTargetType.EnemyColumn,
             duration: 0f, // Instant effect
-            shelfLife: maskShelfLife,
-            favorCost: maskFavorCost,
+            shelfLife: MaskShelfLife,
+            favorCost: MaskFavorCost,
             moneyCost: 0,
             followerSacrifice: 0,
-            effectValue: damagePerRoom
+            effectValue: DamagePerRoom
         );
         
         // Add to god's storage
@@ -64,7 +52,7 @@ public class LightningRitualRoom : Room
         {
             NotifyResourceGenerated(ResourceType.Mask, 1);
             NotifyMaskGenerated(MaskType.Lightning);
-            Debug.Log($"Lightning Ritual generated a Lightning mask! (Cost: {maskFavorCost} favor, Damage: {damagePerRoom} per room)");
+            Debug.Log($"Lightning Ritual generated a Lightning mask! (Cost: {MaskFavorCost} favor, Damage: {DamagePerRoom} per room)");
         }
     }
 }

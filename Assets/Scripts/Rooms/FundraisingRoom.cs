@@ -7,22 +7,15 @@ using UnityEngine;
 /// </summary>
 public class FundraisingRoom : Room
 {
-    [Header("Fundraising Settings")]
-    [Tooltip("Money generated per trigger")]
-    [SerializeField] private int moneyPerTrigger = 3;
-    
-    [Tooltip("Favor cost per trigger")]
-    [SerializeField] private int favorCostPerTrigger = 2;
-    
-    [Tooltip("Duration in pawn-seconds to trigger")]
-    [SerializeField] private float triggerDuration = 30f;
+    private int MoneyPerTrigger => GameConfig.Instance.fundraisingMoneyPerTrigger;
+    private int FavorCostPerTrigger => GameConfig.Instance.fundraisingFavorCost;
     
     public override ResourceType GeneratedResource => ResourceType.Money;
     
     protected override void Awake()
     {
         type = RoomType.Fundraising;
-        duration = triggerDuration;
+        duration = GameConfig.Instance.fundraisingDuration;
     }
     
     /// <summary>
@@ -37,17 +30,17 @@ public class FundraisingRoom : Room
         }
         
         // Check if we have enough favor
-        if (cult.god.Favor < favorCostPerTrigger)
+        if (cult.god.Favor < FavorCostPerTrigger)
         {
-            Debug.Log($"Fundraising failed - not enough favor! Need {favorCostPerTrigger}, have {cult.god.Favor}");
+            Debug.Log($"Fundraising failed - not enough favor! Need {FavorCostPerTrigger}, have {cult.god.Favor}");
             return;
         }
         
         // Spend favor, gain money
-        cult.god.DecreaseFavor(favorCostPerTrigger);
-        cult.AddMoney(moneyPerTrigger);
-        NotifyResourceGenerated(ResourceType.Money, moneyPerTrigger);
+        cult.god.DecreaseFavor(FavorCostPerTrigger);
+        cult.AddMoney(MoneyPerTrigger);
+        NotifyResourceGenerated(ResourceType.Money, MoneyPerTrigger);
         
-        Debug.Log($"Fundraising success! +{moneyPerTrigger} money, -{favorCostPerTrigger} favor. Total money: {cult.Money}");
+        Debug.Log($"Fundraising success! +{MoneyPerTrigger} money, -{FavorCostPerTrigger} favor. Total money: {cult.Money}");
     }
 }

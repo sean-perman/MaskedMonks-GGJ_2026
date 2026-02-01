@@ -8,10 +8,9 @@ public class Follower : MonoBehaviour
 {
     [Header("Commitment")]
     [SerializeField] private float commitment = 100f;
-    [SerializeField] private float maxCommitment = 100f;
     
-    [Header("Decay Settings")]
-    [SerializeField] private float decayRatePerSecond = 1f;
+    private float MaxCommitmentConfig => GameConfig.Instance.followerMaxCommitment;
+    private float DecayRatePerSecond => GameConfig.Instance.followerDecayRatePerSecond;
     
     [Header("References")]
     [SerializeField] private Room currentRoom;
@@ -20,8 +19,8 @@ public class Follower : MonoBehaviour
     // === Properties ===
     
     public float Commitment => commitment;
-    public float MaxCommitment => maxCommitment;
-    public float CommitmentPercent => maxCommitment > 0 ? commitment / maxCommitment : 0f;
+    public float MaxCommitment => MaxCommitmentConfig;
+    public float CommitmentPercent => MaxCommitmentConfig > 0 ? commitment / MaxCommitmentConfig : 0f;
     public Room CurrentRoom => currentRoom;
     public Cult Cult => cult;
     
@@ -38,7 +37,7 @@ public class Follower : MonoBehaviour
     public void Initialize(Cult cult)
     {
         this.cult = cult;
-        this.commitment = maxCommitment;
+        this.commitment = MaxCommitment;
     }
     
     // === Unity Lifecycle ===
@@ -48,7 +47,7 @@ public class Follower : MonoBehaviour
         // Apply commitment decay if in a room that causes it
         if (currentRoom != null && currentRoom.CausesCommitmentDecay)
         {
-            DecayCommitment(decayRatePerSecond * Time.deltaTime);
+            DecayCommitment(DecayRatePerSecond * Time.deltaTime);
         }
     }
     
@@ -92,7 +91,7 @@ public class Follower : MonoBehaviour
     /// </summary>
     public void RecoverCommitment(float amount)
     {
-        commitment = Mathf.Min(maxCommitment, commitment + amount);
+        commitment = Mathf.Min(MaxCommitment, commitment + amount);
     }
     
     /// <summary>
@@ -100,7 +99,7 @@ public class Follower : MonoBehaviour
     /// </summary>
     public void SetCommitment(float value)
     {
-        commitment = Mathf.Clamp(value, 0f, maxCommitment);
+        commitment = Mathf.Clamp(value, 0f, MaxCommitment);
         
         if (commitment <= 0f)
         {

@@ -10,25 +10,12 @@ using UnityEngine;
 /// </summary>
 public class WorkshopRoom : Room
 {
-    [Header("Workshop Settings")]
-    [Tooltip("Base duration for generating a blueprint (in pawn-seconds)")]
-    [SerializeField] private float blueprintDuration = 60f;
-    
-    [Header("Room Costs (Gold)")]
-    [SerializeField] private int sanctuaryCost = 50;
-    [SerializeField] private int altarCost = 80;
-    [SerializeField] private int pewsCost = 60;
-    [SerializeField] private int missionCost = 100;
-    [SerializeField] private int ritualHallCost = 120;
-    [SerializeField] private int workshopCost = 150;
-    [SerializeField] private int fundraisingCost = 70;
-    
     public override ResourceType GeneratedResource => ResourceType.Blueprint;
     
     protected override void Awake()
     {
         type = RoomType.Workshop;
-        duration = blueprintDuration;
+        duration = GameConfig.Instance.workshopBlueprintDuration;
     }
     
     /// <summary>
@@ -75,6 +62,7 @@ public class WorkshopRoom : Room
         if (added)
         {
             NotifyResourceGenerated(ResourceType.Blueprint, 1);
+            NotifyMaskGenerated(maskType); // Notify for visual indicator
             Debug.Log($"Workshop generated a {targetRoomType} blueprint! Cost: {goldCost} gold");
         }
         else
@@ -98,7 +86,10 @@ public class WorkshopRoom : Room
             RoomType.Mission,
             RoomType.RitualHall,
             RoomType.Workshop,
-            RoomType.Fundraising
+            RoomType.Fundraising,
+            RoomType.LightningRitual,
+            RoomType.FloodRitual,
+            RoomType.ShieldRitual
         };
         
         foreach (var roomType in buildableTypes)
@@ -126,6 +117,9 @@ public class WorkshopRoom : Room
             RoomType.RitualHall => MaskType.ArchitectRitualHall,
             RoomType.Workshop => MaskType.ArchitectWorkshop,
             RoomType.Fundraising => MaskType.ArchitectFundraising,
+            RoomType.LightningRitual => MaskType.ArchitectLightningRitual,
+            RoomType.FloodRitual => MaskType.ArchitectFloodRitual,
+            RoomType.ShieldRitual => MaskType.ArchitectShieldRitual,
             _ => MaskType.ArchitectSanctuary // Default fallback
         };
     }
@@ -135,17 +129,7 @@ public class WorkshopRoom : Room
     /// </summary>
     private int GetRoomCost(RoomType roomType)
     {
-        return roomType switch
-        {
-            RoomType.Sanctuary => sanctuaryCost,
-            RoomType.Altar => altarCost,
-            RoomType.Pews => pewsCost,
-            RoomType.Mission => missionCost,
-            RoomType.RitualHall => ritualHallCost,
-            RoomType.Workshop => workshopCost,
-            RoomType.Fundraising => fundraisingCost,
-            _ => 100 // Default cost
-        };
+        return GameConfig.Instance.GetRoomBuildCost(roomType);
     }
     
     /// <summary>
@@ -153,16 +137,6 @@ public class WorkshopRoom : Room
     /// </summary>
     public static int GetRoomCostStatic(RoomType roomType)
     {
-        return roomType switch
-        {
-            RoomType.Sanctuary => 50,
-            RoomType.Altar => 80,
-            RoomType.Pews => 60,
-            RoomType.Mission => 100,
-            RoomType.RitualHall => 120,
-            RoomType.Workshop => 150,
-            RoomType.Fundraising => 70,
-            _ => 100
-        };
+        return GameConfig.Instance.GetRoomBuildCost(roomType);
     }
 }
