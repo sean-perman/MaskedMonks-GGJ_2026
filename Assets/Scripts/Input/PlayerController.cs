@@ -417,18 +417,21 @@ public class PlayerController : MonoBehaviour
             Debug.Log("No room at cursor position to upgrade");
             return;
         }
-        
-        // nth upgrade costs n wealth (so level 1->2 costs 1, level 2->3 costs 2, etc.)
-        int upgradeCost = currentRoom.Level;
-        
+
+        // For unbuilt rooms (level 0), cost is the build cost
+        // For built rooms, nth upgrade costs n wealth (so level 1->2 costs 1, level 2->3 costs 2, etc.)
+        int upgradeCost = currentRoom.UpgradeCost;
+
         if (!cult.SpendMoney(upgradeCost))
         {
-            Debug.Log($"Not enough money to upgrade {currentRoom.Type} (need {upgradeCost})");
+            string action = currentRoom.IsBuilt ? "upgrade" : "build";
+            Debug.Log($"Not enough money to {action} {currentRoom.Type} (need {upgradeCost})");
             return;
         }
-        
+
         currentRoom.Upgrade();
-        Debug.Log($"Upgraded {currentRoom.Type} to level {currentRoom.Level} (cost: {upgradeCost})");
+        string actionDone = currentRoom.Level == 1 ? "Built" : "Upgraded";
+        Debug.Log($"{actionDone} {currentRoom.Type} to level {currentRoom.Level} (cost: {upgradeCost})");
     }
     
     private void ProcessMaskCommands()

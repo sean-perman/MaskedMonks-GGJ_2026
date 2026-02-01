@@ -144,33 +144,48 @@ public class RoomInfoPanel : MonoBehaviour
         GUILayout.Space(5);
         
         // Level info
-        DrawStatRow("Level:", $"{currentRoom.Level}");
-        DrawStatRow("Capacity:", $"{currentRoom.Followers.Count} / {currentRoom.Capacity}");
-        
-        // Upgrade cost
-        int upgradeCost = currentRoom.Level;
+        if (currentRoom.IsBuilt)
+        {
+            DrawStatRow("Level:", $"{currentRoom.Level}");
+            DrawStatRow("Capacity:", $"{currentRoom.Followers.Count} / {currentRoom.Capacity}");
+        }
+        else
+        {
+            DrawStatRow("Status:", "Not Built");
+        }
+
+        // Upgrade/Build cost
+        int upgradeCost = currentRoom.UpgradeCost;
         int playerMoney = controller.Cult.Money;
         bool canAfford = playerMoney >= upgradeCost;
-        
+        string costLabel = currentRoom.IsBuilt ? "Upgrade Cost:" : "Build Cost:";
+
         GUILayout.BeginHorizontal();
-        GUILayout.Label("Upgrade Cost:", labelStyle, GUILayout.Width(90));
+        GUILayout.Label(costLabel, labelStyle, GUILayout.Width(90));
         var costStyle = new GUIStyle(valueStyle);
         costStyle.normal.textColor = canAfford ? canAffordColor : cannotAffordColor;
         GUILayout.Label($"{upgradeCost} gold", costStyle);
         GUILayout.EndHorizontal();
-        
+
         GUILayout.Space(5);
         DrawDivider();
         GUILayout.Space(5);
-        
+
         // Controls section
         GUILayout.Label("Controls", headerStyle);
         GUILayout.Space(5);
-        
+
         var bindings = controller.Bindings;
-        DrawKeyBinding("Add Follower:", bindings.sendFromSanctuary);
-        DrawKeyBinding("Remove Follower:", bindings.sendToSanctuary);
-        DrawKeyBinding("Upgrade Room:", bindings.upgradeRoom);
+        if (currentRoom.IsBuilt)
+        {
+            DrawKeyBinding("Add Follower:", bindings.sendFromSanctuary);
+            DrawKeyBinding("Remove Follower:", bindings.sendToSanctuary);
+            DrawKeyBinding("Upgrade Room:", bindings.upgradeRoom);
+        }
+        else
+        {
+            DrawKeyBinding("Build Room:", bindings.upgradeRoom);
+        }
         
         GUILayout.EndArea();
     }

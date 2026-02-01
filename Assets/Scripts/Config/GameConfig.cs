@@ -107,7 +107,13 @@ public class GameConfig : ScriptableObject
     public int shieldFavorCost = 4;
     [Tooltip("Shelf life for Shield masks (seconds)")]
     public float shieldMaskShelfLife = 20f;
-    
+
+    [Header("Sacrificial Altar")]
+    [Tooltip("Pawn-seconds to sacrifice a follower")]
+    public float sacrificialAltarDuration = 30f;
+    [Tooltip("Damage dealt to enemy god per sacrifice")]
+    public int sacrificialAltarDamage = 10;
+
     // ============================================
     // ROOM BUILD COSTS (Gold)
     // ============================================
@@ -123,6 +129,7 @@ public class GameConfig : ScriptableObject
     public int lightningRitualBuildCost = 10;
     public int floodRitualBuildCost = 10;
     public int shieldRitualBuildCost = 10;
+    public int sacrificialAltarBuildCost = 15;
 
     // ============================================
     // ROOM STARTING LEVELS
@@ -149,7 +156,9 @@ public class GameConfig : ScriptableObject
     public int floodRitualStartingLevel = 0;
     [Tooltip("Starting level for Shield Ritual rooms (0 = not built)")]
     public int shieldRitualStartingLevel = 0;
-    
+    [Tooltip("Starting level for Sacrificial Altar rooms (0 = not built)")]
+    public int sacrificialAltarStartingLevel = 0;
+
     // ============================================
     // ROOM MECHANICS
     // ============================================
@@ -215,10 +224,11 @@ public class GameConfig : ScriptableObject
             RoomType.LightningRitual => lightningRitualBuildCost,
             RoomType.FloodRitual => floodRitualBuildCost,
             RoomType.ShieldRitual => shieldRitualBuildCost,
+            RoomType.SacrificialAltar => sacrificialAltarBuildCost,
             _ => 10
         };
     }
-    
+
     /// <summary>
     /// Get the duration for a room type.
     /// </summary>
@@ -235,6 +245,7 @@ public class GameConfig : ScriptableObject
             RoomType.LightningRitual => lightningRitualDuration,
             RoomType.FloodRitual => floodRitualDuration,
             RoomType.ShieldRitual => shieldRitualDuration,
+            RoomType.SacrificialAltar => sacrificialAltarDuration,
             _ => 30f
         };
     }
@@ -257,6 +268,7 @@ public class GameConfig : ScriptableObject
             RoomType.LightningRitual => lightningRitualStartingLevel,
             RoomType.FloodRitual => floodRitualStartingLevel,
             RoomType.ShieldRitual => shieldRitualStartingLevel,
+            RoomType.SacrificialAltar => sacrificialAltarStartingLevel,
             _ => 0
         };
     }
