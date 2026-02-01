@@ -187,9 +187,21 @@ public class GameManager : MonoBehaviour
         // Play god attack sound
         AudioManager.PlayGodAttack();
 
-        // Both gods attack simultaneously
-        cult2.god.DecreaseStrength(damage1);
-        cult1.god.DecreaseStrength(damage2);
+        // Get god positions
+        Vector3 god1Pos = cult1.god.transform.position;
+        Vector3 god2Pos = cult2.god.transform.position;
+
+        // Spawn projectile from god1 to god2 (damage applied on impact)
+        MaskProjectile.Create(god1Pos, god2Pos, MaskType.Wrath, () =>
+        {
+            cult2.god.DecreaseStrength(damage1);
+        });
+
+        // Spawn projectile from god2 to god1 (damage applied on impact)
+        MaskProjectile.Create(god2Pos, god1Pos, MaskType.Wrath, () =>
+        {
+            cult1.god.DecreaseStrength(damage2);
+        });
 
         Debug.Log($"God Combat! Cult1 dealt {damage1} damage, Cult2 dealt {damage2} damage.");
     }
