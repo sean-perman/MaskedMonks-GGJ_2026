@@ -298,7 +298,7 @@ public class GameInitializer : MonoBehaviour
     {
         GameObject godObj;
         God god;
-        
+
         if (godPrefab != null)
         {
             godObj = Instantiate(godPrefab, parent);
@@ -313,17 +313,55 @@ public class GameInitializer : MonoBehaviour
             god = godObj.AddComponent<God>();
         }
         godObj.transform.localPosition = new Vector3(0, 5f, 0); // Position above church
-        
+
         // Add GodVisual if not present
         if (godObj.GetComponent<GodVisual>() == null)
         {
             godObj.AddComponent<GodVisual>();
         }
-        
+
+        // Add random god sprite
+        AddGodSprite(godObj.transform);
+
         // Initialize with starting stats
         god.Initialize(startingGodStrength, startingGodFavor);
-        
+
         return god;
+    }
+
+    /// <summary>
+    /// Adds a random god sprite to the god object.
+    /// Sprites should be located in Resources/gods/ folder.
+    /// Positioned to the left of the health bars/UI.
+    /// </summary>
+    private void AddGodSprite(Transform godTransform)
+    {
+        // Load all god sprites from Resources/gods folder
+        Sprite[] godSprites = Resources.LoadAll<Sprite>("gods");
+
+        if (godSprites == null || godSprites.Length == 0)
+        {
+            Debug.LogWarning("No god sprites found in Resources/gods/. Please move sprites from Assets/Art/Sprites/gods to Assets/Resources/gods/");
+            return;
+        }
+
+        // Pick a random sprite
+        Sprite randomSprite = godSprites[Random.Range(0, godSprites.Length)];
+
+        // Create sprite child object
+        GameObject spriteObj = new GameObject("God Sprite");
+        spriteObj.transform.SetParent(godTransform);
+        // Position to the left of the health bars (which are at x=0, with bar width=2)
+        // Health bar extends from x=-1 to x=1, so place sprite at x=-2
+        spriteObj.transform.localPosition = new Vector3(-2f, 0.2f, 0f);
+        spriteObj.transform.localScale = new Vector3(0.8f, 0.8f, 1f); // Scale down if needed
+
+        // Add sprite renderer
+        SpriteRenderer sr = spriteObj.AddComponent<SpriteRenderer>();
+        sr.sprite = randomSprite;
+        sr.sortingOrder = 15; // Render in front of UI elements (UI is at 10-12)
+
+        Debug.Log($"Added god sprite: {randomSprite.name}");
     }
     
     private void CreateStartingRooms(Church church, bool isPlayer1)

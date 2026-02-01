@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{b7687a22-4e69-474d-9c57-3c22bc769401}">
+		<property name="assetPath">
+			<value>sfx/masked_monks_sfx_Master_room_trigger_altar.wav</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>1</value>
+		</property>
+		<property name="length">
+			<value>1.5345833333333334</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{6b5830bd-aa80-43e1-ae19-096d33af2b27}</destination>
+		</relationship>
+	</object>
+</objects>
