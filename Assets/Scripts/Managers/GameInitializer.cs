@@ -17,7 +17,7 @@ public class GameInitializer : MonoBehaviour
     [SerializeField] private float churchSeparation = 12f; // Distance between churches
     
     [Header("Starting Configuration")]
-    [SerializeField] private int startingFollowers = 1;
+    [SerializeField] private int startingFollowers = 3;
     [SerializeField] private int startingMaxMoney = 10;
     // Note: God strength, favor, and money now come from GameConfig
     

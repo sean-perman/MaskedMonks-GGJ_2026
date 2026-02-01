@@ -13,10 +13,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Cult cult2;
     
     [Header("Game Settings")]
-    [SerializeField] private float godAttackInterval = 10f;
+    [SerializeField] private float godAttackInterval = 15f;
     [SerializeField] private int startingFollowers = 5;
     [SerializeField] private int startingFavor = 50;
-    [SerializeField] private int startingStrength = 100;
+    [SerializeField] private int startingStrength = 200;
     
     [Header("Game State")]
     [SerializeField] private bool gameRunning = false;
