@@ -104,7 +104,7 @@ public class RoomInfoPanel : MonoBehaviour
         if (controller.IsTargeting) return;
         
         // Calculate panel position - anchor to outer edges of screen
-        float panelHeight = 320f;
+        float panelHeight = IsMaskGeneratingRoom(currentRoom.Type) ? 420f : 320f;
         float x = isLeftSide ? screenEdgeMargin : Screen.width - panelWidth - screenEdgeMargin;
         float y = (Screen.height - panelHeight) / 2f;
         
@@ -129,6 +129,15 @@ public class RoomInfoPanel : MonoBehaviour
         DrawStatRow("Generates:", GetGeneratesText(currentRoom));
         DrawStatRow("Cycle Time:", $"{currentRoom.Duration:F0} pawn-seconds");
         DrawStatRow("Progress:", $"{currentRoom.Progress * 100:F0}%");
+        
+        // Show mask details for attack rooms
+        if (IsMaskGeneratingRoom(currentRoom.Type))
+        {
+            GUILayout.Space(5);
+            DrawDivider();
+            GUILayout.Space(5);
+            DrawMaskDetails(currentRoom.Type);
+        }
         
         GUILayout.Space(5);
         DrawDivider();
@@ -261,5 +270,50 @@ public class RoomInfoPanel : MonoBehaviour
             ResourceType.None => "Rest & Recovery",
             _ => "Unknown"
         };
+    }
+    
+    private bool IsMaskGeneratingRoom(RoomType type)
+    {
+        return type == RoomType.WrathRitualHall ||
+               type == RoomType.LightningRitual ||
+               type == RoomType.FloodRitual ||
+               type == RoomType.ShieldRitual;
+    }
+    
+    private void DrawMaskDetails(RoomType type)
+    {
+        var config = GameConfig.Instance;
+        
+        GUILayout.Label("Mask Details", headerStyle);
+        GUILayout.Space(3);
+        
+        switch (type)
+        {
+            case RoomType.WrathRitualHall:
+                DrawStatRow("Favor Cost:", $"{config.ritualHallMaskFavorCost}");
+                DrawStatRow("Damage:", $"{config.ritualHallMaskEffectValue} to target");
+                DrawStatRow("Shelf Life:", $"{config.ritualHallMaskShelfLife:F0}s");
+                break;
+                
+            case RoomType.LightningRitual:
+                DrawStatRow("Favor Cost:", $"{config.lightningMaskFavorCost}");
+                DrawStatRow("Damage:", $"{config.lightningDamagePerRoom} per room");
+                DrawStatRow("Effect:", "Hits entire column");
+                DrawStatRow("Shelf Life:", $"{config.lightningMaskShelfLife:F0}s");
+                break;
+                
+            case RoomType.FloodRitual:
+                DrawStatRow("Favor Cost:", $"{config.floodMaskFavorCost}");
+                DrawStatRow("Damage:", $"{config.floodDamagePerRoom} per room");
+                DrawStatRow("Effect:", "Hits bottom row");
+                DrawStatRow("Shelf Life:", $"{config.floodMaskShelfLife:F0}s");
+                break;
+                
+            case RoomType.ShieldRitual:
+                DrawStatRow("Favor Cost:", $"{config.shieldFavorCost}");
+                DrawStatRow("Effect:", "Auto-blocks attack");
+                DrawStatRow("Shelf Life:", $"{config.shieldMaskShelfLife:F0}s");
+                break;
+        }
     }
 }
