@@ -31,14 +31,14 @@ MonoBehaviour:
   lightningMaskFavorCost: 3
   lightningDamagePerRoom: 1
   lightningMaskShelfLife: 30
-  floodRitualDuration: 60
+  floodRitualDuration: 30
   floodMaskFavorCost: 2
   floodDamagePerRoom: 2
   floodMaskShelfLife: 10
   shieldRitualDuration: 35
-  shieldFavorCost: 4
+  shieldFavorCost: 2
   shieldMaskShelfLife: 20
-  sacrificialAltarDuration: 30
+  sacrificialAltarDuration: 5
   sacrificialAltarDamage: 10
   sanctuaryBuildCost: 3
   altarBuildCost: 3
@@ -52,7 +52,7 @@ MonoBehaviour:
   shieldRitualBuildCost: 3
   sacrificialAltarBuildCost: 3
   sanctuaryStartingLevel: 3
-  altarStartingLevel: 2
+  altarStartingLevel: 5
   pewsStartingLevel: 2
   missionStartingLevel: 2
   fundraisingStartingLevel: 2
