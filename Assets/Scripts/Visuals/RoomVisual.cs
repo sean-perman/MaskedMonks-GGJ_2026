@@ -748,7 +748,8 @@ public class RoomVisual : MonoBehaviour
     private void Update()
     {
         if (room == null) return;
-        
+
+        UpdateColor();
         UpdateProgressBar();
         UpdateRepairBar();
         UpdateFollowerIcons();
@@ -759,7 +760,7 @@ public class RoomVisual : MonoBehaviour
     private void UpdateColor()
     {
         if (room == null) return;
-        
+
         Color color = room.Type switch
         {
             RoomType.Sanctuary => sanctuaryColor,
@@ -770,7 +771,13 @@ public class RoomVisual : MonoBehaviour
             RoomType.Workshop => workshopColor,
             _ => emptySlotColor
         };
-        
+
+        // Dim unbuilt rooms (level 0) to indicate they need to be built
+        if (!room.IsBuilt)
+        {
+            color.a *= 0.4f;
+        }
+
         backgroundSprite.color = color;
     }
     
@@ -917,8 +924,16 @@ public class RoomVisual : MonoBehaviour
     private void UpdateLabel()
     {
         string roomName = room.Type.ToString();
-        labelText.text = roomName;
-        labelText.color = Color.white;
+        if (!room.IsBuilt)
+        {
+            labelText.text = $"{roomName}\n(Not Built)";
+            labelText.color = new Color(0.7f, 0.7f, 0.7f);
+        }
+        else
+        {
+            labelText.text = roomName;
+            labelText.color = Color.white;
+        }
     }
     
     private void UpdateLevelPips()
