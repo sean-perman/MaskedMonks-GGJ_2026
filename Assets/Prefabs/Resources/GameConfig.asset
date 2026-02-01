@@ -13,31 +13,30 @@ MonoBehaviour:
   m_Name: GameConfig
   m_EditorClassIdentifier: Assembly-CSharp::GameConfig
   sanctuaryCommitmentRecoveryPerSecond: 2
-  altarDuration: 20
+  altarDuration: 10
   altarStrengthPerTrigger: 1
   pewsDuration: 10
   pewsFavorPerTrigger: 1
-  missionDuration: 40
+  missionDuration: 10
   missionFollowersPerTrigger: 1
-  fundraisingDuration: 30
+  fundraisingDuration: 10
   fundraisingMoneyPerTrigger: 1
   fundraisingFavorCost: 2
-  workshopBlueprintDuration: 60
+  workshopBlueprintDuration: 10
   workshopBlueprintShelfLife: 120
-  ritualHallDuration: 45
+  ritualHallDuration: 10
   ritualHallMaskFavorCost: 1
   ritualHallMaskEffectValue: 1
   ritualHallMaskShelfLife: 60
-  lightningRitualDuration: 25
+  lightningRitualDuration: 10
   lightningMaskFavorCost: 3
   lightningDamagePerRoom: 1
   lightningMaskShelfLife: 30
-  lightningMaskCooldown: 20
-  floodRitualDuration: 60
+  floodRitualDuration: 10
   floodMaskFavorCost: 2
   floodDamagePerRoom: 2
   floodMaskShelfLife: 5
-  shieldRitualDuration: 35
+  shieldRitualDuration: 10
   shieldFavorCost: 4
   shieldMaskShelfLife: 8
   sanctuaryBuildCost: 5
