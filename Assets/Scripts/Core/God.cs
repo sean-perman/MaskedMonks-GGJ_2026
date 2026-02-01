@@ -40,16 +40,23 @@ public class God : MonoBehaviour
     public int MaskStorageRemaining => MaxStoredMasks - storedMasks.Count;
     
     // === Initialization ===
-    
+
     /// <summary>
-    /// Initialize the god with starting stats.
+    /// Initialize the god with starting stats from GameConfig.
     /// </summary>
-    public void Initialize(int startStrength, int startFavor)
+    public void Initialize()
     {
-        maxStrength = startStrength;
-        strength = startStrength;
-        maxFavor = startFavor > 0 ? startFavor * 2 : 100;
-        favor = startFavor;
+        var config = GameConfig.Instance;
+        maxStrength = config.godMaxStrength;
+        strength = config.godStartingStrength;
+        maxFavor = config.godStartingFavor > 0 ? config.godStartingFavor * 2 : 100;
+        favor = config.godStartingFavor;
+
+        // Apply passive regeneration from config
+        if (config.godPassiveRegenRate > 0f)
+        {
+            SetRegen(config.godPassiveRegenRate);
+        }
     }
     
     // === Unity Lifecycle ===
