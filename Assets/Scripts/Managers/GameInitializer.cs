@@ -314,7 +314,10 @@ public class GameInitializer : MonoBehaviour
             church = churchObj.AddComponent<Church>();
         }
         churchObj.transform.localPosition = Vector3.zero;
-        
+
+        // Add random church building sprite
+        AddChurchSprite(churchObj.transform);
+
         return church;
     }
     
@@ -387,7 +390,41 @@ public class GameInitializer : MonoBehaviour
 
         Debug.Log($"Added god sprite: {randomSprite.name}");
     }
-    
+
+    /// <summary>
+    /// Adds a random church building sprite to the church object.
+    /// Sprites should be located in Resources/churchs/ folder.
+    /// Positioned behind all rooms and UI elements.
+    /// </summary>
+    private void AddChurchSprite(Transform churchTransform)
+    {
+        // Load all church sprites from Resources/churchs folder
+        Sprite[] churchSprites = Resources.LoadAll<Sprite>("churchs");
+
+        if (churchSprites == null || churchSprites.Length == 0)
+        {
+            Debug.LogWarning("No church sprites found in Resources/churchs/. Please move sprites from Assets/Art/Sprites/churchs to Assets/Resources/churchs/");
+            return;
+        }
+
+        // Pick a random sprite
+        Sprite randomSprite = churchSprites[Random.Range(0, churchSprites.Length)];
+
+        // Create sprite child object
+        GameObject spriteObj = new GameObject("Church Building Sprite");
+        spriteObj.transform.SetParent(churchTransform);
+        // Position at center, slightly down to be behind rooms
+        spriteObj.transform.localPosition = new Vector3(0f, -1f, 0f);
+        spriteObj.transform.localScale = new Vector3(2.5f, 2.5f, 1f); // Scale to fit behind room grid
+
+        // Add sprite renderer
+        SpriteRenderer sr = spriteObj.AddComponent<SpriteRenderer>();
+        sr.sprite = randomSprite;
+        sr.sortingOrder = -10; // Render behind all rooms and UI (rooms are at 0+)
+
+        Debug.Log($"Added church building sprite: {randomSprite.name}");
+    }
+
     private void CreateStartingRooms(Church church, bool isPlayer1)
     {
         // Get church transform for positioning
