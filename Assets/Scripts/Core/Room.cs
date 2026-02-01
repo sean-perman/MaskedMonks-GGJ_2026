@@ -72,8 +72,9 @@ public abstract class Room : MonoBehaviour
     /// <summary>
     /// Maximum damage this room can sustain (2 * Level - 1).
     /// At max damage: 1 orange slot + (Level - 1) red slots.
+    /// Returns 0 for unbuilt rooms (level 0).
     /// </summary>
-    public int MaxDamage => 2 * level - 1;
+    public int MaxDamage => level > 0 ? 2 * level - 1 : 0;
     
     /// <summary>
     /// Number of orange-damaged slots (damaged but still functional, pawns help repair).
@@ -96,6 +97,21 @@ public abstract class Room : MonoBehaviour
     /// Whether this room has space for more followers.
     /// </summary>
     public bool HasSpace => followers.Count < Capacity;
+
+    /// <summary>
+    /// Whether this room has been built (level > 0).
+    /// Rooms at level 0 exist but are not yet functional.
+    /// </summary>
+    public bool IsBuilt => level > 0;
+
+    /// <summary>
+    /// The cost to upgrade this room.
+    /// For unbuilt rooms (level 0), this is the build cost.
+    /// For built rooms, this is the current level (so level 1->2 costs 1).
+    /// </summary>
+    public int UpgradeCost => level == 0
+        ? GameConfig.Instance.GetRoomBuildCost(type)
+        : level;
     
     /// <summary>
     /// Whether followers in this room lose commitment over time.
@@ -133,12 +149,8 @@ public abstract class Room : MonoBehaviour
         this.cult = cult;
         this.location = location;
 
-        // Set starting level from config
-        int startingLevel = GameConfig.Instance.GetRoomStartingLevel(type);
-        if (startingLevel > 0)
-        {
-            level = startingLevel;
-        }
+        // Set starting level from config (can be 0 for unbuilt rooms)
+        level = GameConfig.Instance.GetRoomStartingLevel(type);
     }
     
     // === Update Loop ===

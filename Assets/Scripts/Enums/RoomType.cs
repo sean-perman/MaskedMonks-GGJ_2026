@@ -24,5 +24,7 @@ public enum RoomType
     /// <summary>Generates Flood masks that hit bottom row. Followers decay.</summary>
     FloodRitual,
     /// <summary>Generates Shield masks that auto-block attacks. Followers decay.</summary>
-    ShieldRitual
+    ShieldRitual,
+    /// <summary>Sacrifices a follower to deal direct damage to enemy god.</summary>
+    SacrificialAltar
 }

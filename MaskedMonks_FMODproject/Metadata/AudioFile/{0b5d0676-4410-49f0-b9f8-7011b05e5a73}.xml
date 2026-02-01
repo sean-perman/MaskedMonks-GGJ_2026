@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{0b5d0676-4410-49f0-b9f8-7011b05e5a73}">
+		<property name="assetPath">
+			<value>sfx/Isuzu Piazza - t11 - VAR SFX - Automatic Window - MS Decoded - RSM191.wav</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>96</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>23.067968749999999</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{71ef66a8-c7e6-4d2a-bada-c901b93ccbef}</destination>
+		</relationship>
+	</object>
+</objects>
