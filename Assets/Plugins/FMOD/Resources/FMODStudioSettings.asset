@@ -244,7 +244,7 @@ MonoBehaviour:
   switchSettingsMigration: 1
   HasSourceProject: 1
   HasPlatforms: 1
-  sourceProjectPath: MaskedMonks_FMODproject/MaskedMonks_FMODproject.fspro
+  sourceProjectPath: MaskedMonks_FMODproject/MM_FMODv2.fspro
   sourceBankPath: MaskedMonks_FMODproject/Build
   sourceBankPathUnformatted: 
   BankRefreshCooldown: 5
@@ -267,7 +267,8 @@ MonoBehaviour:
   VirtualChannelSettings: []
   RealChannelSettings: []
   Plugins: []
-  MasterBanks: []
+  MasterBanks:
+  - Master
   Banks: []
   BanksToLoad: []
   LiveUpdatePort: 9264
