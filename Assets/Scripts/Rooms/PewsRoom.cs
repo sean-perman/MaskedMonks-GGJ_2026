@@ -28,6 +28,7 @@ public class PewsRoom : Room
     {
         if (cult != null && cult.god != null)
         {
+            AudioManager.PlayRoomTriggerPew();
             cult.god.IncreaseFavor(FavorPerTrigger);
             NotifyResourceGenerated(ResourceType.Favor, FavorPerTrigger);
             Debug.Log($"Pews triggered! God gained {FavorPerTrigger} favor.");

@@ -32,19 +32,19 @@ public class RitualHallRoom : Room
     protected override void OnClockTrigger()
     {
         if (cult == null || cult.god == null) return;
-        
+
         // Check if god has storage space
         if (cult.god.MaskStorageRemaining <= 0)
         {
             Debug.Log($"Ritual Hall triggered but god has no mask storage space!");
             return;
         }
-        
+
         // Pick a random mask type from possible masks
         if (possibleMasks.Length == 0) return;
-        
+
         var maskType = possibleMasks[Random.Range(0, possibleMasks.Length)];
-        
+
         // Create the mask
         var mask = new Mask(
             type: maskType,
@@ -56,11 +56,12 @@ public class RitualHallRoom : Room
             followerSacrifice: 0,
             effectValue: MaskEffectValue
         );
-        
+
         // Add to god's storage
         bool added = cult.god.AddMaskToStorage(mask);
         if (added)
         {
+            AudioManager.PlayRoomTriggerRitual();
             NotifyResourceGenerated(ResourceType.Mask, 1);
             NotifyMaskGenerated(maskType);
             Debug.Log($"Ritual Hall generated a {maskType} mask! (Cost: {MaskFavorCost} favor, Effect: {MaskEffectValue})");

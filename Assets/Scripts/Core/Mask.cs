@@ -139,6 +139,9 @@ public class Mask
                 // Deal damage to all rooms in a column
                 if (targetChurch != null && targetColumn >= 0)
                 {
+                    // Play lightning sound
+                    AudioManager.PlayRoomLightning();
+
                     // Fire projectiles at each room in the column
                     for (int y = 0; y < targetChurch.GridHeight; y++)
                     {

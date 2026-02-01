@@ -14,8 +14,10 @@ public enum ResourceType
     Money,
     /// <summary>Offensive masks (Ritual Hall).</summary>
     Mask,
-    /// <summary>Architecture masks (Workshop).</summary>
+    /// <summary>Architecture masks (Workshop) - DEPRECATED.</summary>
     Blueprint,
     /// <summary>New followers (Mission).</summary>
-    Follower
+    Follower,
+    /// <summary>Room repairs (Workshop).</summary>
+    Repair
 }

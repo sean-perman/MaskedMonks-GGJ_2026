@@ -48,6 +48,11 @@ public abstract class Room : MonoBehaviour
     /// </summary>
     public event Action<MaskType> OnMaskGenerated;
     
+    /// <summary>
+    /// Fired when damage is blocked (by selection or shield).
+    /// </summary>
+    public event Action OnDamageBlocked;
+    
     // === Properties ===
     
     public RoomType Type => type;
@@ -67,8 +72,9 @@ public abstract class Room : MonoBehaviour
     /// <summary>
     /// Maximum damage this room can sustain (2 * Level - 1).
     /// At max damage: 1 orange slot + (Level - 1) red slots.
+    /// Returns 0 for unbuilt rooms (level 0).
     /// </summary>
-    public int MaxDamage => 2 * level - 1;
+    public int MaxDamage => level > 0 ? 2 * level - 1 : 0;
     
     /// <summary>
     /// Number of orange-damaged slots (damaged but still functional, pawns help repair).
@@ -91,6 +97,21 @@ public abstract class Room : MonoBehaviour
     /// Whether this room has space for more followers.
     /// </summary>
     public bool HasSpace => followers.Count < Capacity;
+
+    /// <summary>
+    /// Whether this room has been built (level > 0).
+    /// Rooms at level 0 exist but are not yet functional.
+    /// </summary>
+    public bool IsBuilt => level > 0;
+
+    /// <summary>
+    /// The cost to upgrade this room.
+    /// For unbuilt rooms (level 0), this is the build cost.
+    /// For built rooms, this is the current level (so level 1->2 costs 1).
+    /// </summary>
+    public int UpgradeCost => level == 0
+        ? GameConfig.Instance.GetRoomBuildCost(type)
+        : level;
     
     /// <summary>
     /// Whether followers in this room lose commitment over time.
@@ -120,12 +141,16 @@ public abstract class Room : MonoBehaviour
     
     /// <summary>
     /// Initialize the room with references to its church and cult.
+    /// Sets the room's level to the configured starting level for its type.
     /// </summary>
     public virtual void Initialize(Church church, Cult cult, Vector2Int location)
     {
         this.church = church;
         this.cult = cult;
         this.location = location;
+
+        // Set starting level from config (can be 0 for unbuilt rooms)
+        level = GameConfig.Instance.GetRoomStartingLevel(type);
     }
     
     // === Update Loop ===
@@ -238,15 +263,16 @@ public abstract class Room : MonoBehaviour
             Debug.LogWarning($"Room {type} at {location} is at capacity!");
             return false;
         }
-        
+
         if (followers.Contains(follower))
         {
             Debug.LogWarning($"Follower is already in this room!");
             return false;
         }
-        
+
         followers.Add(follower);
         follower.SetRoom(this);
+        AudioManager.PlayFollowerAssign();
         return true;
     }
     
@@ -259,9 +285,10 @@ public abstract class Room : MonoBehaviour
         {
             return false;
         }
-        
+
         followers.Remove(follower);
         follower.SetRoom(null);
+        AudioManager.PlayFollowerUnassign();
         return true;
     }
     
@@ -272,29 +299,44 @@ public abstract class Room : MonoBehaviour
     /// Followers inside take a commitment hit that scales with damage.
     /// Followers can still occupy damaged slots to repair them.
     /// If the defending cult has a shield mask and enough favor, the attack is blocked.
+    /// If the room is currently selected by the player, it is immune to damage.
     /// </summary>
     public virtual void TakeDamage(int amount = 1)
     {
-        // Check for shield block first
+        // Selected rooms are immune to damage
+        if (cult != null && cult.IsRoomSelected(this))
+        {
+            Debug.Log($"Attack on {type} was blocked - room is currently selected!");
+            AudioManager.PlayRoomShield();
+            OnDamageBlocked?.Invoke();
+            return;
+        }
+
+        // Check for shield block
         if (cult != null && cult.god != null && cult.god.TryBlockAttackWithShield(this))
         {
             Debug.Log($"Attack on {type} was blocked by a Shield mask!");
+            AudioManager.PlayRoomShield();
+            OnDamageBlocked?.Invoke();
             return;
         }
-        
+
         int previousDamage = damage;
         damage += amount;
-        
+
         // Cap damage at MaxDamage (2 * Level - 1)
         damage = Mathf.Min(damage, MaxDamage);
-        
+
+        // Play room damaged sound
+        AudioManager.PlayRoomDamaged();
+
         // If damage increased red count, kick out pawns that no longer fit
         while (followers.Count > Capacity && followers.Count > 0)
         {
             var kickedFollower = followers[followers.Count - 1];
             RemoveFollower(kickedFollower);
             Debug.Log($"Follower {kickedFollower.name} was kicked from {type} due to damage!");
-            
+
             // Try to send to sanctuary first
             var sanctuary = church?.GetRoomOfType(RoomType.Sanctuary);
             if (sanctuary != null && sanctuary.HasSpace)
@@ -312,7 +354,7 @@ public abstract class Room : MonoBehaviour
                 }
             }
         }
-        
+
         // Apply commitment damage to all remaining followers in the room
         // Make a copy to avoid collection modified exception
         float commitmentHit = CommitmentDamagePerLevel * amount;
@@ -322,7 +364,7 @@ public abstract class Room : MonoBehaviour
             follower.DecayCommitment(commitmentHit);
             Debug.Log($"Follower in {type} took {commitmentHit} commitment damage from room damage!");
         }
-        
+
         Debug.Log($"{type} at {location} took {amount} damage! Total damage: {damage}");
     }
     
@@ -332,7 +374,8 @@ public abstract class Room : MonoBehaviour
     public virtual void RepairDamage(int amount = 1)
     {
         damage = Mathf.Max(0, damage - amount);
-        
+        AudioManager.PlayRoomRepaired();
+
         // Reset repair progress if fully repaired
         if (damage <= 0)
         {
@@ -345,9 +388,20 @@ public abstract class Room : MonoBehaviour
     /// </summary>
     public virtual void IncreaseLevel(int amount = 1)
     {
+        int previousLevel = level;
         level += amount;
+
+        // Play appropriate sound based on whether this is building or upgrading
+        if (previousLevel == 0)
+        {
+            AudioManager.PlayRoomBuilt();
+        }
+        else
+        {
+            AudioManager.PlayRoomUpgrade();
+        }
     }
-    
+
     /// <summary>
     /// Upgrade the room by one level. Alias for IncreaseLevel(1).
     /// </summary>

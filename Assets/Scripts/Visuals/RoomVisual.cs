@@ -19,15 +19,15 @@ public class RoomVisual : MonoBehaviour
     [SerializeField] private float levelPipSize = 0.12f;
     [SerializeField] private float levelPipSpacing = 0.04f;
     [SerializeField] private int maxLevelDisplay = 5;
-    
+
     [Header("Colors")]
-    [SerializeField] private Color sanctuaryColor = new Color(0.2f, 0.8f, 0.4f);
-    [SerializeField] private Color altarColor = new Color(0.8f, 0.6f, 0.2f);
-    [SerializeField] private Color pewsColor = new Color(0.6f, 0.6f, 0.8f);
-    [SerializeField] private Color missionColor = new Color(0.3f, 0.5f, 0.8f);
-    [SerializeField] private Color ritualColor = new Color(0.8f, 0.3f, 0.5f);
-    [SerializeField] private Color workshopColor = new Color(0.7f, 0.5f, 0.3f);
-    [SerializeField] private Color emptySlotColor = new Color(0.3f, 0.3f, 0.3f, 0.5f);
+    [SerializeField] private Color sanctuaryColor = new Color(0.7f, 1.0f, 0.8f, 1.0f);
+    [SerializeField] private Color altarColor = new Color(1.0f, 0.9f, 0.6f, 1.0f);
+    [SerializeField] private Color pewsColor = new Color(0.85f, 0.85f, 1.0f, 1.0f);
+    [SerializeField] private Color missionColor = new Color(0.7f, 0.8f, 1.0f, 1.0f);
+    [SerializeField] private Color ritualColor = new Color(1.0f, 0.7f, 0.8f, 1.0f);
+    [SerializeField] private Color workshopColor = new Color(1.0f, 0.85f, 0.7f, 1.0f);
+    [SerializeField] private Color emptySlotColor = new Color(1f, 1f, 1f, 0.3f);
     [SerializeField] private Color highlightColor = new Color(1f, 1f, 0.5f);
     [SerializeField] private Color targetColor = new Color(1f, 0.3f, 0.3f);
     [SerializeField] private Color levelFilledColor = new Color(0.9f, 0.9f, 0.9f);
@@ -396,6 +396,10 @@ public class RoomVisual : MonoBehaviour
                 // Person shape (circle + triangle)
                 DrawPerson(tex, size, center, radius - 2);
                 break;
+            case ResourceType.Repair:
+                // Wrench/tool shape for repairs
+                DrawWrench(tex, size, center, radius - 2);
+                break;
             default:
                 // Simple circle
                 DrawCircle(tex, size, center, radius - 2);
@@ -523,6 +527,48 @@ public class RoomVisual : MonoBehaviour
         }
     }
     
+    private void DrawWrench(Texture2D tex, int size, Vector2 center, float radius)
+    {
+        // Clear texture
+        for (int x = 0; x < size; x++)
+            for (int y = 0; y < size; y++)
+                tex.SetPixel(x, y, Color.clear);
+        
+        // Draw a simple wrench/spanner shape
+        int cx = (int)center.x;
+        int cy = (int)center.y;
+        int handleWidth = 3;
+        int headSize = 6;
+        
+        // Handle (diagonal line from bottom-left to top-right)
+        for (int i = -8; i <= 8; i++)
+        {
+            for (int w = -handleWidth / 2; w <= handleWidth / 2; w++)
+            {
+                int px = cx + i + w;
+                int py = cy + i;
+                if (px >= 0 && px < size && py >= 0 && py < size)
+                    tex.SetPixel(px, py, Color.white);
+            }
+        }
+        
+        // Wrench head at top-right (open-end style)
+        for (int dx = -headSize; dx <= headSize; dx++)
+        {
+            for (int dy = -headSize; dy <= headSize; dy++)
+            {
+                int px = cx + 8 + dx;
+                int py = cy + 8 + dy;
+                float dist = Mathf.Sqrt(dx * dx + dy * dy);
+                // Ring shape with opening
+                bool inRing = dist < headSize && dist > headSize - 3;
+                bool inOpening = dx > 0 && Mathf.Abs(dy) < 2;
+                if (px >= 0 && px < size && py >= 0 && py < size && inRing && !inOpening)
+                    tex.SetPixel(px, py, Color.white);
+            }
+        }
+    }
+    
     private void CreateVisuals()
     {
         // Background
@@ -530,8 +576,24 @@ public class RoomVisual : MonoBehaviour
         bgObj.transform.SetParent(transform);
         bgObj.transform.localPosition = Vector3.zero;
         backgroundSprite = bgObj.AddComponent<SpriteRenderer>();
-        backgroundSprite.sprite = CreateSquareSprite();
-        backgroundSprite.transform.localScale = new Vector3(roomWidth, roomHeight, 1f);
+        backgroundSprite.sprite = GetRoomSprite();
+
+        // Scale sprite to fit room bounds based on sprite's native size
+        if (backgroundSprite.sprite != null)
+        {
+            float spriteNativeWidth = backgroundSprite.sprite.bounds.size.x;
+            float spriteNativeHeight = backgroundSprite.sprite.bounds.size.y;
+            backgroundSprite.transform.localScale = new Vector3(
+                roomWidth / spriteNativeWidth,
+                roomHeight / spriteNativeHeight,
+                1f
+            );
+        }
+        else
+        {
+            backgroundSprite.transform.localScale = new Vector3(roomWidth, roomHeight, 1f);
+        }
+
         backgroundSprite.sortingOrder = 0;
         
         // Highlight border
@@ -628,7 +690,39 @@ public class RoomVisual : MonoBehaviour
         
         UpdateColor();
     }
-    
+
+    /// <summary>
+    /// Get the sprite for the current room type.
+    /// Loads sprites from Resources/rooms folder.
+    /// </summary>
+    private Sprite GetRoomSprite()
+    {
+        if (room == null) return CreateSquareSprite();
+
+        string resourcePath = room.Type switch
+        {
+            RoomType.Sanctuary => "rooms/image",
+            RoomType.Altar => "rooms/alter_room_1",
+            RoomType.Pews => "rooms/pews_room",
+            RoomType.Mission => "rooms/image",
+            RoomType.WrathRitualHall => "rooms/alter_room_2",
+            RoomType.Workshop => "rooms/workshop_room",
+            RoomType.Fundraising => "rooms/fundrasing_room",
+            RoomType.LightningRitual => "rooms/alter_room_2",
+            RoomType.FloodRitual => "rooms/alter_room_1",
+            RoomType.ShieldRitual => "rooms/pews_room",
+            _ => null
+        };
+
+        if (resourcePath != null)
+        {
+            Sprite sprite = Resources.Load<Sprite>(resourcePath);
+            if (sprite != null) return sprite;
+        }
+
+        return CreateSquareSprite();
+    }
+
     private void CreateLevelPips()
     {
         levelPips = new LevelPipVisual[maxLevelDisplay];
@@ -654,7 +748,8 @@ public class RoomVisual : MonoBehaviour
     private void Update()
     {
         if (room == null) return;
-        
+
+        UpdateColor();
         UpdateProgressBar();
         UpdateRepairBar();
         UpdateFollowerIcons();
@@ -665,7 +760,7 @@ public class RoomVisual : MonoBehaviour
     private void UpdateColor()
     {
         if (room == null) return;
-        
+
         Color color = room.Type switch
         {
             RoomType.Sanctuary => sanctuaryColor,
@@ -676,7 +771,13 @@ public class RoomVisual : MonoBehaviour
             RoomType.Workshop => workshopColor,
             _ => emptySlotColor
         };
-        
+
+        // Dim unbuilt rooms (level 0) to indicate they need to be built
+        if (!room.IsBuilt)
+        {
+            color.a *= 0.4f;
+        }
+
         backgroundSprite.color = color;
     }
     
@@ -705,6 +806,7 @@ public class RoomVisual : MonoBehaviour
             ResourceType.Mask => maskBarColor,
             ResourceType.Blueprint => blueprintBarColor,
             ResourceType.Follower => followerBarColor,
+            ResourceType.Repair => repairBarColor,
             _ => defaultBarColor
         };
     }
@@ -822,8 +924,16 @@ public class RoomVisual : MonoBehaviour
     private void UpdateLabel()
     {
         string roomName = room.Type.ToString();
-        labelText.text = roomName;
-        labelText.color = Color.white;
+        if (!room.IsBuilt)
+        {
+            labelText.text = $"{roomName}\n(Not Built)";
+            labelText.color = new Color(0.7f, 0.7f, 0.7f);
+        }
+        else
+        {
+            labelText.text = roomName;
+            labelText.color = Color.white;
+        }
     }
     
     private void UpdateLevelPips()

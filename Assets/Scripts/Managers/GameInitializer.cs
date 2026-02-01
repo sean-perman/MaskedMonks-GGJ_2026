@@ -69,7 +69,10 @@ public class GameInitializer : MonoBehaviour
     
     [Tooltip("Prefab for Shield Ritual room")]
     [SerializeField] private GameObject shieldRitualRoomPrefab;
-    
+
+    [Tooltip("Prefab for Sacrificial Altar room")]
+    [SerializeField] private GameObject sacrificialAltarRoomPrefab;
+
     [Tooltip("Prefab for empty buildable slot")]
     [SerializeField] private GameObject emptySlotPrefab;
     
@@ -126,6 +129,10 @@ public class GameInitializer : MonoBehaviour
         player1Controller = CreatePlayerController(0, cult1);
         player2Controller = CreatePlayerController(1, cult2);
         
+        // Link player controllers to cults (for selected room immunity)
+        cult1.SetPlayerController(player1Controller);
+        cult2.SetPlayerController(player2Controller);
+        
         // Register with GameManager
         if (gameManager == null)
         {
@@ -147,6 +154,26 @@ public class GameInitializer : MonoBehaviour
         
         // Create controls menu
         CreateControlsMenu();
+        
+        // Create game over screen
+        CreateGameOverScreen();
+        
+        // Create room info panels for each player
+        CreateRoomInfoPanels();
+    }
+    
+    private void CreateGameOverScreen()
+    {
+        var gameOverObj = new GameObject("GameOverScreen");
+        var gameOverScreen = gameOverObj.AddComponent<GameOverScreen>();
+        
+        // Register with GameManager
+        if (gameManager != null)
+        {
+            gameManager.SetGameOverScreen(gameOverScreen);
+        }
+        
+        Debug.Log("Game Over Screen created.");
     }
     
     private void CreateBackground()
@@ -290,7 +317,10 @@ public class GameInitializer : MonoBehaviour
             church = churchObj.AddComponent<Church>();
         }
         churchObj.transform.localPosition = Vector3.zero;
-        
+
+        // Add random church building sprite
+        AddChurchSprite(churchObj.transform);
+
         return church;
     }
     
@@ -363,50 +393,80 @@ public class GameInitializer : MonoBehaviour
 
         Debug.Log($"Added god sprite: {randomSprite.name}");
     }
-    
+
+    /// <summary>
+    /// Adds a random church building sprite to the church object.
+    /// Sprites should be located in Resources/churchs/ folder.
+    /// Positioned behind all rooms and UI elements.
+    /// </summary>
+    private void AddChurchSprite(Transform churchTransform)
+    {
+        // Load all church sprites from Resources/churchs folder
+        Sprite[] churchSprites = Resources.LoadAll<Sprite>("churchs");
+
+        if (churchSprites == null || churchSprites.Length == 0)
+        {
+            Debug.LogWarning("No church sprites found in Resources/churchs/. Please move sprites from Assets/Art/Sprites/churchs to Assets/Resources/churchs/");
+            return;
+        }
+
+        // Pick a random sprite
+        Sprite randomSprite = churchSprites[Random.Range(0, churchSprites.Length)];
+
+        // Create sprite child object
+        GameObject spriteObj = new GameObject("Church Building Sprite");
+        spriteObj.transform.SetParent(churchTransform);
+        // Position at center, slightly down to be behind rooms
+        spriteObj.transform.localPosition = new Vector3(0f, -1f, 0f);
+
+        // Add sprite renderer
+        SpriteRenderer sr = spriteObj.AddComponent<SpriteRenderer>();
+        sr.sprite = randomSprite;
+        sr.sortingOrder = -10; // Render behind all rooms and UI (rooms are at 0+)
+
+        // Scale sprite to fit behind room grid based on sprite's native size
+        // Target size: approximately 7 units wide to fit behind 3-column room grid
+        float targetWidth = 7f;
+        float spriteNativeWidth = randomSprite.bounds.size.x;
+        float scale = targetWidth / spriteNativeWidth;
+        spriteObj.transform.localScale = new Vector3(scale, scale, 1f);
+
+        Debug.Log($"Added church building sprite: {randomSprite.name}");
+    }
+
     private void CreateStartingRooms(Church church, bool isPlayer1)
     {
         // Get church transform for positioning
         Transform churchTransform = church.transform;
-        
+
         // Calculate grid offset so rooms are centered under church
         float gridWidth = church.GridWidth * (roomWidth + roomSpacing);
         float gridHeight = church.GridHeight * (roomHeight + roomSpacing);
         Vector3 gridOffset = new Vector3(-gridWidth / 2 + roomWidth / 2, -gridHeight / 2 + roomHeight / 2, 0);
-        
+
+        // Create all rooms at their designated positions
+        // Rooms with starting level 0 will appear but cost buildCost to build the first level
+
         // Bottom row (y=0): Core rooms
-        // Create a Sanctuary at (0, 0)
         CreateRoomFromPrefab<SanctuaryRoom>(church, new Vector2Int(0, 0), churchTransform, gridOffset, sanctuaryRoomPrefab);
-        
-        // Create an Altar at (1, 0)
         CreateRoomFromPrefab<AltarRoom>(church, new Vector2Int(1, 0), churchTransform, gridOffset, altarRoomPrefab);
-        
-        // Create Pews at (2, 0)
         CreateRoomFromPrefab<PewsRoom>(church, new Vector2Int(2, 0), churchTransform, gridOffset, pewsRoomPrefab);
-        
-        // Second row (y=1): Mission for converting citizens
-        CreateRoomFromPrefab<MissionRoom>(church, new Vector2Int(1, 1), churchTransform, gridOffset, missionRoomPrefab);
-        
-        // Create Workshop at (0, 1) for generating architecture masks
+
+        // Second row (y=1): Support rooms
         CreateRoomFromPrefab<WorkshopRoom>(church, new Vector2Int(0, 1), churchTransform, gridOffset, workshopRoomPrefab);
-        
-        // Create Fundraising at (2, 1) for generating money
+        CreateRoomFromPrefab<MissionRoom>(church, new Vector2Int(1, 1), churchTransform, gridOffset, missionRoomPrefab);
         CreateRoomFromPrefab<FundraisingRoom>(church, new Vector2Int(2, 1), churchTransform, gridOffset, fundraisingRoomPrefab);
-        
+
         // Third row (y=2): Ritual rooms for generating masks
-        // Lightning Ritual at (0, 2) - column attacks
         CreateRoomFromPrefab<LightningRitualRoom>(church, new Vector2Int(0, 2), churchTransform, gridOffset, lightningRitualRoomPrefab);
-        
-        // Wrath Ritual Hall at (1, 2) - standard Strike masks
         CreateRoomFromPrefab<RitualHallRoom>(church, new Vector2Int(1, 2), churchTransform, gridOffset, ritualHallRoomPrefab);
-        
-        // Shield Ritual at (2, 2) - defensive masks
         CreateRoomFromPrefab<ShieldRitualRoom>(church, new Vector2Int(2, 2), churchTransform, gridOffset, shieldRitualRoomPrefab);
-        
-        // Fourth row (y=3): Flood Ritual for powerful area attack
+
+        // Fourth row (y=3): Advanced rooms
+        CreateRoomFromPrefab<SacrificialAltarRoom>(church, new Vector2Int(0, 3), churchTransform, gridOffset, sacrificialAltarRoomPrefab);
         CreateRoomFromPrefab<FloodRitualRoom>(church, new Vector2Int(1, 3), churchTransform, gridOffset, floodRitualRoomPrefab);
-        
-        // Create empty slots for remaining positions
+
+        // Create empty slots for remaining positions (if any)
         for (int x = 0; x < church.GridWidth; x++)
         {
             for (int y = 0; y < church.GridHeight; y++)
@@ -476,6 +536,10 @@ public class GameInitializer : MonoBehaviour
             RoomType.WrathRitualHall => ritualHallRoomPrefab,
             RoomType.Workshop => workshopRoomPrefab,
             RoomType.Fundraising => fundraisingRoomPrefab,
+            RoomType.LightningRitual => lightningRitualRoomPrefab,
+            RoomType.FloodRitual => floodRitualRoomPrefab,
+            RoomType.ShieldRitual => shieldRitualRoomPrefab,
+            RoomType.SacrificialAltar => sacrificialAltarRoomPrefab,
             _ => null
         };
     }
@@ -630,6 +694,23 @@ public class GameInitializer : MonoBehaviour
         }
         
         menu.SetControllers(player1Controller, player2Controller);
+    }
+    
+    private void CreateRoomInfoPanels()
+    {
+        // Player 1 panel (left side)
+        var panel1Obj = new GameObject("RoomInfoPanel_Player1");
+        panel1Obj.transform.SetParent(transform);
+        var panel1 = panel1Obj.AddComponent<RoomInfoPanel>();
+        panel1.SetController(player1Controller, true); // left side
+        
+        // Player 2 panel (right side)
+        var panel2Obj = new GameObject("RoomInfoPanel_Player2");
+        panel2Obj.transform.SetParent(transform);
+        var panel2 = panel2Obj.AddComponent<RoomInfoPanel>();
+        panel2.SetController(player2Controller, false); // right side
+        
+        Debug.Log("Room Info Panels created for both players.");
     }
     
     private Sprite CreateSquareSprite()

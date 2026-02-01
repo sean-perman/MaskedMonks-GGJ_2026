@@ -50,6 +50,7 @@ public class FloodRitualRoom : Room
         bool added = cult.god.AddMaskToStorage(mask);
         if (added)
         {
+            AudioManager.PlayRoomTriggerRitual();
             NotifyResourceGenerated(ResourceType.Mask, 1);
             NotifyMaskGenerated(MaskType.Flood);
             Debug.Log($"Flood Ritual generated a Flood mask! (Cost: {MaskFavorCost} favor, Damage: {DamagePerRoom} per room)");

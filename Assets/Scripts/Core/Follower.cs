@@ -108,7 +108,7 @@ public class Follower : MonoBehaviour
     }
     
     // === Abandonment ===
-    
+
     /// <summary>
     /// Called when commitment reaches zero.
     /// Removes follower from cult and returns them to the Marketplace.
@@ -116,19 +116,22 @@ public class Follower : MonoBehaviour
     private void Abandon()
     {
         Debug.Log($"Follower abandoned the cult due to zero commitment!");
-        
+
+        // Play abandon sound
+        AudioManager.PlayFollowerAbandon();
+
         // Remove from current room
         if (currentRoom != null)
         {
             currentRoom.RemoveFollower(this);
         }
-        
+
         // Remove from cult
         if (cult != null)
         {
             cult.RemoveFollower(this);
         }
-        
+
         // Add to marketplace as neutral citizen
         var marketplace = Marketplace.Instance;
         if (marketplace != null)

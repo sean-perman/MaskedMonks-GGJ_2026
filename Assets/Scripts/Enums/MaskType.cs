@@ -27,25 +27,35 @@ public enum MaskType
     /// <summary>Auto-blocks incoming damage if you have 4+ favor.</summary>
     Shield,
     
-    // === Architecture Masks (for building rooms) ===
-    /// <summary>Build a Sanctuary room.</summary>
+    // === Architecture Masks (DEPRECATED - room building removed) ===
+    /// <summary>DEPRECATED: Build a Sanctuary room.</summary>
+    [System.Obsolete("Architecture masks are deprecated. Room building has been removed.")]
     ArchitectSanctuary,
-    /// <summary>Build an Altar room.</summary>
+    /// <summary>DEPRECATED: Build an Altar room.</summary>
+    [System.Obsolete("Architecture masks are deprecated. Room building has been removed.")]
     ArchitectAltar,
-    /// <summary>Build a Pews room.</summary>
+    /// <summary>DEPRECATED: Build a Pews room.</summary>
+    [System.Obsolete("Architecture masks are deprecated. Room building has been removed.")]
     ArchitectPews,
-    /// <summary>Build a Mission room.</summary>
+    /// <summary>DEPRECATED: Build a Mission room.</summary>
+    [System.Obsolete("Architecture masks are deprecated. Room building has been removed.")]
     ArchitectMission,
-    /// <summary>Build a Ritual Hall room.</summary>
+    /// <summary>DEPRECATED: Build a Ritual Hall room.</summary>
+    [System.Obsolete("Architecture masks are deprecated. Room building has been removed.")]
     ArchitectRitualHall,
-    /// <summary>Build a Workshop room.</summary>
+    /// <summary>DEPRECATED: Build a Workshop room.</summary>
+    [System.Obsolete("Architecture masks are deprecated. Room building has been removed.")]
     ArchitectWorkshop,
-    /// <summary>Build a Fundraising room.</summary>
+    /// <summary>DEPRECATED: Build a Fundraising room.</summary>
+    [System.Obsolete("Architecture masks are deprecated. Room building has been removed.")]
     ArchitectFundraising,
-    /// <summary>Build a Lightning Ritual room.</summary>
+    /// <summary>DEPRECATED: Build a Lightning Ritual room.</summary>
+    [System.Obsolete("Architecture masks are deprecated. Room building has been removed.")]
     ArchitectLightningRitual,
-    /// <summary>Build a Flood Ritual room.</summary>
+    /// <summary>DEPRECATED: Build a Flood Ritual room.</summary>
+    [System.Obsolete("Architecture masks are deprecated. Room building has been removed.")]
     ArchitectFloodRitual,
-    /// <summary>Build a Shield Ritual room.</summary>
+    /// <summary>DEPRECATED: Build a Shield Ritual room.</summary>
+    [System.Obsolete("Architecture masks are deprecated. Room building has been removed.")]
     ArchitectShieldRitual
 }

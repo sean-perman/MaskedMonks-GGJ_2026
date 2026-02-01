@@ -19,13 +19,13 @@ public class MissionRoom : Room
     /// </summary>
     protected override void OnClockTrigger()
     {
-        // TODO: Get reference to Marketplace and recruit a citizen
         var marketplace = Marketplace.Instance;
         if (marketplace != null && cult != null)
         {
             var citizen = marketplace.RecruitCitizen();
             if (citizen != null)
             {
+                AudioManager.PlayRoomTriggerMission();
                 cult.AddFollower(citizen);
                 NotifyResourceGenerated(ResourceType.Follower, 1);
                 Debug.Log("Mission triggered! Recruited a new follower.");

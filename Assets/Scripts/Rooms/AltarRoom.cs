@@ -23,6 +23,7 @@ public class AltarRoom : Room
     {
         if (cult != null && cult.god != null)
         {
+            AudioManager.PlayRoomTriggerAltar();
             cult.god.IncreaseStrength(StrengthPerTrigger);
             NotifyResourceGenerated(ResourceType.Strength, StrengthPerTrigger);
             Debug.Log($"Altar triggered! God gained {StrengthPerTrigger} strength.");

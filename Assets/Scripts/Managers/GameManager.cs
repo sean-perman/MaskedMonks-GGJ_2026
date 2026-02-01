@@ -23,6 +23,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float gameTime = 0f;
     [SerializeField] private float godAttackTimer = 0f;
     
+    [Header("UI References")]
+    [SerializeField] private GameOverScreen gameOverScreen;
+    
     // === Events ===
     
     public event Action<Cult> OnCultLost;
@@ -38,6 +41,14 @@ public class GameManager : MonoBehaviour
     public float GameTime => gameTime;
     
     // === Public Methods ===
+    
+    /// <summary>
+    /// Set the game over screen reference (called by GameInitializer).
+    /// </summary>
+    public void SetGameOverScreen(GameOverScreen screen)
+    {
+        gameOverScreen = screen;
+    }
     
     /// <summary>
     /// Register cults with the game manager (called by GameInitializer).
@@ -116,13 +127,17 @@ public class GameManager : MonoBehaviour
             Debug.LogError("Cannot start game: Both cults must be assigned!");
             return;
         }
-        
+
         Debug.Log("=== GAME STARTED ===");
-        
+
         gameRunning = true;
         gameTime = 0f;
         godAttackTimer = 0f;
-        
+
+        // Play game start sound and music
+        AudioManager.PlayGameStart();
+        AudioManager.StartGameplayMusic();
+
         OnGameStarted?.Invoke();
     }
     
@@ -132,14 +147,25 @@ public class GameManager : MonoBehaviour
     public void EndGame(Cult winner, Cult loser, string reason)
     {
         if (!gameRunning) return;
-        
+
         gameRunning = false;
-        
+
         Debug.Log($"=== GAME ENDED ===");
         Debug.Log($"Winner: {winner?.name ?? "None"}");
         Debug.Log($"Loser: {loser?.name ?? "None"}");
         Debug.Log($"Reason: {reason}");
-        
+
+        // Stop gameplay music and play end sounds
+        AudioManager.StopGameplayMusic();
+        AudioManager.PlayGameWin();
+        AudioManager.PlayGameLose();
+
+        // Show game over screen
+        if (gameOverScreen != null)
+        {
+            gameOverScreen.Show(winner, loser, reason);
+        }
+
         OnCultLost?.Invoke(loser);
         OnCultWon?.Invoke(winner);
         OnGameEnded?.Invoke();
@@ -153,15 +179,18 @@ public class GameManager : MonoBehaviour
     private void ProcessGodCombat()
     {
         if (cult1?.god == null || cult2?.god == null) return;
-        
+
         // Calculate damage: Strength / 10, minimum 1
         int damage1 = Mathf.Max(1, cult1.god.Strength / 10);
         int damage2 = Mathf.Max(1, cult2.god.Strength / 10);
-        
+
+        // Play god attack sound
+        AudioManager.PlayGodAttack();
+
         // Both gods attack simultaneously
         cult2.god.DecreaseStrength(damage1);
         cult1.god.DecreaseStrength(damage2);
-        
+
         Debug.Log($"God Combat! Cult1 dealt {damage1} damage, Cult2 dealt {damage2} damage.");
     }
     
