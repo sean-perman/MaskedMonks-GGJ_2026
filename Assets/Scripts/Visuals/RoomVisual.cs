@@ -21,13 +21,13 @@ public class RoomVisual : MonoBehaviour
     [SerializeField] private int maxLevelDisplay = 5;
 
     [Header("Colors")]
-    [SerializeField] private Color sanctuaryColor = new Color(0.2f, 0.8f, 0.4f, 0.6f);
-    [SerializeField] private Color altarColor = new Color(0.8f, 0.6f, 0.2f, 0.6f);
-    [SerializeField] private Color pewsColor = new Color(0.6f, 0.6f, 0.8f, 0.6f);
-    [SerializeField] private Color missionColor = new Color(0.3f, 0.5f, 0.8f, 0.6f);
-    [SerializeField] private Color ritualColor = new Color(0.8f, 0.3f, 0.5f, 0.6f);
-    [SerializeField] private Color workshopColor = new Color(0.7f, 0.5f, 0.3f, 0.6f);
-    [SerializeField] private Color emptySlotColor = new Color(0.3f, 0.3f, 0.3f, 0.5f);
+    [SerializeField] private Color sanctuaryColor = new Color(0.7f, 1.0f, 0.8f, 0.6f);
+    [SerializeField] private Color altarColor = new Color(1.0f, 0.9f, 0.6f, 0.6f);
+    [SerializeField] private Color pewsColor = new Color(0.85f, 0.85f, 1.0f, 0.6f);
+    [SerializeField] private Color missionColor = new Color(0.7f, 0.8f, 1.0f, 0.6f);
+    [SerializeField] private Color ritualColor = new Color(1.0f, 0.7f, 0.8f, 0.6f);
+    [SerializeField] private Color workshopColor = new Color(1.0f, 0.85f, 0.7f, 0.6f);
+    [SerializeField] private Color emptySlotColor = new Color(1f, 1f, 1f, 0.3f);
     [SerializeField] private Color highlightColor = new Color(1f, 1f, 0.5f);
     [SerializeField] private Color targetColor = new Color(1f, 0.3f, 0.3f);
     [SerializeField] private Color levelFilledColor = new Color(0.9f, 0.9f, 0.9f);
