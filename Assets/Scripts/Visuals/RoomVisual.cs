@@ -124,8 +124,12 @@ public class RoomVisual : MonoBehaviour
     
     private void SpawnResourceIndicator(ResourceType resource, int amount)
     {
-        // For mask resources, the specific mask indicator is spawned separately
-        // This handles generic resource types
+        // For mask resources, skip the generic indicator - the specific mask indicator
+        // is spawned separately via OnMaskGenerated/SpawnMaskIndicator
+        if (resource == ResourceType.Mask)
+            return;
+            
+        // This handles generic resource types (Strength, Favor, Money, Follower, Blueprint)
         var iconObj = new GameObject($"ResourceIcon_{resource}");
         iconObj.transform.SetParent(transform);
         iconObj.transform.localPosition = Vector3.zero;
