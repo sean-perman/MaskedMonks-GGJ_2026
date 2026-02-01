@@ -154,6 +154,9 @@ public class GameInitializer : MonoBehaviour
         
         // Create game over screen
         CreateGameOverScreen();
+        
+        // Create room info panels for each player
+        CreateRoomInfoPanels();
     }
     
     private void CreateGameOverScreen()
@@ -651,6 +654,23 @@ public class GameInitializer : MonoBehaviour
         }
         
         menu.SetControllers(player1Controller, player2Controller);
+    }
+    
+    private void CreateRoomInfoPanels()
+    {
+        // Player 1 panel (left side)
+        var panel1Obj = new GameObject("RoomInfoPanel_Player1");
+        panel1Obj.transform.SetParent(transform);
+        var panel1 = panel1Obj.AddComponent<RoomInfoPanel>();
+        panel1.SetController(player1Controller, true); // left side
+        
+        // Player 2 panel (right side)
+        var panel2Obj = new GameObject("RoomInfoPanel_Player2");
+        panel2Obj.transform.SetParent(transform);
+        var panel2 = panel2Obj.AddComponent<RoomInfoPanel>();
+        panel2.SetController(player2Controller, false); // right side
+        
+        Debug.Log("Room Info Panels created for both players.");
     }
     
     private Sprite CreateSquareSprite()

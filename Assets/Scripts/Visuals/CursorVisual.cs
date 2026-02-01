@@ -332,4 +332,5 @@ public class CursorVisual : MonoBehaviour
             enemyChurchTransform = opponent.church.transform;
         }
     }
+    
 }
