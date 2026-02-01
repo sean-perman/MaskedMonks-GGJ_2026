@@ -42,9 +42,9 @@ public class GameConfig : ScriptableObject
     
     [Header("Altar")]
     [Tooltip("Pawn-seconds to generate 1 strength")]
-    public float altarDuration = 30f;
+    public float altarDuration = 20f;
     [Tooltip("Strength generated per trigger")]
-    public int altarStrengthPerTrigger = 3;
+    public int altarStrengthPerTrigger = 6;
     
     [Header("Pews")]
     [Tooltip("Pawn-seconds to generate 1 favor")]
@@ -191,9 +191,9 @@ public class GameConfig : ScriptableObject
     
     [Header("=== GOD SETTINGS ===")]
     [Tooltip("Maximum god strength")]
-    public int godMaxStrength = 100;
+    public int godMaxStrength = 200;
     [Tooltip("Starting god strength")]
-    public int godStartingStrength = 50;
+    public int godStartingStrength = 200;
     [Tooltip("Starting favor")]
     public int godStartingFavor = 5;
     [Tooltip("Starting money")]

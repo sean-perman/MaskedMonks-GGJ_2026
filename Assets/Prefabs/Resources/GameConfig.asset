@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: GameConfig
   m_EditorClassIdentifier: Assembly-CSharp::GameConfig
   sanctuaryCommitmentRecoveryPerSecond: 2
-  altarDuration: 30
-  altarStrengthPerTrigger: 3
+  altarDuration: 20
+  altarStrengthPerTrigger: 8
   pewsDuration: 10
   pewsFavorPerTrigger: 1
   missionDuration: 20
@@ -69,8 +69,8 @@ MonoBehaviour:
   followerStartingCommitment: 100
   followerMaxCommitment: 100
   followerDecayRatePerSecond: 1
-  godMaxStrength: 100
-  godStartingStrength: 50
+  godMaxStrength: 150
+  godStartingStrength: 100
   godStartingFavor: 5
   godStartingMoney: 0
   godMaxStoredMasks: 5

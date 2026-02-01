@@ -8,8 +8,8 @@ using UnityEngine;
 public class God : MonoBehaviour
 {
     [Header("Strength (Health & Attack Power)")]
-    [SerializeField] private int strength = 100;
-    private int maxStrength = 100;
+    [SerializeField] private int strength = 200;
+    private int maxStrength = 200;
     
     [Header("Favor")]
     [SerializeField] private int favor = 50;
