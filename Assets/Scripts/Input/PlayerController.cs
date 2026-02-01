@@ -871,7 +871,9 @@ public class PlayerController : MonoBehaviour
             var gp = GetAssignedGamepad();
             if (gp != null)
             {
-                if (bindings.gamepadConfirmTarget >= 0 && GamepadButtonWasPressed(gp, bindings.gamepadConfirmTarget)) confirmPressed = true;
+                // Confirm via right trigger (not a button)
+                if (gp.rightTrigger.wasPressedThisFrame) confirmPressed = true;
+                // Cancel via B button
                 if (bindings.gamepadCancelTarget >= 0 && GamepadButtonWasPressed(gp, bindings.gamepadCancelTarget)) cancelPressed = true;
             }
         }
