@@ -382,12 +382,15 @@ public class GameInitializer : MonoBehaviour
         // Position to the left of the health bars (which are at x=0, with bar width=2)
         // Health bar extends from x=-1 to x=1, so place sprite at x=-2
         spriteObj.transform.localPosition = new Vector3(-2f, 0.2f, 0f);
-        spriteObj.transform.localScale = new Vector3(0.8f, 0.8f, 1f); // Scale down if needed
+        spriteObj.transform.localScale = new Vector3(0.5f, 0.5f, 1f); // Scale down if needed
 
         // Add sprite renderer
         SpriteRenderer sr = spriteObj.AddComponent<SpriteRenderer>();
         sr.sprite = randomSprite;
         sr.sortingOrder = 15; // Render in front of UI elements (UI is at 10-12)
+
+        // Add floating effect
+        spriteObj.AddComponent<FloatingEffect>();
 
         Debug.Log($"Added god sprite: {randomSprite.name}");
     }
