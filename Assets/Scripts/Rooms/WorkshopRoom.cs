@@ -23,6 +23,8 @@ public class WorkshopRoom : Room
     [SerializeField] private int workshopCost = 150;
     [SerializeField] private int fundraisingCost = 70;
     
+    public override ResourceType GeneratedResource => ResourceType.Blueprint;
+    
     protected override void Awake()
     {
         type = RoomType.Workshop;
@@ -72,6 +74,7 @@ public class WorkshopRoom : Room
         
         if (added)
         {
+            NotifyResourceGenerated(ResourceType.Blueprint, 1);
             Debug.Log($"Workshop generated a {targetRoomType} blueprint! Cost: {goldCost} gold");
         }
         else

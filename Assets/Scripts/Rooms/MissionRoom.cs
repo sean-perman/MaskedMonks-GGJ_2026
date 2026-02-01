@@ -6,6 +6,8 @@ using UnityEngine;
 /// </summary>
 public class MissionRoom : Room
 {
+    public override ResourceType GeneratedResource => ResourceType.Follower;
+    
     protected override void Awake()
     {
         type = RoomType.Mission;
@@ -24,6 +26,7 @@ public class MissionRoom : Room
             if (citizen != null)
             {
                 cult.AddFollower(citizen);
+                NotifyResourceGenerated(ResourceType.Follower, 1);
                 Debug.Log("Mission triggered! Recruited a new follower.");
             }
             else

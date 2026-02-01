@@ -2,6 +2,15 @@ using System;
 using UnityEngine;
 
 /// <summary>
+/// Targeting mode for masks.
+/// </summary>
+public enum TargetingMode
+{
+    Room,   // Target a single room
+    Column  // Target an entire column (left-right only)
+}
+
+/// <summary>
 /// Defines all player actions and their default key bindings.
 /// </summary>
 [Serializable]
@@ -226,12 +235,28 @@ public class PlayerController : MonoBehaviour
         var church = opponent.church;
         Vector2Int newPos = targetPosition + delta;
         
+        // For column targeting, only allow horizontal movement
+        if (currentTargetingMode == TargetingMode.Column)
+        {
+            // Ignore vertical movement
+            newPos.y = targetPosition.y;
+        }
+        
         // Clamp to opponent's grid
         newPos.x = Mathf.Clamp(newPos.x, 0, church.GridWidth - 1);
         newPos.y = Mathf.Clamp(newPos.y, 0, church.GridHeight - 1);
         
         targetPosition = newPos;
+        
+        // Notify of column change for visual feedback
+        if (currentTargetingMode == TargetingMode.Column)
+        {
+            OnTargetColumnChanged?.Invoke(targetPosition.x);
+        }
     }
+    
+    // Event for column targeting visual feedback
+    public event System.Action<int> OnTargetColumnChanged;
     
     private void ProcessFollowerCommands()
     {
@@ -434,26 +459,76 @@ public class PlayerController : MonoBehaviour
         
         var mask = masks[slot];
         
-        // Check if mask requires targeting an enemy
-        if (mask.TargetType == MaskTargetType.EnemyRoom)
+        // Handle different targeting types
+        switch (mask.TargetType)
         {
-            // Enter targeting mode
-            StartTargeting(slot);
-        }
-        else
-        {
-            // Apply immediately to self
-            ApplyMaskToSelf(slot);
+            case MaskTargetType.EnemyRoom:
+                StartTargeting(slot, TargetingMode.Room);
+                break;
+            case MaskTargetType.EnemyColumn:
+                StartTargeting(slot, TargetingMode.Column);
+                break;
+            case MaskTargetType.EnemyBottomRow:
+                // Flood - no targeting needed, hits bottom row automatically
+                ApplyFloodMask(slot);
+                break;
+            case MaskTargetType.Passive:
+                // Shield masks cannot be manually activated
+                Debug.Log("Shield masks are passive and activate automatically when attacked!");
+                break;
+            case MaskTargetType.OwnRoom:
+                // Apply to currently selected own room
+                ApplyMaskToSelf(slot);
+                break;
+            default:
+                // Apply immediately (no targeting needed)
+                ApplyMaskToSelf(slot);
+                break;
         }
     }
     
-    private void StartTargeting(int slot)
+    private TargetingMode currentTargetingMode = TargetingMode.Room;
+    
+    private void StartTargeting(int slot, TargetingMode mode = TargetingMode.Room)
     {
         isTargeting = true;
         activeMaskSlot = slot;
+        currentTargetingMode = mode;
         targetPosition = Vector2Int.zero;
         OnMaskActivated?.Invoke(slot);
-        Debug.Log($"Targeting mode activated for mask slot {slot + 1}");
+        
+        string modeDesc = mode == TargetingMode.Column ? "column" : "room";
+        Debug.Log($"Targeting mode activated for mask slot {slot + 1} ({modeDesc})");
+    }
+    
+    private void ApplyFloodMask(int slot)
+    {
+        var mask = cult.god.Masks[slot];
+        var opponent = GameManager.Instance?.GetOpponent(cult);
+        
+        if (opponent?.church == null)
+        {
+            Debug.Log("No opponent to target!");
+            return;
+        }
+        
+        // Check if we can afford the mask
+        if (!mask.CanAfford(cult))
+        {
+            Debug.Log($"Cannot afford {mask.Type} mask! Need {mask.FavorCost} favor.");
+            return;
+        }
+        
+        // Pay the cost
+        mask.PayCost(cult);
+        
+        // Apply flood effect (hits entire bottom row)
+        mask.ApplyEffect(cult, null, opponent.god, -1, opponent.church);
+        
+        // Remove mask after use
+        cult.god.RemoveMaskFromStorage(slot);
+        
+        Debug.Log($"Used Flood mask on enemy bottom row (spent {mask.FavorCost} favor)");
     }
     
     private void ProcessTargetingInput()
@@ -493,13 +568,23 @@ public class PlayerController : MonoBehaviour
             // Pay the cost first
             mask.PayCost(cult);
             
-            // Apply mask effect to target (sourceCult, targetRoom, targetGod)
-            mask.ApplyEffect(cult, targetRoom, opponent.god);
+            // Apply mask effect based on targeting mode
+            if (currentTargetingMode == TargetingMode.Column)
+            {
+                // Lightning mask - pass column info
+                mask.ApplyEffect(cult, targetRoom, opponent.god, targetPosition.x, opponent.church);
+                Debug.Log($"Used {mask.Type} on enemy column {targetPosition.x} (spent {mask.FavorCost} favor)");
+            }
+            else
+            {
+                // Standard room targeting
+                mask.ApplyEffect(cult, targetRoom, opponent.god);
+                Debug.Log($"Used {mask.Type} on enemy {targetRoom?.Type.ToString() ?? "empty slot"} (spent {mask.FavorCost} favor)");
+            }
             
             // Remove mask after use by re-getting from storage and removing at index
             cult.god.RemoveMaskFromStorage(activeMaskSlot);
             
-            Debug.Log($"Used {mask.Type} on enemy {targetRoom?.Type.ToString() ?? "empty slot"} (spent {mask.FavorCost} favor)");
             OnTargetConfirmed?.Invoke(targetRoom);
         }
         

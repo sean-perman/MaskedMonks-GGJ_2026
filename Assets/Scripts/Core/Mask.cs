@@ -107,32 +107,117 @@ public class Mask
     
     /// <summary>
     /// Apply this mask's effect. Call this after paying the cost.
+    /// For offensive masks, spawns a projectile and applies damage on impact.
     /// </summary>
     /// <param name="sourceCult">The cult activating the mask.</param>
     /// <param name="targetRoom">The target room (if applicable).</param>
     /// <param name="targetGod">The target god (if applicable).</param>
-    public void ApplyEffect(Cult sourceCult, Room targetRoom = null, God targetGod = null)
+    /// <param name="targetColumn">The target column index (for Lightning masks).</param>
+    /// <param name="targetChurch">The target church (for area effects).</param>
+    /// <param name="sourcePosition">World position to launch projectile from (optional).</param>
+    public void ApplyEffect(Cult sourceCult, Room targetRoom = null, God targetGod = null, int targetColumn = -1, Church targetChurch = null, Vector3? sourcePosition = null)
     {
+        // Get source position from cult's god position if not provided
+        Vector3 srcPos = sourcePosition ?? GetDefaultSourcePosition(sourceCult);
+        
         switch (type)
         {
             case MaskType.Strike:
                 // Deal damage to a targeted enemy room
                 if (targetRoom != null)
                 {
-                    targetRoom.TakeDamage(effectValue);
-                    Debug.Log($"Strike dealt {effectValue} damage to enemy room {targetRoom.Type}!");
+                    Vector3 targetPos = GetRoomWorldPosition(targetRoom);
+                    int damage = effectValue;
+                    MaskProjectile.Create(srcPos, targetPos, type, () => {
+                        targetRoom.TakeDamage(damage);
+                        Debug.Log($"Strike dealt {damage} damage to enemy room {targetRoom.Type}!");
+                    });
                 }
+                break;
+                
+            case MaskType.Lightning:
+                // Deal damage to all rooms in a column
+                if (targetChurch != null && targetColumn >= 0)
+                {
+                    // Fire projectiles at each room in the column
+                    for (int y = 0; y < targetChurch.GridHeight; y++)
+                    {
+                        var room = targetChurch.GetRoomAt(new Vector2Int(targetColumn, y));
+                        if (room != null && room.Type != RoomType.Empty)
+                        {
+                            Vector3 targetPos = GetRoomWorldPosition(room);
+                            int damage = effectValue;
+                            Room targetRoomCapture = room;
+                            // Stagger the projectiles slightly
+                            float delay = y * 0.1f;
+                            if (delay > 0)
+                            {
+                                // Use coroutine for delayed spawns - handled in separate method
+                                SpawnDelayedProjectile(srcPos, targetPos, type, targetRoomCapture, damage, delay);
+                            }
+                            else
+                            {
+                                MaskProjectile.Create(srcPos, targetPos, type, () => {
+                                    targetRoomCapture.TakeDamage(damage);
+                                });
+                            }
+                        }
+                    }
+                    Debug.Log($"Lightning struck column {targetColumn}!");
+                }
+                break;
+                
+            case MaskType.Flood:
+                // Deal damage to all rooms in bottom row
+                if (targetChurch != null)
+                {
+                    int bottomRow = 0;
+                    for (int x = 0; x < targetChurch.GridWidth; x++)
+                    {
+                        var room = targetChurch.GetRoomAt(new Vector2Int(x, bottomRow));
+                        if (room != null && room.Type != RoomType.Empty)
+                        {
+                            Vector3 targetPos = GetRoomWorldPosition(room);
+                            int damage = effectValue;
+                            Room targetRoomCapture = room;
+                            // Stagger the flood wave
+                            float delay = x * 0.15f;
+                            if (delay > 0)
+                            {
+                                SpawnDelayedProjectile(srcPos, targetPos, type, targetRoomCapture, damage, delay);
+                            }
+                            else
+                            {
+                                MaskProjectile.Create(srcPos, targetPos, type, () => {
+                                    targetRoomCapture.TakeDamage(damage);
+                                });
+                            }
+                        }
+                    }
+                    Debug.Log($"Flood wave launched!");
+                }
+                break;
+                
+            case MaskType.Shield:
+                // Shield masks are passive and don't have an active effect
+                // They are consumed automatically when TryBlockAttack is called
+                Debug.Log("Shield mask cannot be manually activated!");
                 break;
                 
             case MaskType.Smiting:
                 // Damage followers in target enemy room
                 if (targetRoom != null)
                 {
-                    foreach (var follower in targetRoom.Followers)
-                    {
-                        follower.DecayCommitment(effectValue);
-                    }
-                    Debug.Log($"Smiting applied to room! {targetRoom.Followers.Count} followers affected.");
+                    Vector3 targetPos = GetRoomWorldPosition(targetRoom);
+                    var followers = targetRoom.Followers;
+                    int damage = effectValue;
+                    MaskProjectile.Create(srcPos, targetPos, type, () => {
+                        foreach (var follower in followers)
+                        {
+                            follower.DecayCommitment(damage);
+                        }
+                        Debug.Log($"Smiting applied to room! {followers.Count} followers affected.");
+                    });
                 }
                 break;
                 
@@ -140,8 +225,14 @@ public class Mask
                 // Direct damage to enemy god strength
                 if (targetGod != null)
                 {
-                    targetGod.DecreaseStrength(effectValue);
-                    Debug.Log($"Wrath dealt {effectValue} damage to enemy god!");
+                    // Target god position (above the church)
+                    Vector3 targetPos = srcPos + Vector3.right * 20f + Vector3.up * 5f; // Approximate
+                    int damage = effectValue;
+                    God targetGodCapture = targetGod;
+                    MaskProjectile.Create(srcPos, targetPos, type, () => {
+                        targetGodCapture.DecreaseStrength(damage);
+                        Debug.Log($"Wrath dealt {damage} damage to enemy god!");
+                    });
                 }
                 break;
                 
@@ -149,11 +240,16 @@ public class Mask
                 // Reduce commitment in target enemy room
                 if (targetRoom != null)
                 {
-                    foreach (var follower in targetRoom.Followers)
-                    {
-                        follower.DecayCommitment(effectValue);
-                    }
-                    Debug.Log($"Whispers reduced commitment in enemy room!");
+                    Vector3 targetPos = GetRoomWorldPosition(targetRoom);
+                    var followers = targetRoom.Followers;
+                    int damage = effectValue;
+                    MaskProjectile.Create(srcPos, targetPos, type, () => {
+                        foreach (var follower in followers)
+                        {
+                            follower.DecayCommitment(damage);
+                        }
+                        Debug.Log($"Whispers applied! {followers.Count} followers lost {damage} commitment.");
+                    });
                 }
                 break;
                 
@@ -202,5 +298,89 @@ public class Mask
                 Debug.LogWarning($"Unknown mask type: {type}");
                 break;
         }
+    }
+    
+    // === Helper Methods for Projectiles ===
+    
+    /// <summary>
+    /// Get the default source position for projectiles based on the cult's god.
+    /// </summary>
+    private Vector3 GetDefaultSourcePosition(Cult sourceCult)
+    {
+        // Try to get the god's visual position
+        if (sourceCult?.god != null)
+        {
+            // Look for a GodVisual associated with this god
+            var godVisuals = UnityEngine.Object.FindObjectsOfType<GodVisual>();
+            foreach (var visual in godVisuals)
+            {
+                if (visual.God == sourceCult.god)
+                {
+                    return visual.transform.position;
+                }
+            }
+        }
+        
+        // Fallback to a default position
+        return new Vector3(-10f, 5f, 0f);
+    }
+    
+    /// <summary>
+    /// Get world position for a room target.
+    /// </summary>
+    private Vector3 GetRoomWorldPosition(Room room)
+    {
+        if (room == null) return Vector3.zero;
+        
+        // Try to find the room's visual
+        var roomVisuals = UnityEngine.Object.FindObjectsOfType<RoomVisual>();
+        foreach (var visual in roomVisuals)
+        {
+            if (visual.Room == room)
+            {
+                return visual.transform.position;
+            }
+        }
+        
+        // Fallback based on grid position
+        return new Vector3(room.Location.x * 2f, room.Location.y * 2f, 0f);
+    }
+    
+    /// <summary>
+    /// Spawn a projectile with a delay (for multi-target effects).
+    /// </summary>
+    private void SpawnDelayedProjectile(Vector3 srcPos, Vector3 targetPos, MaskType maskType, Room targetRoom, int damage, float delay)
+    {
+        // Use a temporary MonoBehaviour to start a coroutine
+        var helper = new GameObject("ProjectileSpawner");
+        var spawner = helper.AddComponent<DelayedProjectileSpawner>();
+        spawner.Spawn(srcPos, targetPos, maskType, targetRoom, damage, delay);
+    }
+    
+    /// <summary>
+    /// Check if this mask is a Shield type that can block attacks.
+    /// </summary>
+    public bool IsShield => type == MaskType.Shield;
+}
+
+/// <summary>
+/// Helper MonoBehaviour for spawning delayed projectiles.
+/// </summary>
+public class DelayedProjectileSpawner : MonoBehaviour
+{
+    public void Spawn(Vector3 srcPos, Vector3 targetPos, MaskType maskType, Room targetRoom, int damage, float delay)
+    {
+        StartCoroutine(SpawnAfterDelay(srcPos, targetPos, maskType, targetRoom, damage, delay));
+    }
+    
+    private System.Collections.IEnumerator SpawnAfterDelay(Vector3 srcPos, Vector3 targetPos, MaskType maskType, Room targetRoom, int damage, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        
+        MaskProjectile.Create(srcPos, targetPos, maskType, () => {
+            targetRoom?.TakeDamage(damage);
+        });
+        
+        Destroy(gameObject);
     }
 }

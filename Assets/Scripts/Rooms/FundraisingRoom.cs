@@ -17,6 +17,8 @@ public class FundraisingRoom : Room
     [Tooltip("Duration in pawn-seconds to trigger")]
     [SerializeField] private float triggerDuration = 30f;
     
+    public override ResourceType GeneratedResource => ResourceType.Money;
+    
     protected override void Awake()
     {
         type = RoomType.Fundraising;
@@ -44,6 +46,7 @@ public class FundraisingRoom : Room
         // Spend favor, gain money
         cult.god.DecreaseFavor(favorCostPerTrigger);
         cult.AddMoney(moneyPerTrigger);
+        NotifyResourceGenerated(ResourceType.Money, moneyPerTrigger);
         
         Debug.Log($"Fundraising success! +{moneyPerTrigger} money, -{favorCostPerTrigger} favor. Total money: {cult.Money}");
     }

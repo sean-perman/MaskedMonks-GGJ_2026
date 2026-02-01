@@ -209,6 +209,50 @@ public class God : MonoBehaviour
         currentMask = null;
     }
     
+    /// <summary>
+    /// Try to block incoming room damage using a Shield mask.
+    /// Returns true if the attack was blocked, false otherwise.
+    /// Shield masks require 4+ favor to activate.
+    /// </summary>
+    public bool TryBlockAttackWithShield(Room targetRoom)
+    {
+        // Find a Shield mask in storage
+        for (int i = 0; i < storedMasks.Count; i++)
+        {
+            var mask = storedMasks[i];
+            if (mask != null && mask.IsShield && !mask.IsExpired)
+            {
+                // Check if we can afford to activate the shield
+                if (favor >= mask.FavorCost)
+                {
+                    // Consume the shield mask and pay the favor cost
+                    favor -= mask.FavorCost;
+                    storedMasks.RemoveAt(i);
+                    
+                    Debug.Log($"Shield mask blocked attack on {targetRoom?.Type}! (-{mask.FavorCost} favor)");
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    /// <summary>
+    /// Check if this god has any active shield masks with enough favor to use.
+    /// </summary>
+    public bool HasActiveShield()
+    {
+        foreach (var mask in storedMasks)
+        {
+            if (mask != null && mask.IsShield && !mask.IsExpired && favor >= mask.FavorCost)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     // === Over-Time Effects ===
     
     public void SetBleed(float dps)

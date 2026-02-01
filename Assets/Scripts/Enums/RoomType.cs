@@ -13,10 +13,16 @@ public enum RoomType
     Pews,
     /// <summary>Recruits a citizen from the Marketplace when triggered. Followers decay.</summary>
     Mission,
-    /// <summary>Generates a new Mask when triggered. Followers decay commitment.</summary>
+    /// <summary>Generates Strike masks when triggered. Followers decay commitment.</summary>
     RitualHall,
     /// <summary>Generates Architecture masks for building new rooms. Followers decay.</summary>
     Workshop,
     /// <summary>Generates money at the expense of favor. Followers decay commitment.</summary>
-    Fundraising
+    Fundraising,
+    /// <summary>Generates Lightning masks that hit an entire column. Followers decay.</summary>
+    LightningRitual,
+    /// <summary>Generates Flood masks that hit bottom row. Followers decay.</summary>
+    FloodRitual,
+    /// <summary>Generates Shield masks that auto-block attacks. Followers decay.</summary>
+    ShieldRitual
 }

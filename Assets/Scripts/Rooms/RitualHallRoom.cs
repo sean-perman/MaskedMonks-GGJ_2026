@@ -26,6 +26,8 @@ public class RitualHallRoom : Room
     [Tooltip("Duration for mask triggers (pawn-seconds)")]
     [SerializeField] private float triggerDuration = 15f;
     
+    public override ResourceType GeneratedResource => ResourceType.Mask;
+    
     protected override void Awake()
     {
         type = RoomType.RitualHall;
@@ -67,6 +69,8 @@ public class RitualHallRoom : Room
         bool added = cult.god.AddMaskToStorage(mask);
         if (added)
         {
+            NotifyResourceGenerated(ResourceType.Mask, 1);
+            NotifyMaskGenerated(maskType);
             Debug.Log($"Ritual Hall generated a {maskType} mask! (Cost: {maskFavorCost} favor, Effect: {maskEffectValue})");
         }
     }
@@ -79,6 +83,9 @@ public class RitualHallRoom : Room
         return maskType switch
         {
             MaskType.Strike => MaskTargetType.EnemyRoom,
+            MaskType.Lightning => MaskTargetType.EnemyColumn,
+            MaskType.Flood => MaskTargetType.EnemyBottomRow,
+            MaskType.Shield => MaskTargetType.Passive,
             MaskType.Smiting => MaskTargetType.EnemyRoom,
             MaskType.Wrath => MaskTargetType.EnemyRoom, // Target room, affects god
             MaskType.Whispers => MaskTargetType.EnemyRoom,

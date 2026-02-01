@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -31,6 +32,20 @@ public abstract class Room : MonoBehaviour
     
     /// <summary>Reference to the cult that owns this church.</summary>
     protected Cult cult;
+    
+    // === Events ===
+    
+    /// <summary>
+    /// Fired when this room generates a resource.
+    /// Parameters: ResourceType, int amount
+    /// </summary>
+    public event Action<ResourceType, int> OnResourceGenerated;
+    
+    /// <summary>
+    /// Fired when this room generates a mask specifically.
+    /// Parameters: MaskType of generated mask
+    /// </summary>
+    public event Action<MaskType> OnMaskGenerated;
     
     // === Properties ===
     
@@ -83,6 +98,12 @@ public abstract class Room : MonoBehaviour
     public virtual bool CausesCommitmentDecay => true;
     
     /// <summary>
+    /// The type of resource this room generates.
+    /// Override in subclasses to specify resource type for visual feedback.
+    /// </summary>
+    public virtual ResourceType GeneratedResource => ResourceType.None;
+    
+    /// <summary>
     /// Progress toward triggering the room effect (0 to 1).
     /// </summary>
     public float Progress => duration > 0 ? Mathf.Clamp01(clock / duration) : 0f;
@@ -126,16 +147,23 @@ public abstract class Room : MonoBehaviour
     
     /// <summary>
     /// Accumulate progress on the room's clock based on follower count.
-    /// Each follower contributes 1 progress per second.
+    /// Only followers in UNDAMAGED slots contribute to progress.
+    /// Followers in orange-damaged slots only contribute to repairs.
     /// </summary>
     protected virtual void AccumulateClock()
     {
-        clock += followers.Count * Time.deltaTime;
+        // Only undamaged slots are productive
+        int productiveFollowers = Mathf.Min(followers.Count, FunctionalCapacity);
         
-        if (clock >= duration)
+        if (productiveFollowers > 0)
         {
-            OnClockTrigger();
-            clock = 0f;
+            clock += productiveFollowers * Time.deltaTime;
+            
+            if (clock >= duration)
+            {
+                OnClockTrigger();
+                clock = 0f;
+            }
         }
     }
     
@@ -144,6 +172,24 @@ public abstract class Room : MonoBehaviour
     /// Override in subclasses to implement room-specific effects.
     /// </summary>
     protected abstract void OnClockTrigger();
+    
+    /// <summary>
+    /// Notify listeners that a resource was generated.
+    /// Call this from subclass OnClockTrigger implementations.
+    /// </summary>
+    protected void NotifyResourceGenerated(ResourceType resource, int amount)
+    {
+        OnResourceGenerated?.Invoke(resource, amount);
+    }
+    
+    /// <summary>
+    /// Notify listeners that a mask was generated.
+    /// Call this from ritual room OnClockTrigger implementations.
+    /// </summary>
+    protected void NotifyMaskGenerated(MaskType maskType)
+    {
+        OnMaskGenerated?.Invoke(maskType);
+    }
     
     // === Repair System ===
     
@@ -224,9 +270,17 @@ public abstract class Room : MonoBehaviour
     /// Apply damage to the room.
     /// Followers inside take a commitment hit that scales with damage.
     /// Followers can still occupy damaged slots to repair them.
+    /// If the defending cult has a shield mask and enough favor, the attack is blocked.
     /// </summary>
     public virtual void TakeDamage(int amount = 1)
     {
+        // Check for shield block first
+        if (cult != null && cult.god != null && cult.god.TryBlockAttackWithShield(this))
+        {
+            Debug.Log($"Attack on {type} was blocked by a Shield mask!");
+            return;
+        }
+        
         int previousDamage = damage;
         damage += amount;
         

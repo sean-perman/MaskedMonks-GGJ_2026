@@ -12,6 +12,10 @@ public enum MaskType
     Wrath,
     /// <summary>Reduce commitment in target enemy room.</summary>
     Whispers,
+    /// <summary>Deal 1 damage to all rooms in a column.</summary>
+    Lightning,
+    /// <summary>Deal 2 damage to all rooms in bottom row.</summary>
+    Flood,
     
     // === Support Masks ===
     /// <summary>Boost commitment in target own room.</summary>
@@ -20,6 +24,8 @@ public enum MaskType
     Plenty,
     /// <summary>Sacrifice follower to heal god strength.</summary>
     Sacrifice,
+    /// <summary>Auto-blocks incoming damage if you have 4+ favor.</summary>
+    Shield,
     
     // === Architecture Masks (for building rooms) ===
     /// <summary>Build a Sanctuary room.</summary>

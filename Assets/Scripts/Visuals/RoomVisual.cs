@@ -37,11 +37,26 @@ public class RoomVisual : MonoBehaviour
     [SerializeField] private Color redDamageColor = new Color(0.8f, 0.1f, 0.1f); // Red damage (slot unusable)
     [SerializeField] private Color repairBarColor = new Color(0.3f, 0.8f, 0.3f);
     
+    [Header("Resource Bar Colors")]
+    [SerializeField] private Color strengthBarColor = new Color(0.9f, 0.3f, 0.3f); // Red for strength
+    [SerializeField] private Color favorBarColor = new Color(0.6f, 0.3f, 0.9f);    // Purple for favor
+    [SerializeField] private Color moneyBarColor = new Color(1f, 0.85f, 0.2f);     // Gold for money
+    [SerializeField] private Color maskBarColor = new Color(0.3f, 0.6f, 0.9f);     // Blue for masks
+    [SerializeField] private Color blueprintBarColor = new Color(0.4f, 0.7f, 0.9f); // Light blue for blueprints
+    [SerializeField] private Color followerBarColor = new Color(0.3f, 0.9f, 0.5f); // Green for followers
+    [SerializeField] private Color defaultBarColor = Color.cyan;                    // Default cyan
+    
+    [Header("Resource Spawn Indicator")]
+    [SerializeField] private float iconSpawnSize = 0.3f;
+    [SerializeField] private float iconFloatHeight = 1.5f;
+    [SerializeField] private float iconFloatDuration = 1.0f;
+    
     private Room room;
     private SpriteRenderer backgroundSprite;
     private SpriteRenderer progressBar;
     private SpriteRenderer repairBar;
-    private SpriteRenderer[] followerIcons;
+    private SpriteRenderer[] followerSlots;         // Square slot backgrounds
+    private SpriteRenderer[] followerCircles;       // Circular pawn icons
     private SpriteRenderer[] followerDamageOutlines; // Damage indicator outlines
     private SpriteRenderer highlightBorder;
     private TextMesh labelText;
@@ -50,10 +65,386 @@ public class RoomVisual : MonoBehaviour
     private bool isHighlighted = false;
     private bool isTargeted = false;
     
+    /// <summary>
+    /// The Room this visual represents.
+    /// </summary>
+    public Room Room => room;
+    
     private void Awake()
     {
         room = GetComponent<Room>();
         CreateVisuals();
+        
+        // Subscribe to resource generation events
+        if (room != null)
+        {
+            room.OnResourceGenerated += OnResourceGenerated;
+            room.OnMaskGenerated += OnMaskGenerated;
+        }
+    }
+    
+    private void OnDestroy()
+    {
+        // Unsubscribe from events
+        if (room != null)
+        {
+            room.OnResourceGenerated -= OnResourceGenerated;
+            room.OnMaskGenerated -= OnMaskGenerated;
+        }
+    }
+    
+    private void OnMaskGenerated(MaskType maskType)
+    {
+        SpawnMaskIndicator(maskType);
+    }
+    
+    private void OnResourceGenerated(ResourceType resource, int amount)
+    {
+        SpawnResourceIndicator(resource, amount);
+    }
+    
+    /// <summary>
+    /// Overload to spawn a mask-specific indicator showing the mask shape.
+    /// </summary>
+    public void SpawnMaskIndicator(MaskType maskType)
+    {
+        var iconObj = new GameObject($"MaskIcon_{maskType}");
+        iconObj.transform.SetParent(transform);
+        iconObj.transform.localPosition = Vector3.zero;
+        
+        var iconRenderer = iconObj.AddComponent<SpriteRenderer>();
+        iconRenderer.sprite = CreateMaskSprite(maskType);
+        iconRenderer.transform.localScale = new Vector3(iconSpawnSize * 1.5f, iconSpawnSize * 1.5f, 1f);
+        iconRenderer.color = GetMaskTypeColor(maskType);
+        iconRenderer.sortingOrder = 10;
+        
+        var floater = iconObj.AddComponent<FloatingResourceIcon>();
+        floater.Initialize(iconFloatHeight, iconFloatDuration, 1);
+    }
+    
+    private void SpawnResourceIndicator(ResourceType resource, int amount)
+    {
+        // For mask resources, the specific mask indicator is spawned separately
+        // This handles generic resource types
+        var iconObj = new GameObject($"ResourceIcon_{resource}");
+        iconObj.transform.SetParent(transform);
+        iconObj.transform.localPosition = Vector3.zero;
+        
+        var iconRenderer = iconObj.AddComponent<SpriteRenderer>();
+        iconRenderer.sprite = CreateResourceIcon(resource);
+        iconRenderer.transform.localScale = new Vector3(iconSpawnSize, iconSpawnSize, 1f);
+        iconRenderer.color = GetResourceColor(resource);
+        iconRenderer.sortingOrder = 10;
+        
+        // Add floating behavior
+        var floater = iconObj.AddComponent<FloatingResourceIcon>();
+        floater.Initialize(iconFloatHeight, iconFloatDuration, amount);
+    }
+    
+    private Sprite CreateMaskSprite(MaskType maskType)
+    {
+        int size = 32;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        tex.filterMode = FilterMode.Point;
+        float centerX = size / 2f;
+        float centerY = size / 2f;
+        
+        // Clear texture first to fully transparent
+        Color clearColor = new Color(0, 0, 0, 0);
+        for (int x = 0; x < size; x++)
+            for (int y = 0; y < size; y++)
+                tex.SetPixel(x, y, clearColor);
+        
+        switch (maskType)
+        {
+            case MaskType.Strike:
+                DrawStrikeMask(tex, size, centerX, centerY);
+                break;
+            case MaskType.Lightning:
+                DrawLightningMask(tex, size, centerX, centerY);
+                break;
+            case MaskType.Flood:
+                DrawFloodMask(tex, size, centerX, centerY);
+                break;
+            case MaskType.Shield:
+                DrawShieldMask(tex, size, centerX, centerY);
+                break;
+            default:
+                DrawGenericMask(tex, size, centerX, centerY);
+                break;
+        }
+        
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+    }
+    
+    private void DrawStrikeMask(Texture2D tex, int size, float cx, float cy)
+    {
+        // Aggressive mask with angular features - like a fist/impact
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                float dx = (x - cx) / (size * 0.4f);
+                float dy = (y - cy) / (size * 0.3f);
+                bool inFace = dx * dx + dy * dy < 1f;
+                
+                // Angular eye slits
+                float eyeY = cy + 2;
+                bool inLeftEye = Mathf.Abs(x - (cx - 5)) < 4 && Mathf.Abs(y - eyeY) < 2;
+                bool inRightEye = Mathf.Abs(x - (cx + 5)) < 4 && Mathf.Abs(y - eyeY) < 2;
+                
+                if (inFace && !inLeftEye && !inRightEye)
+                    tex.SetPixel(x, y, Color.white);
+            }
+        }
+    }
+    
+    private void DrawLightningMask(Texture2D tex, int size, float cx, float cy)
+    {
+        // Lightning bolt shape
+        float boltWidth = size * 0.15f;
+        for (int y = 0; y < size; y++)
+        {
+            float t = (float)y / size;
+            float offsetX = Mathf.Sin(t * Mathf.PI * 2) * size * 0.2f;
+            for (int x = 0; x < size; x++)
+            {
+                if (Mathf.Abs(x - cx - offsetX) < boltWidth)
+                    tex.SetPixel(x, y, Color.white);
+            }
+        }
+    }
+    
+    private void DrawFloodMask(Texture2D tex, int size, float cx, float cy)
+    {
+        // Wave pattern
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                float waveY = cy + Mathf.Sin((x / (float)size) * Mathf.PI * 3) * (size * 0.15f);
+                if (y > waveY - size * 0.2f && y < waveY + size * 0.1f)
+                    tex.SetPixel(x, y, Color.white);
+            }
+        }
+    }
+    
+    private void DrawShieldMask(Texture2D tex, int size, float cx, float cy)
+    {
+        // Shield shape (like a coat of arms)
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                float dx = Mathf.Abs(x - cx) / (size * 0.35f);
+                float dyTop = (y - cy - size * 0.1f) / (size * 0.3f);
+                float dyBot = (cy - y) / (size * 0.4f);
+                
+                bool inTop = dyTop < 0 && dx < 1f;
+                bool inBot = dyBot < 0 && dyBot > -1f && dx < (1f + dyBot * 0.5f);
+                
+                if (inTop || inBot)
+                    tex.SetPixel(x, y, Color.white);
+            }
+        }
+    }
+    
+    private void DrawGenericMask(Texture2D tex, int size, float cx, float cy)
+    {
+        // Basic oval mask with eye holes
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                float dx = (x - cx) / (size * 0.45f);
+                float dy = (y - cy) / (size * 0.35f);
+                bool inFace = dx * dx + dy * dy < 1f;
+                
+                float eyeY = cy + 2;
+                float eyeRadius = 3f;
+                bool inLeftEye = Vector2.Distance(new Vector2(x, y), new Vector2(cx - 5, eyeY)) < eyeRadius;
+                bool inRightEye = Vector2.Distance(new Vector2(x, y), new Vector2(cx + 5, eyeY)) < eyeRadius;
+                
+                if (inFace && !inLeftEye && !inRightEye)
+                    tex.SetPixel(x, y, Color.white);
+            }
+        }
+    }
+    
+    private Color GetMaskTypeColor(MaskType type)
+    {
+        return type switch
+        {
+            MaskType.Strike => new Color(1f, 0.4f, 0.2f),       // Orange-red
+            MaskType.Lightning => new Color(1f, 1f, 0.3f),     // Yellow
+            MaskType.Flood => new Color(0.3f, 0.5f, 1f),       // Blue
+            MaskType.Shield => new Color(0.5f, 0.8f, 1f),      // Light blue
+            MaskType.Smiting => new Color(1f, 0.3f, 0.3f),     // Red
+            MaskType.Wrath => new Color(1f, 0.2f, 0.5f),       // Magenta
+            MaskType.Whispers => new Color(0.5f, 0.3f, 0.8f),  // Purple
+            MaskType.Sanctuary => new Color(0.3f, 0.8f, 0.5f), // Green
+            MaskType.Plenty => new Color(1f, 0.85f, 0.3f),     // Gold
+            MaskType.Sacrifice => new Color(0.8f, 0.2f, 0.2f), // Dark red
+            _ => Color.white
+        };
+    }
+    
+    private Sprite CreateResourceIcon(ResourceType resource)
+    {
+        int size = 32;
+        Texture2D tex = new Texture2D(size, size);
+        float radius = size / 2f;
+        Vector2 center = new Vector2(radius, radius);
+        
+        switch (resource)
+        {
+            case ResourceType.Strength:
+                // Star shape for strength
+                DrawStar(tex, size, center, radius - 2);
+                break;
+            case ResourceType.Favor:
+                // Heart shape for favor
+                DrawHeart(tex, size, center, radius - 2);
+                break;
+            case ResourceType.Money:
+                // Coin shape (circle with inner circle)
+                DrawCoin(tex, size, center, radius - 2);
+                break;
+            case ResourceType.Mask:
+            case ResourceType.Blueprint:
+                // Diamond shape for masks/blueprints
+                DrawDiamond(tex, size, center, radius - 2);
+                break;
+            case ResourceType.Follower:
+                // Person shape (circle + triangle)
+                DrawPerson(tex, size, center, radius - 2);
+                break;
+            default:
+                // Simple circle
+                DrawCircle(tex, size, center, radius - 2);
+                break;
+        }
+        
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+    }
+    
+    private void DrawStar(Texture2D tex, int size, Vector2 center, float radius)
+    {
+        // Clear texture
+        for (int x = 0; x < size; x++)
+            for (int y = 0; y < size; y++)
+                tex.SetPixel(x, y, Color.clear);
+        
+        // Simple 4-point star using triangles
+        int points = 4;
+        float innerRadius = radius * 0.4f;
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                Vector2 p = new Vector2(x, y) - center;
+                float angle = Mathf.Atan2(p.y, p.x);
+                float dist = p.magnitude;
+                float starAngle = Mathf.Repeat(angle * points / (2 * Mathf.PI), 1f);
+                float starRadius = Mathf.Lerp(innerRadius, radius, Mathf.Abs(starAngle - 0.5f) * 2);
+                if (dist < starRadius)
+                    tex.SetPixel(x, y, Color.white);
+            }
+        }
+    }
+    
+    private void DrawHeart(Texture2D tex, int size, Vector2 center, float radius)
+    {
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                float px = (x - center.x) / radius;
+                float py = (y - center.y) / radius;
+                // Heart equation: (x^2 + y^2 - 1)^3 - x^2 * y^3 < 0
+                float heart = Mathf.Pow(px * px + py * py - 1, 3) - px * px * py * py * py;
+                tex.SetPixel(x, y, heart < 0 ? Color.white : Color.clear);
+            }
+        }
+    }
+    
+    private void DrawCoin(Texture2D tex, int size, Vector2 center, float radius)
+    {
+        float innerRadius = radius * 0.6f;
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                float dist = Vector2.Distance(new Vector2(x, y), center);
+                bool outer = dist < radius;
+                bool inner = dist < innerRadius && dist > innerRadius - 2;
+                tex.SetPixel(x, y, (outer && !inner) || inner ? Color.white : Color.clear);
+            }
+        }
+    }
+    
+    private void DrawDiamond(Texture2D tex, int size, Vector2 center, float radius)
+    {
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                float dx = Mathf.Abs(x - center.x);
+                float dy = Mathf.Abs(y - center.y);
+                // Diamond: |x| + |y| < r
+                tex.SetPixel(x, y, dx + dy < radius ? Color.white : Color.clear);
+            }
+        }
+    }
+    
+    private void DrawPerson(Texture2D tex, int size, Vector2 center, float radius)
+    {
+        // Clear
+        for (int x = 0; x < size; x++)
+            for (int y = 0; y < size; y++)
+                tex.SetPixel(x, y, Color.clear);
+        
+        // Head (circle at top)
+        float headRadius = radius * 0.35f;
+        Vector2 headCenter = new Vector2(center.x, center.y + radius * 0.4f);
+        
+        // Body (triangle at bottom)
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                float headDist = Vector2.Distance(new Vector2(x, y), headCenter);
+                if (headDist < headRadius)
+                {
+                    tex.SetPixel(x, y, Color.white);
+                    continue;
+                }
+                
+                // Body triangle
+                float bodyTop = center.y + radius * 0.1f;
+                float bodyBot = center.y - radius;
+                if (y < bodyTop && y > bodyBot)
+                {
+                    float bodyWidth = (bodyTop - y) / (bodyTop - bodyBot) * radius * 0.8f;
+                    if (Mathf.Abs(x - center.x) < bodyWidth)
+                        tex.SetPixel(x, y, Color.white);
+                }
+            }
+        }
+    }
+    
+    private void DrawCircle(Texture2D tex, int size, Vector2 center, float radius)
+    {
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                float dist = Vector2.Distance(new Vector2(x, y), center);
+                tex.SetPixel(x, y, dist < radius ? Color.white : Color.clear);
+            }
+        }
     }
     
     private void CreateVisuals()
@@ -117,30 +508,43 @@ public class RoomVisual : MonoBehaviour
         labelText.characterSize = 0.1f;
         labelText.color = Color.white;
         
-        // Follower icons (create max capacity icons, hide unused)
-        followerIcons = new SpriteRenderer[6]; // Max possible capacity
+        // Follower slots (square backgrounds) and circles (pawn icons)
+        followerSlots = new SpriteRenderer[6];   // Max possible capacity - square slot backgrounds
+        followerCircles = new SpriteRenderer[6]; // Circular pawn icons on top of slots
         followerDamageOutlines = new SpriteRenderer[6]; // Damage outlines for each slot
-        for (int i = 0; i < followerIcons.Length; i++)
+        for (int i = 0; i < followerSlots.Length; i++)
         {
-            var iconObj = new GameObject($"FollowerIcon_{i}");
-            iconObj.transform.SetParent(transform);
-            float xOffset = (i - (followerIcons.Length - 1) / 2f) * (followerIconSize + 0.1f);
-            iconObj.transform.localPosition = new Vector3(xOffset, 0, 0);
-            followerIcons[i] = iconObj.AddComponent<SpriteRenderer>();
-            followerIcons[i].sprite = CreateCircleSprite();
-            followerIcons[i].transform.localScale = new Vector3(followerIconSize, followerIconSize, 1f);
-            followerIcons[i].sortingOrder = 3;
-            followerIcons[i].enabled = false;
+            float xOffset = (i - (followerSlots.Length - 1) / 2f) * (followerIconSize + 0.1f);
             
-            // Damage outline (larger circle behind the icon)
+            // Damage outline (larger square behind everything)
             var outlineObj = new GameObject($"DamageOutline_{i}");
             outlineObj.transform.SetParent(transform);
             outlineObj.transform.localPosition = new Vector3(xOffset, 0, 0);
             followerDamageOutlines[i] = outlineObj.AddComponent<SpriteRenderer>();
-            followerDamageOutlines[i].sprite = CreateCircleSprite();
+            followerDamageOutlines[i].sprite = CreateSquareBorderSprite(); // Square border
             followerDamageOutlines[i].transform.localScale = new Vector3(followerIconSize + 0.08f, followerIconSize + 0.08f, 1f);
             followerDamageOutlines[i].sortingOrder = 2;
             followerDamageOutlines[i].enabled = false;
+            
+            // Square slot background
+            var slotObj = new GameObject($"FollowerSlot_{i}");
+            slotObj.transform.SetParent(transform);
+            slotObj.transform.localPosition = new Vector3(xOffset, 0, 0);
+            followerSlots[i] = slotObj.AddComponent<SpriteRenderer>();
+            followerSlots[i].sprite = CreateSquareSprite(); // Square slots
+            followerSlots[i].transform.localScale = new Vector3(followerIconSize, followerIconSize, 1f);
+            followerSlots[i].sortingOrder = 3;
+            followerSlots[i].enabled = false;
+            
+            // Circular pawn icon (on top of slot)
+            var circleObj = new GameObject($"FollowerCircle_{i}");
+            circleObj.transform.SetParent(transform);
+            circleObj.transform.localPosition = new Vector3(xOffset, 0, 0);
+            followerCircles[i] = circleObj.AddComponent<SpriteRenderer>();
+            followerCircles[i].sprite = CreateCircleSprite(); // Circular pawns
+            followerCircles[i].transform.localScale = new Vector3(followerIconSize * 0.8f, followerIconSize * 0.8f, 1f);
+            followerCircles[i].sortingOrder = 4;
+            followerCircles[i].enabled = false;
         }
         
         // Level pips (top-right corner)
@@ -210,6 +614,23 @@ public class RoomVisual : MonoBehaviour
             -roomHeight / 2 + 0.15f,
             0
         );
+        
+        // Color progress bar based on generated resource type
+        progressBar.color = GetResourceColor(room.GeneratedResource);
+    }
+    
+    private Color GetResourceColor(ResourceType resource)
+    {
+        return resource switch
+        {
+            ResourceType.Strength => strengthBarColor,
+            ResourceType.Favor => favorBarColor,
+            ResourceType.Money => moneyBarColor,
+            ResourceType.Mask => maskBarColor,
+            ResourceType.Blueprint => blueprintBarColor,
+            ResourceType.Follower => followerBarColor,
+            _ => defaultBarColor
+        };
     }
     
     private void UpdateRepairBar()
@@ -243,7 +664,7 @@ public class RoomVisual : MonoBehaviour
         int capacity = room.Capacity; // Level - RedDamage (slots that can hold pawns)
         int functionalCapacity = room.FunctionalCapacity; // Level - TotalDamage (undamaged slots)
         
-        for (int i = 0; i < followerIcons.Length; i++)
+        for (int i = 0; i < followerSlots.Length; i++)
         {
             // Calculate slot state from right to left (rightmost slots are damaged first)
             int slotFromRight = level - 1 - i;
@@ -254,22 +675,26 @@ public class RoomVisual : MonoBehaviour
             if (!isWithinLevel)
             {
                 // Beyond room level - hide everything
-                followerIcons[i].enabled = false;
+                followerSlots[i].enabled = false;
+                followerCircles[i].enabled = false;
                 followerDamageOutlines[i].enabled = false;
                 continue;
             }
             
+            // Show the square slot background
+            followerSlots[i].enabled = true;
+            
             if (isRedSlot)
             {
-                // Red damage slot - show red circle, no pawn can be here
-                followerIcons[i].enabled = true;
-                followerIcons[i].color = redDamageColor;
+                // Red damage slot - show red square, no pawn can be here
+                followerSlots[i].color = redDamageColor;
+                followerCircles[i].enabled = false;
                 followerDamageOutlines[i].enabled = false;
             }
             else if (isOrangeSlot)
             {
                 // Orange damage slot - pawn can be here but slot is damaged
-                followerIcons[i].enabled = true;
+                followerSlots[i].color = new Color(0.3f, 0.3f, 0.3f, 0.5f); // Dim slot background
                 followerDamageOutlines[i].enabled = true;
                 followerDamageOutlines[i].color = orangeDamageColor;
                 
@@ -278,32 +703,33 @@ public class RoomVisual : MonoBehaviour
                 if (slotIndex >= 0 && slotIndex < followerCount)
                 {
                     var follower = room.Followers[slotIndex];
-                    followerIcons[i].color = GetCommitmentColor(follower.Commitment);
+                    followerCircles[i].enabled = true;
+                    followerCircles[i].color = GetCommitmentColor(follower.Commitment);
                 }
                 else
                 {
-                    // Empty orange slot
-                    followerIcons[i].color = new Color(0.5f, 0.5f, 0.5f, 0.3f);
+                    // Empty orange slot - no pawn circle
+                    followerCircles[i].enabled = false;
                 }
             }
             else
             {
                 // Undamaged slot
-                followerIcons[i].enabled = true;
+                followerSlots[i].color = new Color(0.4f, 0.4f, 0.4f, 0.5f); // Normal slot background
                 followerDamageOutlines[i].enabled = false;
                 
-                int slotIndex = i - redDamage - orangeDamage + functionalCapacity;
                 // Simpler: pawns fill from left, so just check follower index
                 int adjustedIndex = i;
                 if (adjustedIndex < followerCount)
                 {
                     var follower = room.Followers[adjustedIndex];
-                    followerIcons[i].color = GetCommitmentColor(follower.Commitment);
+                    followerCircles[i].enabled = true;
+                    followerCircles[i].color = GetCommitmentColor(follower.Commitment);
                 }
                 else
                 {
-                    // Empty slot
-                    followerIcons[i].color = new Color(0.5f, 0.5f, 0.5f, 0.3f);
+                    // Empty slot - no pawn circle
+                    followerCircles[i].enabled = false;
                 }
             }
         }
@@ -403,6 +829,25 @@ public class RoomVisual : MonoBehaviour
     {
         int size = 32;
         int borderWidth = 2;
+        Texture2D tex = new Texture2D(size, size);
+        
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                bool isBorder = x < borderWidth || x >= size - borderWidth ||
+                               y < borderWidth || y >= size - borderWidth;
+                tex.SetPixel(x, y, isBorder ? Color.white : Color.clear);
+            }
+        }
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+    }
+    
+    private Sprite CreateSquareBorderSprite()
+    {
+        int size = 32;
+        int borderWidth = 3;
         Texture2D tex = new Texture2D(size, size);
         
         for (int x = 0; x < size; x++)

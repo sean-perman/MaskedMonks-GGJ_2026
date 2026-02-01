@@ -9,6 +9,8 @@ public class AltarRoom : Room
     [Header("Altar Settings")]
     [SerializeField] private int strengthPerTrigger = 1;
     
+    public override ResourceType GeneratedResource => ResourceType.Strength;
+    
     protected override void Awake()
     {
         type = RoomType.Altar;
@@ -22,6 +24,7 @@ public class AltarRoom : Room
         if (cult != null && cult.god != null)
         {
             cult.god.IncreaseStrength(strengthPerTrigger);
+            NotifyResourceGenerated(ResourceType.Strength, strengthPerTrigger);
             Debug.Log($"Altar triggered! God gained {strengthPerTrigger} strength.");
         }
     }

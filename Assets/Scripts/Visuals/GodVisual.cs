@@ -38,6 +38,11 @@ public class GodVisual : MonoBehaviour
     private God god;
     private Cult cult;
     
+    /// <summary>
+    /// The God this visual represents.
+    /// </summary>
+    public God God => god;
+    
     // Visual elements
     private SpriteRenderer strengthBarBg;
     private SpriteRenderer strengthBarFill;
@@ -239,6 +244,7 @@ public class GodVisual : MonoBehaviour
             if (i < masks.Count && masks[i] != null)
             {
                 maskSlots[i].SetMask(masks[i], maskSlotColor);
+                maskSlots[i].UpdateShelfLife(); // Update shelf life bar every frame
             }
             else
             {
@@ -277,20 +283,29 @@ public class GodVisual : MonoBehaviour
     }
     
     /// <summary>
-    /// Helper class for managing mask slot visuals with cost pips.
+    /// Helper class for managing mask slot visuals with cost pips and shelf life indicator.
     /// </summary>
     private class MaskSlotVisual
     {
         private SpriteRenderer background;
         private SpriteRenderer maskIcon;
+        private SpriteRenderer shelfLifeBar;
+        private SpriteRenderer shelfLifeBarBg;
         private List<SpriteRenderer> favorCostPips = new();
         private List<SpriteRenderer> moneyCostPips = new();
         
         private Color favorCostColor = new Color(0.6f, 0.3f, 0.8f);
         private Color moneyCostColor = new Color(1f, 0.85f, 0.3f);
+        private Color shelfLifeFullColor = new Color(0.3f, 0.9f, 0.3f);
+        private Color shelfLifeLowColor = new Color(0.9f, 0.3f, 0.3f);
+        
+        private float slotSize;
+        private Mask currentMask;
         
         public void Create(Transform parent, float slotSize, float costPipSize)
         {
+            this.slotSize = slotSize;
+            
             // Background
             var bgObj = new GameObject("SlotBg");
             bgObj.transform.SetParent(parent);
@@ -299,6 +314,28 @@ public class GodVisual : MonoBehaviour
             background.sprite = CreateSlotSprite();
             background.transform.localScale = new Vector3(slotSize, slotSize, 1f);
             background.sortingOrder = 10;
+            
+            // Shelf life bar background (at bottom of slot)
+            var shelfBgObj = new GameObject("ShelfLifeBarBg");
+            shelfBgObj.transform.SetParent(parent);
+            shelfBgObj.transform.localPosition = new Vector3(0, -slotSize / 2 + 0.03f, 0);
+            shelfLifeBarBg = shelfBgObj.AddComponent<SpriteRenderer>();
+            shelfLifeBarBg.sprite = CreateSquareSprite();
+            shelfLifeBarBg.transform.localScale = new Vector3(slotSize - 0.04f, 0.04f, 1f);
+            shelfLifeBarBg.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
+            shelfLifeBarBg.sortingOrder = 11;
+            shelfLifeBarBg.enabled = false;
+            
+            // Shelf life bar fill
+            var shelfObj = new GameObject("ShelfLifeBar");
+            shelfObj.transform.SetParent(parent);
+            shelfObj.transform.localPosition = new Vector3(-(slotSize - 0.04f) / 2, -slotSize / 2 + 0.03f, 0);
+            shelfLifeBar = shelfObj.AddComponent<SpriteRenderer>();
+            shelfLifeBar.sprite = CreateSquareSprite();
+            shelfLifeBar.transform.localScale = new Vector3(slotSize - 0.04f, 0.04f, 1f);
+            shelfLifeBar.color = shelfLifeFullColor;
+            shelfLifeBar.sortingOrder = 12;
+            shelfLifeBar.enabled = false;
             
             // Mask icon (shows mask type color)
             var iconObj = new GameObject("MaskIcon");
@@ -309,17 +346,17 @@ public class GodVisual : MonoBehaviour
             maskIcon.transform.localScale = new Vector3(slotSize * 0.7f, slotSize * 0.7f, 1f);
             maskIcon.sortingOrder = 11;
             
-            // Cost pips (top-left corner)
+            // Cost pips (top-left corner) - now support up to 5 pips (1 pip = 1 favor)
             float costStartX = -slotSize / 2 + costPipSize / 2 + 0.02f;
             float costStartY = slotSize / 2 - costPipSize / 2 - 0.02f;
             
-            // Favor cost pips (up to 3)
-            for (int i = 0; i < 3; i++)
+            // Favor cost pips (up to 5)
+            for (int i = 0; i < 5; i++)
             {
                 var pipObj = new GameObject($"FavorCost_{i}");
                 pipObj.transform.SetParent(parent);
                 pipObj.transform.localPosition = new Vector3(
-                    costStartX + i * (costPipSize + 0.02f),
+                    costStartX + i * (costPipSize + 0.01f),
                     costStartY,
                     0
                 );
@@ -332,14 +369,14 @@ public class GodVisual : MonoBehaviour
                 favorCostPips.Add(pip);
             }
             
-            // Money cost pips (below favor, up to 3)
-            for (int i = 0; i < 3; i++)
+            // Money cost pips (below favor, up to 5)
+            for (int i = 0; i < 5; i++)
             {
                 var pipObj = new GameObject($"MoneyCost_{i}");
                 pipObj.transform.SetParent(parent);
                 pipObj.transform.localPosition = new Vector3(
-                    costStartX + i * (costPipSize + 0.02f),
-                    costStartY - costPipSize - 0.02f,
+                    costStartX + i * (costPipSize + 0.01f),
+                    costStartY - costPipSize - 0.01f,
                     0
                 );
                 var pip = pipObj.AddComponent<SpriteRenderer>();
@@ -354,29 +391,57 @@ public class GodVisual : MonoBehaviour
         
         public void SetMask(Mask mask, Color slotColor)
         {
+            currentMask = mask;
             background.color = slotColor;
             maskIcon.enabled = true;
             maskIcon.color = GetMaskTypeColor(mask.Type);
             
-            // Show favor cost pips (each pip = 10 favor)
-            int favorPips = Mathf.Min(3, Mathf.CeilToInt(mask.FavorCost / 10f));
+            // Show favor cost pips (1 pip = 1 favor)
+            int favorPipsCount = Mathf.Min(favorCostPips.Count, mask.FavorCost);
             for (int i = 0; i < favorCostPips.Count; i++)
             {
-                favorCostPips[i].enabled = i < favorPips;
+                favorCostPips[i].enabled = i < favorPipsCount;
             }
             
-            // Show money cost pips (each pip = 20 money)
-            int moneyPipsCount = Mathf.Min(3, Mathf.CeilToInt(mask.MoneyCost / 20f));
+            // Show money cost pips (1 pip = 1 money)
+            int moneyPipsCount = Mathf.Min(moneyCostPips.Count, mask.MoneyCost);
             for (int i = 0; i < moneyCostPips.Count; i++)
             {
                 moneyCostPips[i].enabled = i < moneyPipsCount;
             }
+            
+            // Show shelf life bar
+            shelfLifeBarBg.enabled = true;
+            shelfLifeBar.enabled = true;
+            UpdateShelfLife();
+        }
+        
+        public void UpdateShelfLife()
+        {
+            if (currentMask == null || !shelfLifeBar.enabled) return;
+            
+            float percent = currentMask.ShelfLifePercent;
+            float maxWidth = slotSize - 0.04f;
+            float currentWidth = maxWidth * percent;
+            
+            shelfLifeBar.transform.localScale = new Vector3(currentWidth, 0.04f, 1f);
+            shelfLifeBar.transform.localPosition = new Vector3(
+                -maxWidth / 2 + currentWidth / 2,
+                -slotSize / 2 + 0.03f,
+                0
+            );
+            
+            // Color lerp from green to red as shelf life depletes
+            shelfLifeBar.color = Color.Lerp(shelfLifeLowColor, shelfLifeFullColor, percent);
         }
         
         public void SetEmpty(Color emptyColor)
         {
+            currentMask = null;
             background.color = emptyColor;
             maskIcon.enabled = false;
+            shelfLifeBar.enabled = false;
+            shelfLifeBarBg.enabled = false;
             
             foreach (var pip in favorCostPips) pip.enabled = false;
             foreach (var pip in moneyCostPips) pip.enabled = false;
@@ -386,12 +451,16 @@ public class GodVisual : MonoBehaviour
         {
             return type switch
             {
-                MaskType.Smiting => new Color(1f, 0.3f, 0.3f),      // Red
-                MaskType.Wrath => new Color(1f, 0.2f, 0.5f),        // Magenta
-                MaskType.Whispers => new Color(0.5f, 0.3f, 0.8f),   // Purple
-                MaskType.Sanctuary => new Color(0.3f, 0.8f, 0.5f),  // Green
-                MaskType.Plenty => new Color(1f, 0.85f, 0.3f),      // Gold
-                MaskType.Sacrifice => new Color(0.8f, 0.2f, 0.2f),  // Dark red
+                MaskType.Strike => new Color(1f, 0.4f, 0.2f),       // Orange-red
+                MaskType.Lightning => new Color(1f, 1f, 0.3f),     // Yellow
+                MaskType.Flood => new Color(0.3f, 0.5f, 1f),       // Blue
+                MaskType.Shield => new Color(0.5f, 0.8f, 1f),      // Light blue
+                MaskType.Smiting => new Color(1f, 0.3f, 0.3f),     // Red
+                MaskType.Wrath => new Color(1f, 0.2f, 0.5f),       // Magenta
+                MaskType.Whispers => new Color(0.5f, 0.3f, 0.8f),  // Purple
+                MaskType.Sanctuary => new Color(0.3f, 0.8f, 0.5f), // Green
+                MaskType.Plenty => new Color(1f, 0.85f, 0.3f),     // Gold
+                MaskType.Sacrifice => new Color(0.8f, 0.2f, 0.2f), // Dark red
                 _ => Color.white
             };
         }
