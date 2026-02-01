@@ -13,10 +13,10 @@ using UnityEngine;
 public class RoomVisual : MonoBehaviour
 {
     [Header("Visual Settings")]
-    [SerializeField] private float roomWidth = 1.8f;
-    [SerializeField] private float roomHeight = 1.4f;
-    [SerializeField] private float followerIconSize = 0.25f;
-    [SerializeField] private float levelPipSize = 0.12f;
+    [SerializeField] private float roomWidth = 2.2f;
+    [SerializeField] private float roomHeight = 1.6f;
+    [SerializeField] private float followerIconSize = 0.28f;
+    [SerializeField] private float levelPipSize = 0.14f;
     [SerializeField] private float levelPipSpacing = 0.04f;
     [SerializeField] private int maxLevelDisplay = 5;
 

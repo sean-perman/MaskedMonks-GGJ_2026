@@ -11,10 +11,11 @@ using UnityEngine;
 public class GameInitializer : MonoBehaviour
 {
     [Header("Layout Settings")]
-    [SerializeField] private float roomWidth = 1.8f;
-    [SerializeField] private float roomHeight = 1.4f;
-    [SerializeField] private float roomSpacing = 0.15f;
-    [SerializeField] private float churchSeparation = 12f; // Distance between churches
+    [SerializeField] private float roomWidth = 2.2f;
+    [SerializeField] private float roomHeight = 1.6f;
+    [SerializeField] private float roomSpacing = 0.08f;
+    // Horizontal distance between the two cult roots (tuned to match scene)
+    [SerializeField] private float churchSeparation = 3.0f; // Distance between churches
     
     [Header("Starting Configuration")]
     [SerializeField] private int startingFollowers = 3;
@@ -80,6 +81,9 @@ public class GameInitializer : MonoBehaviour
     
     [Tooltip("Prefab for the background")]
     [SerializeField] private GameObject backgroundPrefab;
+
+    [Tooltip("Sprite to use for the background (e.g. Assets/Art/Sprites/Background.png)")]
+    [SerializeField] private Sprite backgroundSprite;
     
     [Tooltip("Prefab for player cursor visual")]
     [SerializeField] private GameObject cursorPrefab;
@@ -119,9 +123,11 @@ public class GameInitializer : MonoBehaviour
         // Create marketplace
         CreateMarketplace();
         
-        // Create both cults
-        cult1 = CreateCult("Cult 1", new Vector3(-churchSeparation / 2, 0, 0), true);
-        cult2 = CreateCult("Cult 2", new Vector3(churchSeparation / 2, 0, 0), false);
+        // Create both cults at positions matching the tuned scene layout.
+        // X values are taken from the inspector for Cult 1 and Cult 2.
+        float cultBaseY = 0.6f;
+        cult1 = CreateCult("Cult 1", new Vector3(-5.23f, cultBaseY, 0f), true);
+        cult2 = CreateCult("Cult 2", new Vector3(5.8f, cultBaseY, 0f), false);
         
         // Create player controllers
         player1Controller = CreatePlayerController(0, cult1);
@@ -183,20 +189,75 @@ public class GameInitializer : MonoBehaviour
             bgObj = Instantiate(backgroundPrefab);
             bgObj.name = "Background";
             bgObj.transform.position = new Vector3(0, 0, 10);
+
+            var sr = bgObj.GetComponent<SpriteRenderer>();
+            if (sr == null)
+            {
+                sr = bgObj.AddComponent<SpriteRenderer>();
+            }
+
+            Sprite bgSprite = backgroundSprite;
+            if (bgSprite == null)
+            {
+                bgSprite = Resources.Load<Sprite>("Sprites/Background");
+            }
+            if (bgSprite == null)
+            {
+                bgSprite = Resources.Load<Sprite>("Background");
+            }
+
+            if (bgSprite != null)
+            {
+                sr.sortingOrder = -100;
+                sr.sprite = bgSprite;
+
+                float targetHeight = 20f;
+                float spriteHeight = bgSprite.bounds.size.y;
+                float scale = targetHeight / spriteHeight;
+                bgObj.transform.localScale = new Vector3(scale, scale, 1f);
+
+                Debug.Log("Loaded background sprite for backgroundPrefab");
+            }
         }
         else
         {
-            // Fallback: programmatic creation
+            // Prefer explicit background sprite reference, then fall back to Resources
+            Sprite bgSprite = backgroundSprite;
+            if (bgSprite == null)
+            {
+                bgSprite = Resources.Load<Sprite>("Sprites/Background");
+            }
+            if (bgSprite == null)
+            {
+                bgSprite = Resources.Load<Sprite>("Background");
+            }
+            
             bgObj = new GameObject("Background");
             bgObj.transform.position = new Vector3(0, 0, 10); // Behind everything
             
             var sr = bgObj.AddComponent<SpriteRenderer>();
             sr.sortingOrder = -100;
             
-            // Create gradient texture
-            int width = 64;
-            int height = 64;
-            Texture2D tex = new Texture2D(width, height);
+            if (bgSprite != null)
+            {
+                // Use the provided Background.png sprite as background
+                sr.sprite = bgSprite;
+                
+                // Scale to cover the screen while maintaining aspect ratio
+                float targetHeight = 20f; // Adjust based on camera size
+                float spriteHeight = bgSprite.bounds.size.y;
+                float scale = targetHeight / spriteHeight;
+                bgObj.transform.localScale = new Vector3(scale, scale, 1f);
+                
+                Debug.Log("Loaded background sprite as background");
+            }
+            else
+            {
+                // Fallback: Create gradient texture if Background.png not found
+                Debug.LogWarning("Background.png not found in Resources. Using gradient fallback.");
+                int width = 64;
+                int height = 64;
+                Texture2D tex = new Texture2D(width, height);
             
             Color topColor = new Color(0.15f, 0.1f, 0.25f); // Dark purple
             Color bottomColor = new Color(0.05f, 0.05f, 0.1f); // Near black
@@ -210,11 +271,12 @@ public class GameInitializer : MonoBehaviour
                     tex.SetPixel(x, y, color);
                 }
             }
-            tex.Apply();
-            tex.filterMode = FilterMode.Bilinear;
-            
-            sr.sprite = Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 1f);
-            sr.transform.localScale = new Vector3(50f, 30f, 1f); // Cover screen
+                tex.Apply();
+                tex.filterMode = FilterMode.Bilinear;
+                
+                sr.sprite = Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 1f);
+                bgObj.transform.localScale = new Vector3(50f, 30f, 1f); // Cover screen
+            }
         }
     }
     
@@ -317,7 +379,7 @@ public class GameInitializer : MonoBehaviour
         churchObj.transform.localPosition = Vector3.zero;
 
         // Add random church building sprite
-        AddChurchSprite(churchObj.transform);
+        AddChurchSprite(churchObj.transform, isPlayer1);
 
         return church;
     }
@@ -400,7 +462,7 @@ public class GameInitializer : MonoBehaviour
     /// Sprites should be located in Resources/churchs/ folder.
     /// Positioned behind all rooms and UI elements.
     /// </summary>
-    private void AddChurchSprite(Transform churchTransform)
+    private void AddChurchSprite(Transform churchTransform, bool isPlayer1)
     {
         // Load all church sprites from Resources/churchs folder
         Sprite[] churchSprites = Resources.LoadAll<Sprite>("churchs");
@@ -417,22 +479,24 @@ public class GameInitializer : MonoBehaviour
         // Create sprite child object
         GameObject spriteObj = new GameObject("Church Building Sprite");
         spriteObj.transform.SetParent(churchTransform);
-        // Position at center, slightly down to be behind rooms
-        spriteObj.transform.localPosition = new Vector3(0f, -1f, 0f);
+        // Position at center to align with tightly packed room grid
+        spriteObj.transform.localPosition = new Vector3(0f, 0.0f, 0f);
 
         // Add sprite renderer
         SpriteRenderer sr = spriteObj.AddComponent<SpriteRenderer>();
         sr.sprite = randomSprite;
         sr.sortingOrder = -10; // Render behind all rooms and UI (rooms are at 0+)
 
-        // Scale sprite to fit behind room grid based on sprite's native size
-        // Target size: approximately 7 units wide to fit behind 3-column room grid
-        float targetWidth = 7f;
-        float spriteNativeWidth = randomSprite.bounds.size.x;
-        float scale = targetWidth / spriteNativeWidth;
-        spriteObj.transform.localScale = new Vector3(scale, scale, 1f);
+        // Use a fixed scale tuned in the editor so the 3x4 room grid
+        // fits neatly inside the dark interior of the church sprite.
+        const float tunedScaleX = 1.0416f;
+        const float tunedScaleY = 1.1456f;
 
-        Debug.Log($"Added church building sprite: {randomSprite.name}");
+        // Flip sprite horizontally for Player 2 (right side)
+        float xScale = isPlayer1 ? tunedScaleX : -tunedScaleX;
+        spriteObj.transform.localScale = new Vector3(xScale, tunedScaleY, 1f);
+
+        Debug.Log($"Added church building sprite: {randomSprite.name} (flipped: {!isPlayer1})");
     }
 
     private void CreateStartingRooms(Church church, bool isPlayer1)
@@ -440,10 +504,20 @@ public class GameInitializer : MonoBehaviour
         // Get church transform for positioning
         Transform churchTransform = church.transform;
 
-        // Calculate grid offset so rooms are centered under church
-        float gridWidth = church.GridWidth * (roomWidth + roomSpacing);
-        float gridHeight = church.GridHeight * (roomHeight + roomSpacing);
-        Vector3 gridOffset = new Vector3(-gridWidth / 2 + roomWidth / 2, -gridHeight / 2 + roomHeight / 2, 0);
+        // Calculate grid offset so rooms are tightly packed and centered within the church building
+            float gridWidth = church.GridWidth * (roomWidth + roomSpacing);
+            float gridHeight = church.GridHeight * (roomHeight + roomSpacing);
+
+            // Center the grid inside the church and move it downwards so rooms
+            // sit inside the dark interior. The Y offset is tuned to match the
+            // layout you set up in the scene.
+            float yOffsetDown = 1.6f;
+
+            Vector3 gridOffset = new Vector3(
+                -gridWidth / 2f + roomWidth / 2f,
+                -gridHeight / 2f + roomHeight / 2f - yOffsetDown,
+                0f
+            );
 
         // Create all rooms at their designated positions
         // Rooms with starting level 0 will appear but cost buildCost to build the first level

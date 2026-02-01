@@ -12,9 +12,9 @@ public class CursorVisual : MonoBehaviour
     [SerializeField] private Color normalColor = new Color(1f, 1f, 0.5f, 0.8f);
     [SerializeField] private Color targetingColor = new Color(1f, 0.3f, 0.3f, 0.8f);
     [SerializeField] private Color shieldFlashColor = new Color(0.3f, 0.6f, 1f, 1f);
-    [SerializeField] private float roomWidth = 1.8f;
-    [SerializeField] private float roomHeight = 1.4f;
-    [SerializeField] private float roomSpacing = 0.15f;
+    [SerializeField] private float roomWidth = 2.2f;
+    [SerializeField] private float roomHeight = 1.6f;
+    [SerializeField] private float roomSpacing = 0.08f;
     [SerializeField] private float pulseSpeed = 3f;
     [SerializeField] private float pulseAmount = 0.1f;
     [SerializeField] private float shieldFlashDuration = 2f;
@@ -192,24 +192,30 @@ public class CursorVisual : MonoBehaviour
     private Vector3 GridToWorld(Vector2Int gridPos, Transform reference)
     {
         if (reference == null) return Vector3.zero;
-        
+
         // Get church to calculate grid offset (must match GameInitializer logic)
         var church = reference.GetComponent<Church>();
         int gridW = church != null ? church.GridWidth : 3;
         int gridH = church != null ? church.GridHeight : 4;
-        
+
         float totalWidth = (roomWidth + roomSpacing);
         float totalHeight = (roomHeight + roomSpacing);
-        
-        // Calculate grid offset so rooms are centered (same as GameInitializer)
+
+        // Calculate grid offset so rooms are centered and lowered
+        // inside the church interior (same as GameInitializer).
         float gridTotalWidth = gridW * totalWidth;
         float gridTotalHeight = gridH * totalHeight;
-        Vector3 gridOffset = new Vector3(-gridTotalWidth / 2 + roomWidth / 2, -gridTotalHeight / 2 + roomHeight / 2, 0);
-        
+        float yOffsetDown = 1.6f;
+        Vector3 gridOffset = new Vector3(
+            -gridTotalWidth / 2f + roomWidth / 2f,
+            -gridTotalHeight / 2f + roomHeight / 2f - yOffsetDown,
+            0f
+        );
+
         return reference.position + new Vector3(
             gridPos.x * totalWidth,
             gridPos.y * totalHeight,
-            0
+            0f
         ) + gridOffset;
     }
     
