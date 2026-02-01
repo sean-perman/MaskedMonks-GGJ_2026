@@ -396,6 +396,10 @@ public class RoomVisual : MonoBehaviour
                 // Person shape (circle + triangle)
                 DrawPerson(tex, size, center, radius - 2);
                 break;
+            case ResourceType.Repair:
+                // Wrench/tool shape for repairs
+                DrawWrench(tex, size, center, radius - 2);
+                break;
             default:
                 // Simple circle
                 DrawCircle(tex, size, center, radius - 2);
@@ -519,6 +523,48 @@ public class RoomVisual : MonoBehaviour
             {
                 float dist = Vector2.Distance(new Vector2(x, y), center);
                 tex.SetPixel(x, y, dist < radius ? Color.white : Color.clear);
+            }
+        }
+    }
+    
+    private void DrawWrench(Texture2D tex, int size, Vector2 center, float radius)
+    {
+        // Clear texture
+        for (int x = 0; x < size; x++)
+            for (int y = 0; y < size; y++)
+                tex.SetPixel(x, y, Color.clear);
+        
+        // Draw a simple wrench/spanner shape
+        int cx = (int)center.x;
+        int cy = (int)center.y;
+        int handleWidth = 3;
+        int headSize = 6;
+        
+        // Handle (diagonal line from bottom-left to top-right)
+        for (int i = -8; i <= 8; i++)
+        {
+            for (int w = -handleWidth / 2; w <= handleWidth / 2; w++)
+            {
+                int px = cx + i + w;
+                int py = cy + i;
+                if (px >= 0 && px < size && py >= 0 && py < size)
+                    tex.SetPixel(px, py, Color.white);
+            }
+        }
+        
+        // Wrench head at top-right (open-end style)
+        for (int dx = -headSize; dx <= headSize; dx++)
+        {
+            for (int dy = -headSize; dy <= headSize; dy++)
+            {
+                int px = cx + 8 + dx;
+                int py = cy + 8 + dy;
+                float dist = Mathf.Sqrt(dx * dx + dy * dy);
+                // Ring shape with opening
+                bool inRing = dist < headSize && dist > headSize - 3;
+                bool inOpening = dx > 0 && Mathf.Abs(dy) < 2;
+                if (px >= 0 && px < size && py >= 0 && py < size && inRing && !inOpening)
+                    tex.SetPixel(px, py, Color.white);
             }
         }
     }
@@ -705,6 +751,7 @@ public class RoomVisual : MonoBehaviour
             ResourceType.Mask => maskBarColor,
             ResourceType.Blueprint => blueprintBarColor,
             ResourceType.Follower => followerBarColor,
+            ResourceType.Repair => repairBarColor,
             _ => defaultBarColor
         };
     }

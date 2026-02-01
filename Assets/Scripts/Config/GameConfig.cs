@@ -66,10 +66,12 @@ public class GameConfig : ScriptableObject
     [Tooltip("Favor cost per trigger")]
     public int fundraisingFavorCost = 2;
     
-    [Header("Workshop")]
-    [Tooltip("Pawn-seconds to generate a blueprint")]
-    public float workshopBlueprintDuration = 45f;
-    [Tooltip("Shelf life for blueprint masks (seconds)")]
+    [Header("Workshop (Room Repairs)")]
+    [Tooltip("Pawn-seconds to repair all damaged rooms (DEPRECATED - Workshop uses constant 20s)")]
+    [System.Obsolete("Workshop now uses internal constant. This field is kept for compatibility.")]
+    public float workshopBlueprintDuration = 20f;
+    [Tooltip("DEPRECATED - Architecture masks removed")]
+    [System.Obsolete("Architecture masks have been removed.")]
     public float workshopBlueprintShelfLife = 120f;
     
     [Header("Ritual Hall (Strike Mask)")]

@@ -349,7 +349,7 @@ public class GameInitializer : MonoBehaviour
         // Second row (y=1): Mission for converting citizens
         CreateRoomFromPrefab<MissionRoom>(church, new Vector2Int(1, 1), churchTransform, gridOffset, missionRoomPrefab);
         
-        // Create Workshop at (0, 1) for generating architecture masks
+        // Create Workshop at (0, 1) for repairing all rooms
         CreateRoomFromPrefab<WorkshopRoom>(church, new Vector2Int(0, 1), churchTransform, gridOffset, workshopRoomPrefab);
         
         // Create Fundraising at (2, 1) for generating money
