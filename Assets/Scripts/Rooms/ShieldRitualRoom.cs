@@ -50,6 +50,7 @@ public class ShieldRitualRoom : Room
         bool added = cult.god.AddMaskToStorage(mask);
         if (added)
         {
+            AudioManager.PlayRoomTriggerRitual();
             NotifyResourceGenerated(ResourceType.Mask, 1);
             NotifyMaskGenerated(MaskType.Shield);
             Debug.Log($"Shield Ritual generated a Shield mask! (Auto-activates on attack if {ShieldFavorCost}+ favor)");

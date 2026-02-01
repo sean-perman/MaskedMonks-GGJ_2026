@@ -37,7 +37,7 @@ public class SanctuaryRoom : Room
     /// </summary>
     protected override void OnClockTrigger()
     {
-        // Sanctuary doesn't trigger effects - it's purely passive recovery
-        // Could add a bonus effect here if desired
+        // Sanctuary can play a sound when followers fully recover
+        AudioManager.PlayRoomTriggerSanctuary();
     }
 }

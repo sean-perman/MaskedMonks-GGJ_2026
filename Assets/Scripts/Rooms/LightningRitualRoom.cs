@@ -50,6 +50,7 @@ public class LightningRitualRoom : Room
         bool added = cult.god.AddMaskToStorage(mask);
         if (added)
         {
+            AudioManager.PlayRoomTriggerRitual();
             NotifyResourceGenerated(ResourceType.Mask, 1);
             NotifyMaskGenerated(MaskType.Lightning);
             Debug.Log($"Lightning Ritual generated a Lightning mask! (Cost: {MaskFavorCost} favor, Damage: {DamagePerRoom} per room)");

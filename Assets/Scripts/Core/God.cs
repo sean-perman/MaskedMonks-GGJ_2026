@@ -99,16 +99,18 @@ public class God : MonoBehaviour
     }
     
     // === Strength (Health/Attack) ===
-    
+
     public void IncreaseStrength(int amount)
     {
         strength = Mathf.Min(maxStrength, strength + amount);
+        AudioManager.PlayGodHeal();
     }
-    
+
     public void DecreaseStrength(int amount)
     {
         strength = Mathf.Max(0, strength - amount);
-        
+        AudioManager.PlayGodHit();
+
         if (strength <= 0)
         {
             OnStrengthDepleted();
@@ -116,16 +118,18 @@ public class God : MonoBehaviour
     }
     
     // === Favor ===
-    
+
     public void IncreaseFavor(int amount)
     {
         favor = Mathf.Min(maxFavor, favor + amount);
+        AudioManager.PlayGodFavorGain();
     }
-    
+
     public void DecreaseFavor(int amount)
     {
         favor = Mathf.Max(0, favor - amount);
-        
+        AudioManager.PlayGodFavorSpend();
+
         if (favor <= 0)
         {
             OnFavorDepleted();
@@ -266,16 +270,15 @@ public class God : MonoBehaviour
     }
     
     // === Loss Conditions ===
-    
+
     private void OnStrengthDepleted()
     {
         Debug.LogWarning($"God strength depleted! LOSS CONDITION.");
-        // TODO: Notify GameManager of loss
+        AudioManager.PlayGodDeath();
     }
-    
+
     private void OnFavorDepleted()
     {
         Debug.LogWarning($"God favor depleted! LOSS CONDITION.");
-        // TODO: Notify GameManager of loss
     }
 }

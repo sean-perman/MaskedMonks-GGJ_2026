@@ -208,16 +208,17 @@ public class PlayerController : MonoBehaviour
     {
         var church = cult.church;
         Vector2Int newPos = cursorPosition + delta;
-        
+
         // Clamp to grid bounds
         newPos.x = Mathf.Clamp(newPos.x, 0, church.GridWidth - 1);
         newPos.y = Mathf.Clamp(newPos.y, 0, church.GridHeight - 1);
-        
+
         if (newPos != cursorPosition)
         {
             cursorPosition = newPos;
+            AudioManager.PlayUICursorMove();
             OnCursorMoved?.Invoke(cursorPosition);
-            
+
             var room = church.GetRoomAt(cursorPosition);
             if (room != null)
             {
@@ -231,23 +232,30 @@ public class PlayerController : MonoBehaviour
         // Get opponent's church for targeting
         var opponent = GameManager.Instance?.GetOpponent(cult);
         if (opponent?.church == null) return;
-        
+
         var church = opponent.church;
         Vector2Int newPos = targetPosition + delta;
-        
+        Vector2Int oldPos = targetPosition;
+
         // For column targeting, only allow horizontal movement
         if (currentTargetingMode == TargetingMode.Column)
         {
             // Ignore vertical movement
             newPos.y = targetPosition.y;
         }
-        
+
         // Clamp to opponent's grid
         newPos.x = Mathf.Clamp(newPos.x, 0, church.GridWidth - 1);
         newPos.y = Mathf.Clamp(newPos.y, 0, church.GridHeight - 1);
-        
+
         targetPosition = newPos;
-        
+
+        // Play cursor sound if position changed
+        if (targetPosition != oldPos)
+        {
+            AudioManager.PlayUICursorMove();
+        }
+
         // Notify of column change for visual feedback
         if (currentTargetingMode == TargetingMode.Column)
         {
@@ -415,6 +423,7 @@ public class PlayerController : MonoBehaviour
         if (currentRoom == null)
         {
             Debug.Log("No room at cursor position to upgrade");
+            AudioManager.PlayUIError();
             return;
         }
 
@@ -426,6 +435,7 @@ public class PlayerController : MonoBehaviour
         {
             string action = currentRoom.IsBuilt ? "upgrade" : "build";
             Debug.Log($"Not enough money to {action} {currentRoom.Type} (need {upgradeCost})");
+            AudioManager.PlayUIError();
             return;
         }
 
@@ -457,6 +467,7 @@ public class PlayerController : MonoBehaviour
         if (slot >= masks.Count || masks[slot] == null)
         {
             Debug.Log($"No mask in slot {slot + 1}");
+            AudioManager.PlayUIError();
             return;
         }
         
@@ -508,29 +519,34 @@ public class PlayerController : MonoBehaviour
     {
         var mask = cult.god.Masks[slot];
         var opponent = GameManager.Instance?.GetOpponent(cult);
-        
+
         if (opponent?.church == null)
         {
             Debug.Log("No opponent to target!");
+            AudioManager.PlayUIError();
             return;
         }
-        
+
         // Check if we can afford the mask
         if (!mask.CanAfford(cult))
         {
             Debug.Log($"Cannot afford {mask.Type} mask! Need {mask.FavorCost} favor.");
+            AudioManager.PlayUIError();
             return;
         }
-        
+
+        // Play select sound for confirmed action
+        AudioManager.PlayUISelect();
+
         // Pay the cost
         mask.PayCost(cult);
-        
+
         // Apply flood effect (hits entire bottom row)
         mask.ApplyEffect(cult, null, opponent.god, -1, opponent.church);
-        
+
         // Remove mask after use
         cult.god.RemoveMaskFromStorage(slot);
-        
+
         Debug.Log($"Used Flood mask on enemy bottom row (spent {mask.FavorCost} favor)");
     }
     
@@ -553,24 +569,28 @@ public class PlayerController : MonoBehaviour
     {
         var opponent = GameManager.Instance?.GetOpponent(cult);
         if (opponent?.church == null) return;
-        
+
         var targetRoom = opponent.church.GetRoomAt(targetPosition);
-        
+
         if (activeMaskSlot >= 0 && cult.god.Masks.Count > activeMaskSlot)
         {
             var mask = cult.god.Masks[activeMaskSlot];
-            
+
             // Check if we can afford the mask
             if (!mask.CanAfford(cult))
             {
                 Debug.Log($"Cannot afford {mask.Type} mask! Need {mask.FavorCost} favor.");
+                AudioManager.PlayUIError();
                 CancelTargeting();
                 return;
             }
-            
+
+            // Play select sound for confirmed action
+            AudioManager.PlayUISelect();
+
             // Pay the cost first
             mask.PayCost(cult);
-            
+
             // Apply mask effect based on targeting mode
             if (currentTargetingMode == TargetingMode.Column)
             {
@@ -584,19 +604,20 @@ public class PlayerController : MonoBehaviour
                 mask.ApplyEffect(cult, targetRoom, opponent.god);
                 Debug.Log($"Used {mask.Type} on enemy {targetRoom?.Type.ToString() ?? "empty slot"} (spent {mask.FavorCost} favor)");
             }
-            
+
             // Remove mask after use by re-getting from storage and removing at index
             cult.god.RemoveMaskFromStorage(activeMaskSlot);
-            
+
             OnTargetConfirmed?.Invoke(targetRoom);
         }
-        
+
         StopTargeting();
     }
     
     private void CancelTargeting()
     {
         Debug.Log("Targeting cancelled");
+        AudioManager.PlayUICancel();
         OnTargetCancelled?.Invoke();
         StopTargeting();
     }
@@ -610,24 +631,28 @@ public class PlayerController : MonoBehaviour
     private void ApplyMaskToSelf(int slot)
     {
         var mask = cult.god.Masks[slot];
-        
+
         // Check if we can afford the mask
         if (!mask.CanAfford(cult))
         {
             Debug.Log($"Cannot afford {mask.Type} mask! Need {mask.FavorCost} favor.");
+            AudioManager.PlayUIError();
             return;
         }
-        
+
+        // Play select sound for confirmed action
+        AudioManager.PlayUISelect();
+
         // Pay the cost first
         mask.PayCost(cult);
-        
+
         // Apply to own room at cursor (sourceCult, targetRoom, targetGod)
         var selfRoom = cult.church.GetRoomAt(cursorPosition);
         mask.ApplyEffect(cult, selfRoom, cult.god);
-        
+
         // Remove mask after use
         cult.god.RemoveMaskFromStorage(slot);
-        
+
         Debug.Log($"Applied {mask.Type} to own {selfRoom?.Type.ToString() ?? "empty slot"} (spent {mask.FavorCost} favor)");
     }
     

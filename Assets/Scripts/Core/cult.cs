@@ -57,12 +57,13 @@ public class Cult : MonoBehaviour
     public void AddFollower(Follower follower)
     {
         if (follower == null) return;
-        
+
         if (!followers.Contains(follower))
         {
             followers.Add(follower);
             follower.SetCult(this);
-            
+            AudioManager.PlayFollowerRecruited();
+
             // Optionally place in sanctuary if available
             var sanctuary = church?.GetRoomOfType(RoomType.Sanctuary);
             if (sanctuary != null && sanctuary.HasSpace)

@@ -25,9 +25,11 @@ public class WorkshopRoom : Room
             Debug.LogWarning("Workshop cannot repair - missing cult/church reference!");
             return;
         }
-        
+
+        AudioManager.PlayRoomTriggerWorkshop();
+
         int roomsRepaired = 0;
-        
+
         // Repair all damaged rooms in the church
         foreach (var room in cult.church.Rooms)
         {
@@ -37,10 +39,10 @@ public class WorkshopRoom : Room
                 roomsRepaired++;
             }
         }
-        
+
         // Always notify to spawn visual indicator (shows wrench icon)
         NotifyResourceGenerated(ResourceType.Repair, Mathf.Max(1, roomsRepaired));
-        
+
         if (roomsRepaired > 0)
         {
             Debug.Log($"Workshop repaired {roomsRepaired} room(s)!");

@@ -61,7 +61,7 @@ MonoBehaviour:
   lightningRitualStartingLevel: 0
   floodRitualStartingLevel: 0
   shieldRitualStartingLevel: 0
-  sacrificialAltarStartingLevel: 0
+  sacrificialAltarStartingLevel: 1
   commitmentDamagePerLevel: 15
   repairRatePerFollowerPerSecond: 0.1
   repairThreshold: 1

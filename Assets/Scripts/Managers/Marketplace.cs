@@ -113,7 +113,10 @@ public class Marketplace : MonoBehaviour
         // Citizens in marketplace are neutral (no cult)
         citizen.SetCult(null);
         citizens.Add(citizen);
-        
+
+        // Play spawn sound
+        AudioManager.PlayMarketplaceSpawn();
+
         return citizen;
     }
     

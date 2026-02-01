@@ -44,6 +44,9 @@ public class SacrificialAltarRoom : Room
         RemoveFollower(sacrificedFollower);
         cult.RemoveFollower(sacrificedFollower);
 
+        // Play sacrifice sound
+        AudioManager.PlayFollowerSacrifice();
+
         Debug.Log($"Sacrificial Altar: {sacrificedFollower.name} was sacrificed!");
 
         // Launch projectile at enemy god

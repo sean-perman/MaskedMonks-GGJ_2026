@@ -263,15 +263,16 @@ public abstract class Room : MonoBehaviour
             Debug.LogWarning($"Room {type} at {location} is at capacity!");
             return false;
         }
-        
+
         if (followers.Contains(follower))
         {
             Debug.LogWarning($"Follower is already in this room!");
             return false;
         }
-        
+
         followers.Add(follower);
         follower.SetRoom(this);
+        AudioManager.PlayFollowerAssign();
         return true;
     }
     
@@ -284,9 +285,10 @@ public abstract class Room : MonoBehaviour
         {
             return false;
         }
-        
+
         followers.Remove(follower);
         follower.SetRoom(null);
+        AudioManager.PlayFollowerUnassign();
         return true;
     }
     
@@ -305,31 +307,36 @@ public abstract class Room : MonoBehaviour
         if (cult != null && cult.IsRoomSelected(this))
         {
             Debug.Log($"Attack on {type} was blocked - room is currently selected!");
+            AudioManager.PlayRoomShield();
             OnDamageBlocked?.Invoke();
             return;
         }
-        
+
         // Check for shield block
         if (cult != null && cult.god != null && cult.god.TryBlockAttackWithShield(this))
         {
             Debug.Log($"Attack on {type} was blocked by a Shield mask!");
+            AudioManager.PlayRoomShield();
             OnDamageBlocked?.Invoke();
             return;
         }
-        
+
         int previousDamage = damage;
         damage += amount;
-        
+
         // Cap damage at MaxDamage (2 * Level - 1)
         damage = Mathf.Min(damage, MaxDamage);
-        
+
+        // Play room damaged sound
+        AudioManager.PlayRoomDamaged();
+
         // If damage increased red count, kick out pawns that no longer fit
         while (followers.Count > Capacity && followers.Count > 0)
         {
             var kickedFollower = followers[followers.Count - 1];
             RemoveFollower(kickedFollower);
             Debug.Log($"Follower {kickedFollower.name} was kicked from {type} due to damage!");
-            
+
             // Try to send to sanctuary first
             var sanctuary = church?.GetRoomOfType(RoomType.Sanctuary);
             if (sanctuary != null && sanctuary.HasSpace)
@@ -347,7 +354,7 @@ public abstract class Room : MonoBehaviour
                 }
             }
         }
-        
+
         // Apply commitment damage to all remaining followers in the room
         // Make a copy to avoid collection modified exception
         float commitmentHit = CommitmentDamagePerLevel * amount;
@@ -357,7 +364,7 @@ public abstract class Room : MonoBehaviour
             follower.DecayCommitment(commitmentHit);
             Debug.Log($"Follower in {type} took {commitmentHit} commitment damage from room damage!");
         }
-        
+
         Debug.Log($"{type} at {location} took {amount} damage! Total damage: {damage}");
     }
     
@@ -367,7 +374,8 @@ public abstract class Room : MonoBehaviour
     public virtual void RepairDamage(int amount = 1)
     {
         damage = Mathf.Max(0, damage - amount);
-        
+        AudioManager.PlayRoomRepaired();
+
         // Reset repair progress if fully repaired
         if (damage <= 0)
         {
@@ -380,9 +388,20 @@ public abstract class Room : MonoBehaviour
     /// </summary>
     public virtual void IncreaseLevel(int amount = 1)
     {
+        int previousLevel = level;
         level += amount;
+
+        // Play appropriate sound based on whether this is building or upgrading
+        if (previousLevel == 0)
+        {
+            AudioManager.PlayRoomBuilt();
+        }
+        else
+        {
+            AudioManager.PlayRoomUpgrade();
+        }
     }
-    
+
     /// <summary>
     /// Upgrade the room by one level. Alias for IncreaseLevel(1).
     /// </summary>
