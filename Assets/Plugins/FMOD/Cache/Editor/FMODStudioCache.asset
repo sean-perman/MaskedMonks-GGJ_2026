@@ -23,7 +23,7 @@ MonoBehaviour:
   StringsBanks:
   - {fileID: 4649782515055195362}
   cacheVersion: 131858
-  cacheTime: 639054734776868613
+  cacheTime: 639055413748277028
   SerializableEventsDict:
   - key: event:/UI/ui_cursor_move
     index: 0
@@ -69,7 +69,7 @@ MonoBehaviour:
   Path: MaskedMonks_FMODproject/Build/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 639054734776868613
+  lastModified: 639055413748277028
   FileSizes:
   - Name: Desktop
     Value: 836
@@ -89,7 +89,7 @@ MonoBehaviour:
   Path: MaskedMonks_FMODproject/Build/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 639054734776667955
+  lastModified: 639055413747939179
   FileSizes:
   - Name: Desktop
     Value: 1612
