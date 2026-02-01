@@ -18,10 +18,8 @@ public class GameInitializer : MonoBehaviour
     
     [Header("Starting Configuration")]
     [SerializeField] private int startingFollowers = 1;
-    [SerializeField] private int startingGodStrength = 100;
-    [SerializeField] private int startingGodFavor = 5;
-    [SerializeField] private int startingMoney = 0;
     [SerializeField] private int startingMaxMoney = 10;
+    // Note: God strength, favor, and money now come from GameConfig
     
     [Header("References")]
     [SerializeField] private GameManager gameManager;
@@ -285,9 +283,9 @@ public class GameInitializer : MonoBehaviour
         cult.god = god;
         cult.church = church;
         
-        // Set max money cap and add starting money
+        // Set max money cap and add starting money from GameConfig
         cult.IncreaseMaxMoney(startingMaxMoney - 10); // Default is 10, so add the difference
-        cult.AddMoney(startingMoney);
+        cult.AddMoney(GameConfig.Instance.godStartingMoney);
         
         // Create starting rooms
         CreateStartingRooms(church, isPlayer1);
@@ -353,8 +351,8 @@ public class GameInitializer : MonoBehaviour
         // Add random god sprite
         AddGodSprite(godObj.transform);
 
-        // Initialize with starting stats
-        god.Initialize(startingGodStrength, startingGodFavor);
+        // Initialize with starting stats from GameConfig
+        god.Initialize();
 
         return god;
     }
@@ -384,12 +382,15 @@ public class GameInitializer : MonoBehaviour
         // Position to the left of the health bars (which are at x=0, with bar width=2)
         // Health bar extends from x=-1 to x=1, so place sprite at x=-2
         spriteObj.transform.localPosition = new Vector3(-2f, 0.2f, 0f);
-        spriteObj.transform.localScale = new Vector3(0.8f, 0.8f, 1f); // Scale down if needed
+        spriteObj.transform.localScale = new Vector3(0.5f, 0.5f, 1f); // Scale down if needed
 
         // Add sprite renderer
         SpriteRenderer sr = spriteObj.AddComponent<SpriteRenderer>();
         sr.sprite = randomSprite;
         sr.sortingOrder = 15; // Render in front of UI elements (UI is at 10-12)
+
+        // Add floating effect
+        spriteObj.AddComponent<FloatingEffect>();
 
         Debug.Log($"Added god sprite: {randomSprite.name}");
     }

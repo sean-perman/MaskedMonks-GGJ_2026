@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// Targeting mode for masks.
@@ -12,32 +13,52 @@ public enum TargetingMode
 
 /// <summary>
 /// Defines all player actions and their default key bindings.
+/// Supports both keyboard (KeyCode) and gamepad (button indices) input.
 /// </summary>
 [Serializable]
 public class PlayerInputBindings
 {
+    [Header("Input Mode")]
+    public bool useGamepad = false;
+    
     [Header("Cursor Movement")]
     public KeyCode cursorUp = KeyCode.W;
     public KeyCode cursorDown = KeyCode.S;
     public KeyCode cursorLeft = KeyCode.A;
     public KeyCode cursorRight = KeyCode.D;
     
+    [Header("Gamepad Cursor Movement")]
+    // Use D-pad (0=any dpad) or left stick (1) - we'll default to left stick for cursor
+    public int gamepadCursorUp = -1;
+    public int gamepadCursorDown = -1;
+    public int gamepadCursorLeft = -1;
+    public int gamepadCursorRight = -1;
+    
     [Header("Follower Commands")]
     public KeyCode sendToSanctuary = KeyCode.Z;
     public KeyCode sendFromSanctuary = KeyCode.X;
+    public int gamepadSendToSanctuary = 4; // LB
+    public int gamepadSendFromSanctuary = 5; // RB
     
     [Header("Room Commands")]
     public KeyCode upgradeRoom = KeyCode.Q;
+    public int gamepadUpgradeRoom = 3; // Y button
     
     [Header("Mask Commands")]
     public KeyCode useMask1 = KeyCode.Alpha1;
     public KeyCode useMask2 = KeyCode.Alpha2;
     public KeyCode useMask3 = KeyCode.Alpha3;
     public KeyCode useMask4 = KeyCode.Alpha4;
+    public int gamepadUseMask1 = 0; // A button
+    public int gamepadUseMask2 = 1; // B button
+    public int gamepadUseMask3 = 2; // X button
+    public int gamepadUseMask4 = 3; // Y button
     
     [Header("Targeting")]
     public KeyCode confirmTarget = KeyCode.BackQuote;
     public KeyCode cancelTarget = KeyCode.LeftControl;
+    public int gamepadConfirmTarget = 0; // A button
+    public int gamepadCancelTarget = 1; // B button
     
     /// <summary>
     /// Create default bindings for Player 1 (WASD layout).
@@ -46,6 +67,7 @@ public class PlayerInputBindings
     {
         return new PlayerInputBindings
         {
+            useGamepad = false,
             cursorUp = KeyCode.W,
             cursorDown = KeyCode.S,
             cursorLeft = KeyCode.A,
@@ -69,6 +91,7 @@ public class PlayerInputBindings
     {
         return new PlayerInputBindings
         {
+            useGamepad = false,
             cursorUp = KeyCode.UpArrow,
             cursorDown = KeyCode.DownArrow,
             cursorLeft = KeyCode.LeftArrow,
@@ -86,25 +109,119 @@ public class PlayerInputBindings
     }
     
     /// <summary>
+    /// Create gamepad default bindings (works for both players, uses the new Input System).
+    /// playerIndex: 0 for Player 1, 1 for Player 2 (for keyboard fallbacks).
+    /// </summary>
+    public static PlayerInputBindings CreateGamepadDefaults(int playerIndex = 0)
+    {
+        // Use appropriate keyboard defaults as fallback based on player
+        var keyboardDefaults = playerIndex == 0 
+            ? CreatePlayer1Defaults() 
+            : CreatePlayer2Defaults();
+        
+        return new PlayerInputBindings
+        {
+            useGamepad = true,
+            // Keyboard fallbacks (won't be used if gamepad connected, but keep player-specific mappings)
+            cursorUp = keyboardDefaults.cursorUp,
+            cursorDown = keyboardDefaults.cursorDown,
+            cursorLeft = keyboardDefaults.cursorLeft,
+            cursorRight = keyboardDefaults.cursorRight,
+            sendToSanctuary = keyboardDefaults.sendToSanctuary,
+            sendFromSanctuary = keyboardDefaults.sendFromSanctuary,
+            upgradeRoom = keyboardDefaults.upgradeRoom,
+            useMask1 = keyboardDefaults.useMask1,
+            useMask2 = keyboardDefaults.useMask2,
+            useMask3 = keyboardDefaults.useMask3,
+            useMask4 = keyboardDefaults.useMask4,
+            confirmTarget = keyboardDefaults.confirmTarget,
+            cancelTarget = keyboardDefaults.cancelTarget,
+            // Gamepad defaults (buttons for movement, actions, masks from D-pad)
+            gamepadCursorUp = -1,    // D-pad handled by analog stick
+            gamepadCursorDown = -1,
+            gamepadCursorLeft = -1,
+            gamepadCursorRight = -1,
+            gamepadSendToSanctuary = 1,    // B button (was flipped, now corrected)
+            gamepadSendFromSanctuary = 0,  // A button (was flipped, now corrected)
+            gamepadUpgradeRoom = 3,        // Y button (was flipped, now corrected)
+            gamepadUseMask1 = -1,  // D-pad up (handled separately)
+            gamepadUseMask2 = -1,  // D-pad down
+            gamepadUseMask3 = -1,  // D-pad left
+            gamepadUseMask4 = -1,  // D-pad right
+            gamepadConfirmTarget = 1,  // B button (corrected)
+            gamepadCancelTarget = 0    // A button (corrected)
+        };
+    }
+    
+    /// <summary>
+    /// Convert gamepad button index to its corresponding Joystick KeyCode.
+    /// </summary>
+    public static KeyCode GamepadButtonToKeyCode(int buttonIndex, int playerIndex = 0)
+    {
+        int baseButton = (int)KeyCode.Joystick1Button0 + (playerIndex * 20);
+        return (KeyCode)(baseButton + buttonIndex);
+    }
+    
+    /// <summary>
+    /// Apply gamepad button mappings to KeyCode fields.
+    /// This converts gamepad button indices (0-9) to actual KeyCode values.
+    /// </summary>
+    public void ApplyGamepadKeyMappings(int playerIndex = 0)
+    {
+        // Map gamepad buttons to their KeyCode equivalents
+        if (gamepadCursorUp >= 0) cursorUp = GamepadButtonToKeyCode(gamepadCursorUp, playerIndex);
+        if (gamepadCursorDown >= 0) cursorDown = GamepadButtonToKeyCode(gamepadCursorDown, playerIndex);
+        if (gamepadCursorLeft >= 0) cursorLeft = GamepadButtonToKeyCode(gamepadCursorLeft, playerIndex);
+        if (gamepadCursorRight >= 0) cursorRight = GamepadButtonToKeyCode(gamepadCursorRight, playerIndex);
+        
+        if (gamepadSendToSanctuary >= 0) sendToSanctuary = GamepadButtonToKeyCode(gamepadSendToSanctuary, playerIndex);
+        if (gamepadSendFromSanctuary >= 0) sendFromSanctuary = GamepadButtonToKeyCode(gamepadSendFromSanctuary, playerIndex);
+        
+        if (gamepadUpgradeRoom >= 0) upgradeRoom = GamepadButtonToKeyCode(gamepadUpgradeRoom, playerIndex);
+        
+        if (gamepadUseMask1 >= 0) useMask1 = GamepadButtonToKeyCode(gamepadUseMask1, playerIndex);
+        if (gamepadUseMask2 >= 0) useMask2 = GamepadButtonToKeyCode(gamepadUseMask2, playerIndex);
+        if (gamepadUseMask3 >= 0) useMask3 = GamepadButtonToKeyCode(gamepadUseMask3, playerIndex);
+        if (gamepadUseMask4 >= 0) useMask4 = GamepadButtonToKeyCode(gamepadUseMask4, playerIndex);
+        
+        if (gamepadConfirmTarget >= 0) confirmTarget = GamepadButtonToKeyCode(gamepadConfirmTarget, playerIndex);
+        if (gamepadCancelTarget >= 0) cancelTarget = GamepadButtonToKeyCode(gamepadCancelTarget, playerIndex);
+    }
+    
+    /// <summary>
     /// Clone these bindings.
     /// </summary>
     public PlayerInputBindings Clone()
     {
         return new PlayerInputBindings
         {
+            useGamepad = useGamepad,
             cursorUp = cursorUp,
             cursorDown = cursorDown,
             cursorLeft = cursorLeft,
             cursorRight = cursorRight,
+            gamepadCursorUp = gamepadCursorUp,
+            gamepadCursorDown = gamepadCursorDown,
+            gamepadCursorLeft = gamepadCursorLeft,
+            gamepadCursorRight = gamepadCursorRight,
             sendToSanctuary = sendToSanctuary,
             sendFromSanctuary = sendFromSanctuary,
+            gamepadSendToSanctuary = gamepadSendToSanctuary,
+            gamepadSendFromSanctuary = gamepadSendFromSanctuary,
             upgradeRoom = upgradeRoom,
+            gamepadUpgradeRoom = gamepadUpgradeRoom,
             useMask1 = useMask1,
             useMask2 = useMask2,
             useMask3 = useMask3,
             useMask4 = useMask4,
+            gamepadUseMask1 = gamepadUseMask1,
+            gamepadUseMask2 = gamepadUseMask2,
+            gamepadUseMask3 = gamepadUseMask3,
+            gamepadUseMask4 = gamepadUseMask4,
             confirmTarget = confirmTarget,
-            cancelTarget = cancelTarget
+            cancelTarget = cancelTarget,
+            gamepadConfirmTarget = gamepadConfirmTarget,
+            gamepadCancelTarget = gamepadCancelTarget
         };
     }
 }
@@ -126,6 +243,38 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool isTargeting = false;
     [SerializeField] private int activeMaskSlot = -1; // -1 = no mask active
     [SerializeField] private Vector2Int targetPosition = Vector2Int.zero;
+    
+    // Joystick debounce - prevents rapid repeated movement from stick drift/holding
+    private Vector2 prevJoystickInput = Vector2.zero;
+    private float joystickDeadzone = 0.5f;
+
+    // Helper: cache previous trigger/button states if needed in future
+    // (kept simple for now - we primarily map standard face buttons and shoulders)
+
+    private Gamepad GetAssignedGamepad()
+    {
+        if (bindings == null || !bindings.useGamepad) return null;
+        var list = Gamepad.all;
+        if (playerIndex >= 0 && playerIndex < list.Count) return list[playerIndex];
+        return null;
+    }
+
+    private bool GamepadButtonWasPressed(Gamepad gp, int buttonIndex)
+    {
+        if (gp == null) return false;
+        switch (buttonIndex)
+        {
+            case 0: return gp.buttonSouth.wasPressedThisFrame; // A
+            case 1: return gp.buttonEast.wasPressedThisFrame;  // B
+            case 2: return gp.buttonWest.wasPressedThisFrame;  // X
+            case 3: return gp.buttonNorth.wasPressedThisFrame; // Y
+            case 4: return gp.leftShoulder.wasPressedThisFrame; // LB
+            case 5: return gp.rightShoulder.wasPressedThisFrame; // RB
+            case 8: return gp.startButton != null && gp.startButton.wasPressedThisFrame;
+            case 9: return gp.selectButton != null && gp.selectButton.wasPressedThisFrame;
+            default: return false;
+        }
+    }
     
     // Events
     public event Action<Vector2Int> OnCursorMoved;
@@ -169,8 +318,76 @@ public class PlayerController : MonoBehaviour
         }
     }
     
+    /// <summary>
+    /// Switch input mode between keyboard and gamepad.
+    /// </summary>
+    public void SetUseGamepad(bool useGamepad)
+    {
+        if (bindings != null)
+        {
+            bindings.useGamepad = useGamepad;
+            if (useGamepad)
+            {
+                Debug.Log($"Player {playerIndex + 1} switched to gamepad input");
+            }
+            else
+            {
+                Debug.Log($"Player {playerIndex + 1} switched to keyboard input");
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Apply default gamepad bindings for this player.
+    /// </summary>
+    public void ApplyGamepadDefaults()
+    {
+        bindings = PlayerInputBindings.CreateGamepadDefaults(playerIndex);
+        bindings.ApplyGamepadKeyMappings(playerIndex);
+        Debug.Log($"Player {playerIndex + 1} applied gamepad defaults");
+    }
+    
     private void Update()
     {
+        // DEBUG: Comprehensive gamepad input logging (Input System)
+        if (Input.GetKeyDown(KeyCode.F1))
+        {
+            Debug.Log($"=== GAMEPAD DEBUG (Player {playerIndex + 1}) ===");
+            Debug.Log($"Gamepad Connected (InputSystem): {GetAssignedGamepad() != null}");
+            Debug.Log($"All Joysticks: {string.Join(", ", Input.GetJoystickNames())}");
+
+            // Raw axis values (legacy)
+            Debug.Log($"Raw Horizontal: {Input.GetAxis("Horizontal")}");
+            Debug.Log($"Raw Vertical: {Input.GetAxis("Vertical")}");
+
+            // Try all possible axes to find buttons
+            Debug.Log("=== CHECKING ALL AXES ===");
+            for (int i = 0; i < 28; i++)
+            {
+                try
+                {
+                    string axisName = $"Joy1Axis{i}";
+                    float val = Input.GetAxisRaw(axisName);
+                    if (val != 0)
+                    {
+                        Debug.Log($"Joy1Axis{i}: {val}");
+                    }
+                }
+                catch { }
+            }
+        }
+        
+        // DEBUG: Continuous axis logging (so we can see if anything changes)
+        if (playerIndex == 0) // Only log once per frame to avoid spam
+        {
+            float h = Input.GetAxis("Horizontal");
+            float v = Input.GetAxis("Vertical");
+            if (h != 0 || v != 0)
+            {
+                Debug.Log($"Axes - H: {h:F2}, V: {v:F2}");
+            }
+        }
+        
         if (cult == null || cult.church == null) return;
         
         ProcessCursorInput();
@@ -183,22 +400,49 @@ public class PlayerController : MonoBehaviour
     private void ProcessCursorInput()
     {
         Vector2Int movement = Vector2Int.zero;
-        
-        if (Input.GetKeyDown(bindings.cursorUp)) movement.y = 1;
-        if (Input.GetKeyDown(bindings.cursorDown)) movement.y = -1;
-        if (Input.GetKeyDown(bindings.cursorLeft)) movement.x = -1;
-        if (Input.GetKeyDown(bindings.cursorRight)) movement.x = 1;
-        
+
+        // Keyboard handling (legacy KeyCode) remains for rebinding/fallback
+        if (!bindings.useGamepad)
+        {
+            if (Input.GetKeyDown(bindings.cursorUp)) movement.y = 1;
+            if (Input.GetKeyDown(bindings.cursorDown)) movement.y = -1;
+            if (Input.GetKeyDown(bindings.cursorLeft)) movement.x = -1;
+            if (Input.GetKeyDown(bindings.cursorRight)) movement.x = 1;
+        }
+        else
+        {
+            var gp = GetAssignedGamepad();
+            if (gp != null)
+            {
+                // Read left stick and debounce
+                Vector2 stick = gp.leftStick.ReadValue();
+                float h = stick.x;
+                float v = stick.y;
+
+                if (Mathf.Abs(h) > joystickDeadzone && Mathf.Abs(prevJoystickInput.x) <= joystickDeadzone)
+                {
+                    movement.x = h > 0 ? 1 : -1;
+                }
+                if (Mathf.Abs(v) > joystickDeadzone && Mathf.Abs(prevJoystickInput.y) <= joystickDeadzone)
+                {
+                    movement.y = v > 0 ? 1 : -1;
+                }
+
+                prevJoystickInput = new Vector2(h, v);
+
+                // Do NOT use D-pad for cursor movement: stick only controls cursor/targeting.
+                // D-pad is reserved for mask selection handled in ProcessMaskCommands().
+            }
+        }
+
         if (movement != Vector2Int.zero)
         {
             if (isTargeting)
             {
-                // Move target cursor
                 MoveTargetCursor(movement);
             }
             else
             {
-                // Move room cursor
                 MoveCursor(movement);
             }
         }
@@ -270,12 +514,31 @@ public class PlayerController : MonoBehaviour
     {
         if (isTargeting) return;
         
-        if (Input.GetKeyDown(bindings.sendToSanctuary))
+        bool sendToSanctuaryPressed = false;
+        bool sendFromSanctuaryPressed = false;
+        
+        // Keyboard fallback
+        if (!bindings.useGamepad)
+        {
+            if (Input.GetKeyDown(bindings.sendToSanctuary)) sendToSanctuaryPressed = true;
+            if (Input.GetKeyDown(bindings.sendFromSanctuary)) sendFromSanctuaryPressed = true;
+        }
+        else
+        {
+            var gp = GetAssignedGamepad();
+            if (gp != null)
+            {
+                if (bindings.gamepadSendToSanctuary >= 0 && GamepadButtonWasPressed(gp, bindings.gamepadSendToSanctuary)) sendToSanctuaryPressed = true;
+                if (bindings.gamepadSendFromSanctuary >= 0 && GamepadButtonWasPressed(gp, bindings.gamepadSendFromSanctuary)) sendFromSanctuaryPressed = true;
+            }
+        }
+        
+        if (sendToSanctuaryPressed)
         {
             SendLowestCommitmentToSanctuary();
         }
         
-        if (Input.GetKeyDown(bindings.sendFromSanctuary))
+        if (sendFromSanctuaryPressed)
         {
             SendHighestCommitmentFromSanctuary();
         }
@@ -411,7 +674,23 @@ public class PlayerController : MonoBehaviour
     {
         if (isTargeting) return;
         
-        if (Input.GetKeyDown(bindings.upgradeRoom))
+        bool upgradeRoomPressed = false;
+        
+        // Keyboard fallback
+        if (!bindings.useGamepad)
+        {
+            if (Input.GetKeyDown(bindings.upgradeRoom)) upgradeRoomPressed = true;
+        }
+        else
+        {
+            var gp = GetAssignedGamepad();
+            if (gp != null && bindings.gamepadUpgradeRoom >= 0 && GamepadButtonWasPressed(gp, bindings.gamepadUpgradeRoom))
+            {
+                upgradeRoomPressed = true;
+            }
+        }
+        
+        if (upgradeRoomPressed)
         {
             UpgradeCurrentRoom();
         }
@@ -450,10 +729,34 @@ public class PlayerController : MonoBehaviour
         
         int maskSlot = -1;
         
-        if (Input.GetKeyDown(bindings.useMask1)) maskSlot = 0;
-        else if (Input.GetKeyDown(bindings.useMask2)) maskSlot = 1;
-        else if (Input.GetKeyDown(bindings.useMask3)) maskSlot = 2;
-        else if (Input.GetKeyDown(bindings.useMask4)) maskSlot = 3;
+        // Keyboard fallback
+        if (!bindings.useGamepad)
+        {
+            if (Input.GetKeyDown(bindings.useMask1)) maskSlot = 0;
+            else if (Input.GetKeyDown(bindings.useMask2)) maskSlot = 1;
+            else if (Input.GetKeyDown(bindings.useMask3)) maskSlot = 2;
+            else if (Input.GetKeyDown(bindings.useMask4)) maskSlot = 3;
+        }
+        else
+        {
+            var gp = GetAssignedGamepad();
+            if (gp != null)
+            {
+                if (gp.dpad.up.wasPressedThisFrame && !isTargeting) maskSlot = 0;
+                else if (gp.dpad.down.wasPressedThisFrame && !isTargeting) maskSlot = 1;
+                else if (gp.dpad.left.wasPressedThisFrame && !isTargeting) maskSlot = 2;
+                else if (gp.dpad.right.wasPressedThisFrame && !isTargeting) maskSlot = 3;
+
+                // Also allow face buttons if bindings specify them
+                if (maskSlot < 0)
+                {
+                    if (bindings.gamepadUseMask1 >= 0 && GamepadButtonWasPressed(gp, bindings.gamepadUseMask1) && !isTargeting) maskSlot = 0;
+                    else if (bindings.gamepadUseMask2 >= 0 && GamepadButtonWasPressed(gp, bindings.gamepadUseMask2) && !isTargeting) maskSlot = 1;
+                    else if (bindings.gamepadUseMask3 >= 0 && GamepadButtonWasPressed(gp, bindings.gamepadUseMask3) && !isTargeting) maskSlot = 2;
+                    else if (bindings.gamepadUseMask4 >= 0 && GamepadButtonWasPressed(gp, bindings.gamepadUseMask4) && !isTargeting) maskSlot = 3;
+                }
+            }
+        }
         
         if (maskSlot >= 0)
         {
@@ -554,12 +857,33 @@ public class PlayerController : MonoBehaviour
     {
         if (!isTargeting) return;
         
-        if (Input.GetKeyDown(bindings.confirmTarget))
+        bool confirmPressed = false;
+        bool cancelPressed = false;
+        
+        // Keyboard fallback
+        if (!bindings.useGamepad)
+        {
+            if (Input.GetKeyDown(bindings.confirmTarget)) confirmPressed = true;
+            if (Input.GetKeyDown(bindings.cancelTarget)) cancelPressed = true;
+        }
+        else
+        {
+            var gp = GetAssignedGamepad();
+            if (gp != null)
+            {
+                // Confirm via right trigger (not a button)
+                if (gp.rightTrigger.wasPressedThisFrame) confirmPressed = true;
+                // Cancel via B button
+                if (bindings.gamepadCancelTarget >= 0 && GamepadButtonWasPressed(gp, bindings.gamepadCancelTarget)) cancelPressed = true;
+            }
+        }
+        
+        if (confirmPressed)
         {
             ConfirmTarget();
         }
         
-        if (Input.GetKeyDown(bindings.cancelTarget))
+        if (cancelPressed)
         {
             CancelTargeting();
         }
@@ -672,5 +996,75 @@ public class PlayerController : MonoBehaviour
         if (!isTargeting) return null;
         var opponent = GameManager.Instance?.GetOpponent(cult);
         return opponent?.church?.GetRoomAt(targetPosition);
+    }
+
+    // --- External Input System hooks (for PlayerInput / Input System bridging) ---
+
+    // Receive stick input (Vector2) from Input System
+    public void ExternalMove(Vector2 stickValue)
+    {
+        Vector2Int movement = Vector2Int.zero;
+        float h = stickValue.x;
+        float v = stickValue.y;
+
+        if (Mathf.Abs(h) > joystickDeadzone && Mathf.Abs(prevJoystickInput.x) <= joystickDeadzone)
+        {
+            movement.x = h > 0 ? 1 : -1;
+        }
+        if (Mathf.Abs(v) > joystickDeadzone && Mathf.Abs(prevJoystickInput.y) <= joystickDeadzone)
+        {
+            movement.y = v > 0 ? 1 : -1;
+        }
+
+        prevJoystickInput = stickValue;
+
+        if (movement != Vector2Int.zero)
+        {
+            if (isTargeting) MoveTargetCursor(movement);
+            else MoveCursor(movement);
+        }
+    }
+
+    // Receive D-pad input (Vector2) from Input System
+    public void ExternalDpad(Vector2 dpadValue)
+    {
+        // D-pad should be used only for mask selection, not for moving cursor/target.
+        if (isTargeting) return;
+
+        if (dpadValue.y > 0.5f) ActivateMask(0);
+        else if (dpadValue.y < -0.5f) ActivateMask(1);
+        else if (dpadValue.x < -0.5f) ActivateMask(2);
+        else if (dpadValue.x > 0.5f) ActivateMask(3);
+    }
+
+    // Buttons
+    public void ExternalConfirm()
+    {
+        if (isTargeting) ConfirmTarget();
+    }
+
+    public void ExternalCancel()
+    {
+        if (isTargeting) CancelTargeting();
+    }
+
+    public void ExternalSendTo()
+    {
+        if (!isTargeting) SendLowestCommitmentToSanctuary();
+    }
+
+    public void ExternalSendFrom()
+    {
+        if (!isTargeting) SendHighestCommitmentFromSanctuary();
+    }
+
+    public void ExternalUpgrade()
+    {
+        if (!isTargeting) UpgradeCurrentRoom();
+    }
+
+    public void ExternalUseMask(int slot)
+    {
+        if (!isTargeting) ActivateMask(slot);
     }
 }

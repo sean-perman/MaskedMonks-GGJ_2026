@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// In-game menu for viewing and rebinding controls for both players.
@@ -23,6 +24,8 @@ public class ControlsMenu : MonoBehaviour
     private bool isRebinding = false;
     private int rebindingPlayer = -1;
     private string rebindingAction = null;
+    private string rebindingFieldName = null;
+    private string rebindingDeviceInfo = null;
     
     private Vector2 scrollPosition;
     
@@ -39,6 +42,81 @@ public class ControlsMenu : MonoBehaviour
         // Handle rebinding
         if (isRebinding)
         {
+            // Check gamepads via new Input System first and apply as gamepad bindings
+            var gamepads = Gamepad.all;
+            for (int i = 0; i < gamepads.Count; i++)
+            {
+                var gp = gamepads[i];
+                if (gp == null) continue;
+
+                // Face buttons: map to indices 0(A)/1(B)/2(X)/3(Y)
+                if (gp.buttonSouth.wasPressedThisFrame)
+                {
+                    ApplyRebindingGamepad(i, 0);
+                    rebindingDeviceInfo = $"Gamepad {i + 1}";
+                    return;
+                }
+                if (gp.buttonEast.wasPressedThisFrame)
+                {
+                    ApplyRebindingGamepad(i, 1);
+                    rebindingDeviceInfo = $"Gamepad {i + 1}";
+                    return;
+                }
+                if (gp.buttonWest.wasPressedThisFrame)
+                {
+                    ApplyRebindingGamepad(i, 2);
+                    rebindingDeviceInfo = $"Gamepad {i + 1}";
+                    return;
+                }
+                if (gp.buttonNorth.wasPressedThisFrame)
+                {
+                    ApplyRebindingGamepad(i, 3);
+                    rebindingDeviceInfo = $"Gamepad {i + 1}";
+                    return;
+                }
+
+                // Shoulders
+                if (gp.leftShoulder.wasPressedThisFrame)
+                {
+                    ApplyRebindingGamepad(i, 4);
+                    rebindingDeviceInfo = $"Gamepad {i + 1}";
+                    return;
+                }
+                if (gp.rightShoulder.wasPressedThisFrame)
+                {
+                    ApplyRebindingGamepad(i, 5);
+                    rebindingDeviceInfo = $"Gamepad {i + 1}";
+                    return;
+                }
+
+                // D-pad mapping to indices 9-12 (we'll store these as 9..12)
+                if (gp.dpad.up.wasPressedThisFrame)
+                {
+                    ApplyRebindingGamepad(i, 9);
+                    rebindingDeviceInfo = $"Gamepad {i + 1}";
+                    return;
+                }
+                if (gp.dpad.down.wasPressedThisFrame)
+                {
+                    ApplyRebindingGamepad(i, 10);
+                    rebindingDeviceInfo = $"Gamepad {i + 1}";
+                    return;
+                }
+                if (gp.dpad.left.wasPressedThisFrame)
+                {
+                    ApplyRebindingGamepad(i, 11);
+                    rebindingDeviceInfo = $"Gamepad {i + 1}";
+                    return;
+                }
+                if (gp.dpad.right.wasPressedThisFrame)
+                {
+                    ApplyRebindingGamepad(i, 12);
+                    rebindingDeviceInfo = $"Gamepad {i + 1}";
+                    return;
+                }
+            }
+
+            // Fall back to legacy Input key iteration for keyboard keys (keeps existing rebinding behavior)
             foreach (KeyCode key in System.Enum.GetValues(typeof(KeyCode)))
             {
                 if (Input.GetKeyDown(key) && key != KeyCode.Escape && key != KeyCode.Mouse0)
@@ -47,7 +125,7 @@ public class ControlsMenu : MonoBehaviour
                     break;
                 }
             }
-            
+
             // Cancel with escape
             if (Input.GetKeyDown(KeyCode.Escape))
             {
@@ -142,7 +220,25 @@ public class ControlsMenu : MonoBehaviour
             
             GUILayout.Space(10);
             
-            // Buttons
+            // Gamepad preset buttons
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Presets:", labelStyle, GUILayout.Width(100));
+            
+            if (GUILayout.Button("P1 Gamepad", GUILayout.Height(30)))
+            {
+                ApplyGamepadPreset(0);
+            }
+            
+            if (GUILayout.Button("P2 Gamepad", GUILayout.Height(30)))
+            {
+                ApplyGamepadPreset(1);
+            }
+            
+            GUILayout.EndHorizontal();
+            
+            GUILayout.Space(5);
+            
+            // Reset/Close buttons
             GUILayout.BeginHorizontal();
             
             if (GUILayout.Button("Reset P1 to Defaults", GUILayout.Height(30)))
@@ -216,7 +312,30 @@ public class ControlsMenu : MonoBehaviour
         GUILayout.Label(actionName, labelStyle, GUILayout.Width(150));
         
         string keyDisplay = currentKey.ToString();
-        if (GUILayout.Button(keyDisplay, bindingStyle, GUILayout.Width(100)))
+
+        // Also show gamepad mapping if present
+        string gamepadDisplay = "";
+        var controller = playerIndex == 0 ? player1 : player2;
+        if (controller != null && controller.Bindings != null)
+        {
+            // Map fieldName to gamepad field name
+            string gpField = GetGamepadFieldName(fieldName);
+            if (!string.IsNullOrEmpty(gpField))
+            {
+                var gpFieldInfo = typeof(PlayerInputBindings).GetField(gpField);
+                if (gpFieldInfo != null)
+                {
+                    var val = gpFieldInfo.GetValue(controller.Bindings);
+                    if (val is int gi && gi >= 0)
+                    {
+                        gamepadDisplay = $"G{(gi==9||gi==10||gi==11||gi==12?"Dpad":"Btn")}{gi}";
+                    }
+                }
+            }
+        }
+
+        string display = string.IsNullOrEmpty(gamepadDisplay) ? keyDisplay : $"{keyDisplay} / {gamepadDisplay}";
+        if (GUILayout.Button(display, bindingStyle, GUILayout.Width(160)))
         {
             StartRebinding(playerIndex, fieldName, actionName);
         }
@@ -229,33 +348,85 @@ public class ControlsMenu : MonoBehaviour
         isRebinding = true;
         rebindingPlayer = playerIndex;
         rebindingAction = actionName;
+        rebindingFieldName = fieldName;
+        rebindingDeviceInfo = null;
         
-        // Store the field name for later
+        // Store the field name for later (legacy consumer)
         PlayerPrefs.SetString("RebindingField", fieldName);
     }
     
     private void ApplyRebinding(KeyCode newKey)
     {
-        string fieldName = PlayerPrefs.GetString("RebindingField", "");
-        
+        string fieldName = rebindingFieldName ?? PlayerPrefs.GetString("RebindingField", "");
+
         var controller = rebindingPlayer == 0 ? player1 : player2;
-        if (controller == null) 
+        if (controller == null)
         {
             CancelRebinding();
             return;
         }
-        
+
         var bindings = controller.Bindings;
-        
-        // Use reflection to set the field
+
+        // Use reflection to set the keyboard KeyCode field
         var field = typeof(PlayerInputBindings).GetField(fieldName);
-        if (field != null)
+        if (field != null && field.FieldType == typeof(KeyCode))
         {
             field.SetValue(bindings, newKey);
             Debug.Log($"Rebound {fieldName} to {newKey} for Player {rebindingPlayer + 1}");
         }
-        
+
         CancelRebinding();
+    }
+
+    private void ApplyRebindingGamepad(int deviceIndex, int buttonIndex)
+    {
+        string fieldName = rebindingFieldName ?? PlayerPrefs.GetString("RebindingField", "");
+
+        var controller = rebindingPlayer == 0 ? player1 : player2;
+        if (controller == null) { CancelRebinding(); return; }
+
+        var bindings = controller.Bindings;
+
+        // Map the keyboard field name to the corresponding gamepad field name
+        string gpField = GetGamepadFieldName(fieldName);
+        if (string.IsNullOrEmpty(gpField))
+        {
+            // No gamepad field for this action; try to set confirm/cancel if appropriate
+            Debug.LogWarning($"No gamepad field mapping for {fieldName}");
+            CancelRebinding();
+            return;
+        }
+
+        var gpFieldInfo = typeof(PlayerInputBindings).GetField(gpField);
+        if (gpFieldInfo != null && gpFieldInfo.FieldType == typeof(int))
+        {
+            gpFieldInfo.SetValue(bindings, buttonIndex);
+            Debug.Log($"Rebound {gpField} to button {buttonIndex} (device {deviceIndex + 1}) for Player {rebindingPlayer + 1}");
+        }
+
+        CancelRebinding();
+    }
+
+    private string GetGamepadFieldName(string keyFieldName)
+    {
+        switch (keyFieldName)
+        {
+            case "cursorUp": return "gamepadCursorUp";
+            case "cursorDown": return "gamepadCursorDown";
+            case "cursorLeft": return "gamepadCursorLeft";
+            case "cursorRight": return "gamepadCursorRight";
+            case "sendToSanctuary": return "gamepadSendToSanctuary";
+            case "sendFromSanctuary": return "gamepadSendFromSanctuary";
+            case "upgradeRoom": return "gamepadUpgradeRoom";
+            case "useMask1": return "gamepadUseMask1";
+            case "useMask2": return "gamepadUseMask2";
+            case "useMask3": return "gamepadUseMask3";
+            case "useMask4": return "gamepadUseMask4";
+            case "confirmTarget": return "gamepadConfirmTarget";
+            case "cancelTarget": return "gamepadCancelTarget";
+            default: return null;
+        }
     }
     
     private void CancelRebinding()
@@ -279,13 +450,25 @@ public class ControlsMenu : MonoBehaviour
         var fields = typeof(PlayerInputBindings).GetFields();
         foreach (var field in fields)
         {
-            if (field.FieldType == typeof(KeyCode))
+            if (field.FieldType == typeof(KeyCode) || field.FieldType == typeof(int) || field.FieldType == typeof(bool))
             {
                 field.SetValue(bindings, field.GetValue(defaults));
             }
         }
         
         Debug.Log($"Reset Player {playerIndex + 1} controls to defaults");
+    }
+    
+    private void ApplyGamepadPreset(int playerIndex)
+    {
+        var controller = playerIndex == 0 ? player1 : player2;
+        if (controller == null) return;
+        
+        // Apply gamepad defaults and switch to gamepad mode
+        controller.ApplyGamepadDefaults();
+        controller.SetUseGamepad(true);
+        
+        Debug.Log($"Applied gamepad preset to Player {playerIndex + 1}");
     }
     
     public void SetControllers(PlayerController p1, PlayerController p2)
