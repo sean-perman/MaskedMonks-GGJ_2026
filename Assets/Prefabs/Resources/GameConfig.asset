@@ -48,13 +48,13 @@ MonoBehaviour:
   lightningRitualBuildCost: 10
   floodRitualBuildCost: 10
   shieldRitualBuildCost: 10
-  sanctuaryStartingLevel: 1
-  altarStartingLevel: 0
-  pewsStartingLevel: 0
-  missionStartingLevel: 0
-  fundraisingStartingLevel: 0
-  workshopStartingLevel: 0
-  ritualHallStartingLevel: 0
+  sanctuaryStartingLevel: 3
+  altarStartingLevel: 2
+  pewsStartingLevel: 2
+  missionStartingLevel: 2
+  fundraisingStartingLevel: 2
+  workshopStartingLevel: 1
+  ritualHallStartingLevel: 1
   lightningRitualStartingLevel: 0
   floodRitualStartingLevel: 0
   shieldRitualStartingLevel: 0

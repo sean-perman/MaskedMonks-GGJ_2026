@@ -392,44 +392,56 @@ public class GameInitializer : MonoBehaviour
     {
         // Get church transform for positioning
         Transform churchTransform = church.transform;
-        
+
         // Calculate grid offset so rooms are centered under church
         float gridWidth = church.GridWidth * (roomWidth + roomSpacing);
         float gridHeight = church.GridHeight * (roomHeight + roomSpacing);
         Vector3 gridOffset = new Vector3(-gridWidth / 2 + roomWidth / 2, -gridHeight / 2 + roomHeight / 2, 0);
-        
+
+        var config = GameConfig.Instance;
+
         // Bottom row (y=0): Core rooms
-        // Create a Sanctuary at (0, 0)
-        CreateRoomFromPrefab<SanctuaryRoom>(church, new Vector2Int(0, 0), churchTransform, gridOffset, sanctuaryRoomPrefab);
-        
-        // Create an Altar at (1, 0)
-        CreateRoomFromPrefab<AltarRoom>(church, new Vector2Int(1, 0), churchTransform, gridOffset, altarRoomPrefab);
-        
-        // Create Pews at (2, 0)
-        CreateRoomFromPrefab<PewsRoom>(church, new Vector2Int(2, 0), churchTransform, gridOffset, pewsRoomPrefab);
-        
+        // Create a Sanctuary at (0, 0) if configured
+        if (config.sanctuaryStartingLevel > 0)
+            CreateRoomFromPrefab<SanctuaryRoom>(church, new Vector2Int(0, 0), churchTransform, gridOffset, sanctuaryRoomPrefab);
+
+        // Create an Altar at (1, 0) if configured
+        if (config.altarStartingLevel > 0)
+            CreateRoomFromPrefab<AltarRoom>(church, new Vector2Int(1, 0), churchTransform, gridOffset, altarRoomPrefab);
+
+        // Create Pews at (2, 0) if configured
+        if (config.pewsStartingLevel > 0)
+            CreateRoomFromPrefab<PewsRoom>(church, new Vector2Int(2, 0), churchTransform, gridOffset, pewsRoomPrefab);
+
         // Second row (y=1): Mission for converting citizens
-        CreateRoomFromPrefab<MissionRoom>(church, new Vector2Int(1, 1), churchTransform, gridOffset, missionRoomPrefab);
-        
+        if (config.missionStartingLevel > 0)
+            CreateRoomFromPrefab<MissionRoom>(church, new Vector2Int(1, 1), churchTransform, gridOffset, missionRoomPrefab);
+
         // Create Workshop at (0, 1) for repairing all rooms
-        CreateRoomFromPrefab<WorkshopRoom>(church, new Vector2Int(0, 1), churchTransform, gridOffset, workshopRoomPrefab);
-        
+        if (config.workshopStartingLevel > 0)
+            CreateRoomFromPrefab<WorkshopRoom>(church, new Vector2Int(0, 1), churchTransform, gridOffset, workshopRoomPrefab);
+
         // Create Fundraising at (2, 1) for generating money
-        CreateRoomFromPrefab<FundraisingRoom>(church, new Vector2Int(2, 1), churchTransform, gridOffset, fundraisingRoomPrefab);
-        
+        if (config.fundraisingStartingLevel > 0)
+            CreateRoomFromPrefab<FundraisingRoom>(church, new Vector2Int(2, 1), churchTransform, gridOffset, fundraisingRoomPrefab);
+
         // Third row (y=2): Ritual rooms for generating masks
         // Lightning Ritual at (0, 2) - column attacks
-        CreateRoomFromPrefab<LightningRitualRoom>(church, new Vector2Int(0, 2), churchTransform, gridOffset, lightningRitualRoomPrefab);
-        
+        if (config.lightningRitualStartingLevel > 0)
+            CreateRoomFromPrefab<LightningRitualRoom>(church, new Vector2Int(0, 2), churchTransform, gridOffset, lightningRitualRoomPrefab);
+
         // Wrath Ritual Hall at (1, 2) - standard Strike masks
-        CreateRoomFromPrefab<RitualHallRoom>(church, new Vector2Int(1, 2), churchTransform, gridOffset, ritualHallRoomPrefab);
-        
+        if (config.ritualHallStartingLevel > 0)
+            CreateRoomFromPrefab<RitualHallRoom>(church, new Vector2Int(1, 2), churchTransform, gridOffset, ritualHallRoomPrefab);
+
         // Shield Ritual at (2, 2) - defensive masks
-        CreateRoomFromPrefab<ShieldRitualRoom>(church, new Vector2Int(2, 2), churchTransform, gridOffset, shieldRitualRoomPrefab);
-        
+        if (config.shieldRitualStartingLevel > 0)
+            CreateRoomFromPrefab<ShieldRitualRoom>(church, new Vector2Int(2, 2), churchTransform, gridOffset, shieldRitualRoomPrefab);
+
         // Fourth row (y=3): Flood Ritual for powerful area attack
-        CreateRoomFromPrefab<FloodRitualRoom>(church, new Vector2Int(1, 3), churchTransform, gridOffset, floodRitualRoomPrefab);
-        
+        if (config.floodRitualStartingLevel > 0)
+            CreateRoomFromPrefab<FloodRitualRoom>(church, new Vector2Int(1, 3), churchTransform, gridOffset, floodRitualRoomPrefab);
+
         // Create empty slots for remaining positions
         for (int x = 0; x < church.GridWidth; x++)
         {
