@@ -61,6 +61,15 @@ public class GameInitializer : MonoBehaviour
     [Tooltip("Prefab for Fundraising room")]
     [SerializeField] private GameObject fundraisingRoomPrefab;
     
+    [Tooltip("Prefab for Lightning Ritual room")]
+    [SerializeField] private GameObject lightningRitualRoomPrefab;
+    
+    [Tooltip("Prefab for Flood Ritual room")]
+    [SerializeField] private GameObject floodRitualRoomPrefab;
+    
+    [Tooltip("Prefab for Shield Ritual room")]
+    [SerializeField] private GameObject shieldRitualRoomPrefab;
+    
     [Tooltip("Prefab for empty buildable slot")]
     [SerializeField] private GameObject emptySlotPrefab;
     
@@ -346,8 +355,18 @@ public class GameInitializer : MonoBehaviour
         // Create Fundraising at (2, 1) for generating money
         CreateRoomFromPrefab<FundraisingRoom>(church, new Vector2Int(2, 1), churchTransform, gridOffset, fundraisingRoomPrefab);
         
-        // Third row (y=2): Ritual Hall for generating offensive masks
+        // Third row (y=2): Ritual rooms for generating masks
+        // Lightning Ritual at (0, 2) - column attacks
+        CreateRoomFromPrefab<LightningRitualRoom>(church, new Vector2Int(0, 2), churchTransform, gridOffset, lightningRitualRoomPrefab);
+        
+        // Wrath Ritual Hall at (1, 2) - standard Strike masks
         CreateRoomFromPrefab<RitualHallRoom>(church, new Vector2Int(1, 2), churchTransform, gridOffset, ritualHallRoomPrefab);
+        
+        // Shield Ritual at (2, 2) - defensive masks
+        CreateRoomFromPrefab<ShieldRitualRoom>(church, new Vector2Int(2, 2), churchTransform, gridOffset, shieldRitualRoomPrefab);
+        
+        // Fourth row (y=3): Flood Ritual for powerful area attack
+        CreateRoomFromPrefab<FloodRitualRoom>(church, new Vector2Int(1, 3), churchTransform, gridOffset, floodRitualRoomPrefab);
         
         // Create empty slots for remaining positions
         for (int x = 0; x < church.GridWidth; x++)

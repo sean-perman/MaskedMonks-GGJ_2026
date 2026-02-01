@@ -133,6 +133,7 @@ GameObject:
   - component: {fileID: 567165087}
   - component: {fileID: 567165086}
   - component: {fileID: 567165090}
+  - component: {fileID: 567165091}
   m_Layer: 0
   m_Name: Game
   m_TagString: Untagged
@@ -162,7 +163,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 567165083}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 50da570cf9d41e84590e0edab1b895fe, type: 3}
   m_Name: 
@@ -201,7 +202,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 567165083}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 82125cdf584308d49859d014f48798a0, type: 3}
   m_Name: 
@@ -244,6 +245,9 @@ MonoBehaviour:
   ritualHallRoomPrefab: {fileID: 0}
   workshopRoomPrefab: {fileID: 0}
   fundraisingRoomPrefab: {fileID: 0}
+  lightningRitualRoomPrefab: {fileID: 0}
+  floodRitualRoomPrefab: {fileID: 0}
+  shieldRitualRoomPrefab: {fileID: 0}
   emptySlotPrefab: {fileID: 0}
   marketplacePrefab: {fileID: 0}
   backgroundPrefab: {fileID: 0}
@@ -281,6 +285,20 @@ MonoBehaviour:
   OverrideAttenuation: 0
   OverrideMinDistance: -1
   OverrideMaxDistance: -1
+--- !u!114 &567165091
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 567165083}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5c95f7d415af42439b40bba2838ae9f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MaskTests
+  runAllTestsOnStart: 1
+  verboseLogging: 1
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
