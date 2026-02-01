@@ -13,32 +13,31 @@ MonoBehaviour:
   m_Name: GameConfig
   m_EditorClassIdentifier: Assembly-CSharp::GameConfig
   sanctuaryCommitmentRecoveryPerSecond: 2
-  altarDuration: 10
-  altarStrengthPerTrigger: 1
+  altarDuration: 30
+  altarStrengthPerTrigger: 3
   pewsDuration: 10
   pewsFavorPerTrigger: 1
-  missionDuration: 10
+  missionDuration: 20
   missionFollowersPerTrigger: 1
-  fundraisingDuration: 10
-  fundraisingMoneyPerTrigger: 1
+  fundraisingDuration: 30
+  fundraisingMoneyPerTrigger: 3
   fundraisingFavorCost: 2
-  workshopBlueprintDuration: 10
-  workshopBlueprintShelfLife: 120
-  ritualHallDuration: 10
-  ritualHallMaskFavorCost: 1
-  ritualHallMaskEffectValue: 1
-  ritualHallMaskShelfLife: 60
-  lightningRitualDuration: 10
+  workshopRepairDuration: 20
+  ritualHallDuration: 20
+  ritualHallMaskFavorCost: 2
+  ritualHallMaskEffectValue: 3
+  ritualHallMaskShelfLife: 30
+  lightningRitualDuration: 30
   lightningMaskFavorCost: 3
   lightningDamagePerRoom: 1
   lightningMaskShelfLife: 30
-  floodRitualDuration: 10
+  floodRitualDuration: 60
   floodMaskFavorCost: 2
   floodDamagePerRoom: 2
-  floodMaskShelfLife: 5
-  shieldRitualDuration: 10
+  floodMaskShelfLife: 10
+  shieldRitualDuration: 35
   shieldFavorCost: 4
-  shieldMaskShelfLife: 8
+  shieldMaskShelfLife: 20
   sanctuaryBuildCost: 5
   altarBuildCost: 8
   pewsBuildCost: 6
@@ -49,6 +48,16 @@ MonoBehaviour:
   lightningRitualBuildCost: 10
   floodRitualBuildCost: 10
   shieldRitualBuildCost: 10
+  sanctuaryStartingLevel: 1
+  altarStartingLevel: 0
+  pewsStartingLevel: 0
+  missionStartingLevel: 0
+  fundraisingStartingLevel: 0
+  workshopStartingLevel: 0
+  ritualHallStartingLevel: 0
+  lightningRitualStartingLevel: 0
+  floodRitualStartingLevel: 0
+  shieldRitualStartingLevel: 0
   commitmentDamagePerLevel: 15
   repairRatePerFollowerPerSecond: 0.1
   repairThreshold: 1
@@ -59,6 +68,6 @@ MonoBehaviour:
   godMaxStrength: 100
   godStartingStrength: 50
   godStartingFavor: 5
-  godStartingMoney: 10
+  godStartingMoney: 0
   godMaxStoredMasks: 5
   godPassiveRegenRate: 0

@@ -54,7 +54,7 @@ public class GameConfig : ScriptableObject
     
     [Header("Mission")]
     [Tooltip("Pawn-seconds to recruit 1 follower")]
-    public float missionDuration = 40f;
+    public float missionDuration = 20f;
     [Tooltip("Followers recruited per trigger")]
     public int missionFollowersPerTrigger = 1;
     
@@ -72,17 +72,17 @@ public class GameConfig : ScriptableObject
     
     [Header("Ritual Hall (Strike Mask)")]
     [Tooltip("Pawn-seconds to generate a Strike mask")]
-    public float ritualHallDuration = 15f;
+    public float ritualHallDuration = 20f;
     [Tooltip("Favor cost for Strike masks")]
     public int ritualHallMaskFavorCost = 2;
     [Tooltip("Damage dealt by Strike mask")]
-    public int ritualHallMaskEffectValue = 1;
+    public int ritualHallMaskEffectValue = 3;
     [Tooltip("Shelf life for Strike masks (seconds)")]
     public float ritualHallMaskShelfLife = 30f;
     
     [Header("Lightning Ritual")]
     [Tooltip("Pawn-seconds to generate a Lightning mask")]
-    public float lightningRitualDuration = 25f;
+    public float lightningRitualDuration = 30f;
     [Tooltip("Favor cost for Lightning masks")]
     public int lightningMaskFavorCost = 3;
     [Tooltip("Damage per room in column")]
@@ -106,7 +106,7 @@ public class GameConfig : ScriptableObject
     [Tooltip("Favor cost when Shield auto-activates")]
     public int shieldFavorCost = 4;
     [Tooltip("Shelf life for Shield masks (seconds)")]
-    public float shieldMaskShelfLife = 8f;
+    public float shieldMaskShelfLife = 20f;
     
     // ============================================
     // ROOM BUILD COSTS (Gold)
@@ -123,6 +123,32 @@ public class GameConfig : ScriptableObject
     public int lightningRitualBuildCost = 10;
     public int floodRitualBuildCost = 10;
     public int shieldRitualBuildCost = 10;
+
+    // ============================================
+    // ROOM STARTING LEVELS
+    // ============================================
+
+    [Header("=== ROOM STARTING LEVELS ===")]
+    [Tooltip("Starting level for Sanctuary rooms (0 = not built)")]
+    public int sanctuaryStartingLevel = 1;
+    [Tooltip("Starting level for Altar rooms (0 = not built)")]
+    public int altarStartingLevel = 0;
+    [Tooltip("Starting level for Pews rooms (0 = not built)")]
+    public int pewsStartingLevel = 0;
+    [Tooltip("Starting level for Mission rooms (0 = not built)")]
+    public int missionStartingLevel = 0;
+    [Tooltip("Starting level for Fundraising rooms (0 = not built)")]
+    public int fundraisingStartingLevel = 0;
+    [Tooltip("Starting level for Workshop rooms (0 = not built)")]
+    public int workshopStartingLevel = 0;
+    [Tooltip("Starting level for Ritual Hall rooms (0 = not built)")]
+    public int ritualHallStartingLevel = 0;
+    [Tooltip("Starting level for Lightning Ritual rooms (0 = not built)")]
+    public int lightningRitualStartingLevel = 0;
+    [Tooltip("Starting level for Flood Ritual rooms (0 = not built)")]
+    public int floodRitualStartingLevel = 0;
+    [Tooltip("Starting level for Shield Ritual rooms (0 = not built)")]
+    public int shieldRitualStartingLevel = 0;
     
     // ============================================
     // ROOM MECHANICS
@@ -136,7 +162,7 @@ public class GameConfig : ScriptableObject
     [Tooltip("Accumulated repair needed to fix one damage level")]
     public float repairThreshold = 1f;
     [Tooltip("Maximum room level")]
-    public int maxRoomLevel = 5;
+    public int maxRoomLevel = 6;
     
     // ============================================
     // FOLLOWER SETTINGS
@@ -162,7 +188,7 @@ public class GameConfig : ScriptableObject
     [Tooltip("Starting favor")]
     public int godStartingFavor = 5;
     [Tooltip("Starting money")]
-    public int godStartingMoney = 10;
+    public int godStartingMoney = 0;
     [Tooltip("Maximum mask storage slots")]
     public int godMaxStoredMasks = 5;
     [Tooltip("Passive strength regeneration per second")]
@@ -210,6 +236,28 @@ public class GameConfig : ScriptableObject
             RoomType.FloodRitual => floodRitualDuration,
             RoomType.ShieldRitual => shieldRitualDuration,
             _ => 30f
+        };
+    }
+
+    /// <summary>
+    /// Get the starting level for a room type.
+    /// Returns 0 if the room should not be built at start.
+    /// </summary>
+    public int GetRoomStartingLevel(RoomType roomType)
+    {
+        return roomType switch
+        {
+            RoomType.Sanctuary => sanctuaryStartingLevel,
+            RoomType.Altar => altarStartingLevel,
+            RoomType.Pews => pewsStartingLevel,
+            RoomType.Mission => missionStartingLevel,
+            RoomType.Fundraising => fundraisingStartingLevel,
+            RoomType.Workshop => workshopStartingLevel,
+            RoomType.WrathRitualHall => ritualHallStartingLevel,
+            RoomType.LightningRitual => lightningRitualStartingLevel,
+            RoomType.FloodRitual => floodRitualStartingLevel,
+            RoomType.ShieldRitual => shieldRitualStartingLevel,
+            _ => 0
         };
     }
 }
