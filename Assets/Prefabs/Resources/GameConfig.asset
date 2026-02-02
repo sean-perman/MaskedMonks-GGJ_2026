@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameConfig
   sanctuaryCommitmentRecoveryPerSecond: 2
   altarDuration: 20
-  altarStrengthPerTrigger: 8
+  altarStrengthPerTrigger: 12
   pewsDuration: 10
   pewsFavorPerTrigger: 1
   missionDuration: 20
@@ -52,7 +52,7 @@ MonoBehaviour:
   shieldRitualBuildCost: 3
   sacrificialAltarBuildCost: 3
   sanctuaryStartingLevel: 3
-  altarStartingLevel: 5
+  altarStartingLevel: 3
   pewsStartingLevel: 2
   missionStartingLevel: 2
   fundraisingStartingLevel: 2
