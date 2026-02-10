@@ -199,7 +199,7 @@ public class GameInitializer : MonoBehaviour
             Sprite bgSprite = backgroundSprite;
             if (bgSprite == null)
             {
-                bgSprite = ReG=sources.Load<Sprite>("Sprites/Background");
+                bgSprite = Resources.Load<Sprite>("Sprites/Background");
             }
             if (bgSprite == null)
             {
