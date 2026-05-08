@@ -123,11 +123,12 @@ public class GameInitializer : MonoBehaviour
         // Create marketplace
         CreateMarketplace();
         
-        // Create both cults at positions matching the tuned scene layout.
-        // X values are taken from the inspector for Cult 1 and Cult 2.
+        // Create both cults. Pushed further apart from the original ~11 unit
+        // separation to leave room for the central marketplace column and the
+        // larger 2x god visuals on either side.
         float cultBaseY = 0.6f;
-        cult1 = CreateCult("Cult 1", new Vector3(-5.23f, cultBaseY, 0f), true);
-        cult2 = CreateCult("Cult 2", new Vector3(5.8f, cultBaseY, 0f), false);
+        cult1 = CreateCult("Cult 1", new Vector3(-9f, cultBaseY, 0f), true);
+        cult2 = CreateCult("Cult 2", new Vector3(9f, cultBaseY, 0f), false);
         
         // Create player controllers
         player1Controller = CreatePlayerController(0, cult1);
@@ -164,9 +165,6 @@ public class GameInitializer : MonoBehaviour
 
         // Create game over screen
         CreateGameOverScreen();
-        
-        // Create room info panels for each player
-        CreateRoomInfoPanels();
     }
     
     private void CreateGameOverScreen()
@@ -278,14 +276,14 @@ public class GameInitializer : MonoBehaviour
     private void CreateMarketplace()
     {
         GameObject marketObj;
-        
+
         if (marketplacePrefab != null)
         {
             marketObj = Instantiate(marketplacePrefab);
             marketObj.name = "Marketplace";
-            marketObj.transform.position = new Vector3(0, -8f, 0);
-            
-            // Ensure Marketplace component exists
+            // Centre of the screen (camera y = 1, so match that).
+            marketObj.transform.position = new Vector3(0f, 1f, 0f);
+
             if (marketObj.GetComponent<Marketplace>() == null)
             {
                 marketObj.AddComponent<Marketplace>();
@@ -293,19 +291,17 @@ public class GameInitializer : MonoBehaviour
         }
         else
         {
-            // Fallback: programmatic creation
             marketObj = new GameObject("Marketplace");
-            marketObj.transform.position = new Vector3(0, -8f, 0); // Bottom center
+            marketObj.transform.position = new Vector3(0f, 1f, 0f); // Centre of screen
             marketObj.AddComponent<Marketplace>();
-            
-            // Add visual representation
-            var sr = marketObj.AddComponent<SpriteRenderer>();
-            sr.sprite = CreateSquareSprite();
-            sr.color = new Color(0.4f, 0.3f, 0.2f, 0.8f);
-            sr.transform.localScale = new Vector3(6f, 2f, 1f);
-            sr.sortingOrder = -1;
         }
-        
+
+        // Visual representation: a column of green dots, one per citizen slot.
+        if (marketObj.GetComponent<MarketplaceVisual>() == null)
+        {
+            marketObj.AddComponent<MarketplaceVisual>();
+        }
+
         Debug.Log("Marketplace created");
     }
     
@@ -397,7 +393,11 @@ public class GameInitializer : MonoBehaviour
             godObj.transform.SetParent(parent);
             god = godObj.AddComponent<God>();
         }
-        godObj.transform.localPosition = new Vector3(0, 5f, 0); // Position above church
+        // Position above church, raised to make room for the 2x-scaled visuals.
+        godObj.transform.localPosition = new Vector3(0, 7f, 0);
+        // Scale the god (and all child visuals - sprite, strength bar, favor/money
+        // pips, mask slots) up by 2x. Children inherit the scale.
+        godObj.transform.localScale = new Vector3(2f, 2f, 1f);
 
         // Add GodVisual if not present
         if (godObj.GetComponent<GodVisual>() == null)
@@ -474,7 +474,6 @@ public class GameInitializer : MonoBehaviour
         // Create sprite child object
         GameObject spriteObj = new GameObject("Church Building Sprite");
         spriteObj.transform.SetParent(churchTransform);
-        // Position at center to align with tightly packed room grid
         spriteObj.transform.localPosition = new Vector3(0f, 0.0f, 0f);
 
         // Add sprite renderer
@@ -482,14 +481,19 @@ public class GameInitializer : MonoBehaviour
         sr.sprite = randomSprite;
         sr.sortingOrder = -10; // Render behind all rooms and UI (rooms are at 0+)
 
-        // Use a fixed scale tuned in the editor so the 3x4 room grid
-        // fits neatly inside the dark interior of the church sprite.
-        const float tunedScaleX = 1.0416f;
-        const float tunedScaleY = 1.1456f;
+        // 9-slice the church so the body stretches to fit the 4-row grid while
+        // the rooftop stays at original pixel size. Requires the sprite asset
+        // to have spriteBorder.w (top) set in its import settings - we set this
+        // to ~460px in church_*.png.meta.
+        sr.drawMode = SpriteDrawMode.Sliced;
+        // Width is wider than the grid so the church walls extend past the
+        // outermost rooms; height = preserved rooftop (~4.6 world units) +
+        // body tall enough to fit four rows + a little margin.
+        sr.size = new Vector2(12f, 13f);
 
-        // Flip sprite horizontally for Player 2 (right side)
-        float xScale = isPlayer1 ? tunedScaleX : -tunedScaleX;
-        spriteObj.transform.localScale = new Vector3(xScale, tunedScaleY, 1f);
+        // Sliced drawMode doesn't render reliably with negative scale, so use
+        // SpriteRenderer.flipX for the Player 2 mirror instead.
+        sr.flipX = !isPlayer1;
 
         Debug.Log($"Added church building sprite: {randomSprite.name} (flipped: {!isPlayer1})");
     }
@@ -773,23 +777,6 @@ public class GameInitializer : MonoBehaviour
         pauseObj.transform.SetParent(transform);
         var pauseMenu = pauseObj.AddComponent<PauseMenu>();
         pauseMenu.SetReferences(controlsMenu);
-    }
-    
-    private void CreateRoomInfoPanels()
-    {
-        // Player 1 panel (left side)
-        var panel1Obj = new GameObject("RoomInfoPanel_Player1");
-        panel1Obj.transform.SetParent(transform);
-        var panel1 = panel1Obj.AddComponent<RoomInfoPanel>();
-        panel1.SetController(player1Controller, true); // left side
-        
-        // Player 2 panel (right side)
-        var panel2Obj = new GameObject("RoomInfoPanel_Player2");
-        panel2Obj.transform.SetParent(transform);
-        var panel2 = panel2Obj.AddComponent<RoomInfoPanel>();
-        panel2.SetController(player2Controller, false); // right side
-        
-        Debug.Log("Room Info Panels created for both players.");
     }
     
     private Sprite CreateSquareSprite()
