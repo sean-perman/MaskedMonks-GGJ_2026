@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5536563232b81af45bde9b9e6c6bf16d, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: Assembly-CSharp::GameConfig
+  sanctuaryCommitmentRecoveryPerSecond: 2
+  altarDuration: 20
+  altarStrengthPerTrigger: 14
+  pewsDuration: 10
+  pewsFavorPerTrigger: 1
+  missionDuration: 20
+  missionFollowersPerTrigger: 1
+  fundraisingDuration: 30
+  fundraisingMoneyPerTrigger: 3
+  fundraisingFavorCost: 2
+  workshopRepairDuration: 5
+  ritualHallDuration: 20
+  ritualHallMaskFavorCost: 0
+  ritualHallMaskEffectValue: 3
+  ritualHallMaskShelfLife: 30
+  lightningRitualDuration: 45
+  lightningMaskFavorCost: 3
+  lightningDamagePerRoom: 2
+  lightningMaskShelfLife: 30
+  floodRitualDuration: 30
+  floodMaskFavorCost: 2
+  floodDamagePerRoom: 2
+  floodMaskShelfLife: 10
+  shieldRitualDuration: 35
+  shieldFavorCost: 1
+  shieldMaskShelfLife: 20
+  sacrificialAltarDuration: 8
+  sacrificialAltarDamage: 5
+  sanctuaryBuildCost: 3
+  altarBuildCost: 3
+  pewsBuildCost: 3
+  missionBuildCost: 3
+  fundraisingBuildCost: 3
+  workshopBuildCost: 3
+  ritualHallBuildCost: 3
+  lightningRitualBuildCost: 3
+  floodRitualBuildCost: 3
+  shieldRitualBuildCost: 1
+  sacrificialAltarBuildCost: 4
+  sanctuaryStartingLevel: 3
+  altarStartingLevel: 3
+  pewsStartingLevel: 2
+  missionStartingLevel: 2
+  fundraisingStartingLevel: 2
+  workshopStartingLevel: 1
+  ritualHallStartingLevel: 1
+  lightningRitualStartingLevel: 0
+  floodRitualStartingLevel: 0
+  shieldRitualStartingLevel: 0
+  sacrificialAltarStartingLevel: 0
+  commitmentDamagePerLevel: 15
+  repairRatePerFollowerPerSecond: 0.1
+  repairThreshold: 1
+  maxRoomLevel: 5
+  followerStartingCommitment: 100
+  followerMaxCommitment: 100
+  followerDecayRatePerSecond: 1
+  godMaxStrength: 150
+  godStartingStrength: 100
+  godStartingFavor: 5
+  godStartingMoney: 0
+  godMaxStoredMasks: 5
+  godPassiveRegenRate: 0
