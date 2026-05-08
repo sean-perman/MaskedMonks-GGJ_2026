@@ -171,30 +171,42 @@ public class Mask
                 break;
                 
             case MaskType.Flood:
-                // Deal damage to all rooms in bottom row
+                // Deal damage to all rooms in bottom row.
+                // Sort targets by distance from source so the wave sweeps closest-to-farthest
+                // from the firer's perspective. Without this, the spawn-time stagger
+                // (delay = i * 0.15s) cancels out the per-projectile travel time when firing
+                // right-to-left, so all three impacts land near-simultaneously on that side.
                 if (targetChurch != null)
                 {
                     int bottomRow = 0;
+                    var floodTargets = new System.Collections.Generic.List<(Room room, Vector3 pos)>();
                     for (int x = 0; x < targetChurch.GridWidth; x++)
                     {
                         var room = targetChurch.GetRoomAt(new Vector2Int(x, bottomRow));
                         if (room != null && room.Type != RoomType.Empty)
                         {
-                            Vector3 targetPos = GetRoomWorldPosition(room);
-                            int damage = effectValue;
-                            Room targetRoomCapture = room;
-                            // Stagger the flood wave
-                            float delay = x * 0.15f;
-                            if (delay > 0)
-                            {
-                                SpawnDelayedProjectile(srcPos, targetPos, type, targetRoomCapture, damage, delay);
-                            }
-                            else
-                            {
-                                MaskProjectile.Create(srcPos, targetPos, type, () => {
-                                    targetRoomCapture.TakeDamage(damage);
-                                });
-                            }
+                            floodTargets.Add((room, GetRoomWorldPosition(room)));
+                        }
+                    }
+                    floodTargets.Sort((a, b) =>
+                        (a.pos - srcPos).sqrMagnitude.CompareTo((b.pos - srcPos).sqrMagnitude));
+
+                    int floodDamage = effectValue;
+                    for (int i = 0; i < floodTargets.Count; i++)
+                    {
+                        var entry = floodTargets[i];
+                        Room targetRoomCapture = entry.room;
+                        Vector3 targetPos = entry.pos;
+                        float delay = i * 0.15f;
+                        if (delay > 0f)
+                        {
+                            SpawnDelayedProjectile(srcPos, targetPos, type, targetRoomCapture, floodDamage, delay);
+                        }
+                        else
+                        {
+                            MaskProjectile.Create(srcPos, targetPos, type, () => {
+                                targetRoomCapture.TakeDamage(floodDamage);
+                            });
                         }
                     }
                     Debug.Log($"Flood wave launched!");

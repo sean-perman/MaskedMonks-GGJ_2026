@@ -12,6 +12,10 @@ public class GameOverScreen : MonoBehaviour
     [SerializeField] private Color overlayColor = new Color(0, 0, 0, 0.85f);
     [SerializeField] private Color winnerColor = new Color(0.3f, 1f, 0.4f);
     [SerializeField] private Color loserColor = new Color(1f, 0.3f, 0.3f);
+
+    [Header("Scene Flow")]
+    [Tooltip("Name of the main menu scene to return to after the match.")]
+    [SerializeField] private string mainMenuSceneName = "MainMenu";
     
     // State
     private bool isShowing = false;
@@ -206,13 +210,13 @@ public class GameOverScreen : MonoBehaviour
         GUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();
         
-        if (GUILayout.Button("Play Again", buttonStyle, GUILayout.Width(150), GUILayout.Height(50)))
+        if (GUILayout.Button("Main Menu", buttonStyle, GUILayout.Width(170), GUILayout.Height(50)))
         {
-            RestartGame();
+            ReturnToMainMenu();
         }
-        
+
         GUILayout.Space(20);
-        
+
         if (GUILayout.Button("Quit", buttonStyle, GUILayout.Width(150), GUILayout.Height(50)))
         {
             QuitGame();
@@ -241,10 +245,10 @@ public class GameOverScreen : MonoBehaviour
         return cult.name;
     }
     
-    private void RestartGame()
+    private void ReturnToMainMenu()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        SceneManager.LoadScene(mainMenuSceneName);
     }
     
     private void QuitGame()

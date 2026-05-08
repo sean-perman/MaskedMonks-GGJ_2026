@@ -13,22 +13,34 @@ public class GameConfig : ScriptableObject
     // ============================================
     
     private static GameConfig _instance;
+    private static GameConfig _assetReference;
+
     public static GameConfig Instance
     {
         get
         {
             if (_instance == null)
             {
-                _instance = Resources.Load<GameConfig>("GameConfig");
-                if (_instance == null)
+                _assetReference = Resources.Load<GameConfig>("GameConfig");
+                if (_assetReference == null)
                 {
                     Debug.LogWarning("GameConfig not found in Resources folder! Using defaults.");
                     _instance = CreateInstance<GameConfig>();
+                }
+                else
+                {
+                    // Clone the asset so runtime edits (config editor, JSON load) never
+                    // persist back into the .asset file in the editor.
+                    _instance = Instantiate(_assetReference);
+                    _instance.name = "GameConfig (Runtime)";
                 }
             }
             return _instance;
         }
     }
+
+    /// <summary>The original asset loaded from Resources, or null if none was found.</summary>
+    public static GameConfig AssetReference => _assetReference;
     
     // ============================================
     // ROOM CONFIGURATIONS

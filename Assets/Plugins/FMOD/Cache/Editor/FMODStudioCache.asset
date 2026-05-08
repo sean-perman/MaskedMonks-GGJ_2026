@@ -106,7 +106,7 @@ MonoBehaviour:
   Parameters: []
   MinDistance: 1
   MaxDistance: 20
-  Length: 23067
+  Length: 1000
 --- !u!114 &-8668724566916951637
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -148,12 +148,12 @@ MonoBehaviour:
   Path: MaskedMonks_FMODproject/Build/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 639055508666823596
+  lastModified: 639055589114314492
   FileSizes:
   - Name: Desktop
-    Value: 2366
+    Value: 2654
   - Name: Mobile
-    Value: 2366
+    Value: 2654
   Exists: 1
 --- !u!114 &-8479512362835587021
 MonoBehaviour:
@@ -369,7 +369,7 @@ MonoBehaviour:
   Parameters: []
   MinDistance: 1
   MaxDistance: 20
-  Length: 0
+  Length: 1350
 --- !u!114 &-7390112404465986290
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1038,7 +1038,7 @@ MonoBehaviour:
   StringsBanks:
   - {fileID: -8637072309252072968}
   cacheVersion: 131858
-  cacheTime: 639055508666823596
+  cacheTime: 639055589114314492
   SerializableEventsDict:
   - key: event:/RoomsOrMasks/room_trigger_workshop
     index: 0
@@ -1298,7 +1298,7 @@ MonoBehaviour:
   Parameters: []
   MinDistance: 1
   MaxDistance: 20
-  Length: 0
+  Length: 4000
 --- !u!114 &1993910687432571231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1665,12 +1665,12 @@ MonoBehaviour:
   Path: MaskedMonks_FMODproject/Build/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 639055508666813888
+  lastModified: 639055589114303976
   FileSizes:
   - Name: Desktop
-    Value: 3971840
+    Value: 4054752
   - Name: Mobile
-    Value: 7334688
+    Value: 7498144
   Exists: 1
 --- !u!114 &4013047229041259927
 MonoBehaviour:
@@ -2168,11 +2168,11 @@ MonoBehaviour:
   - {fileID: 3893125992628976828}
   IsStream: 0
   Is3D: 0
-  IsOneShot: 1
+  IsOneShot: 0
   Parameters: []
   MinDistance: 1
   MaxDistance: 20
-  Length: 2175
+  Length: 2025
 --- !u!114 &7580658068383266833
 MonoBehaviour:
   m_ObjectHideFlags: 0

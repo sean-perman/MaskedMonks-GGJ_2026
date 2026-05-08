@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -251,12 +252,29 @@ public class PlayerController : MonoBehaviour
     // Helper: cache previous trigger/button states if needed in future
     // (kept simple for now - we primarily map standard face buttons and shoulders)
 
+    // Registry of active PlayerControllers, used to share gamepads sensibly when
+    // there are fewer connected gamepads than players opted in to gamepad mode.
+    private static readonly List<PlayerController> _active = new();
+
     private Gamepad GetAssignedGamepad()
     {
         if (bindings == null || !bindings.useGamepad) return null;
         var list = Gamepad.all;
-        if (playerIndex >= 0 && playerIndex < list.Count) return list[playerIndex];
-        return null;
+        if (list.Count == 0) return null;
+
+        // Pick a gamepad slot based on this player's position among gamepad users,
+        // not their raw playerIndex. So if P1 is on keyboard and P2 is on gamepad,
+        // P2 gets Gamepad.all[0] instead of looking for a non-existent [1].
+        int slot = 0;
+        for (int i = 0; i < _active.Count; i++)
+        {
+            var other = _active[i];
+            if (other == null || other == this) continue;
+            if (other.bindings == null || !other.bindings.useGamepad) continue;
+            if (other.playerIndex < playerIndex) slot++;
+        }
+
+        return slot < list.Count ? list[slot] : null;
     }
 
     private bool GamepadButtonWasPressed(Gamepad gp, int buttonIndex)
@@ -294,22 +312,28 @@ public class PlayerController : MonoBehaviour
     
     private void Awake()
     {
-        // Initialize with default bindings based on player index
+        // Initialize with saved bindings (or per-player defaults if none saved yet).
         if (bindings == null)
         {
-            bindings = playerIndex == 0 
-                ? PlayerInputBindings.CreatePlayer1Defaults() 
-                : PlayerInputBindings.CreatePlayer2Defaults();
+            bindings = BindingsPersistence.GetBindingsFor(playerIndex);
         }
     }
-    
+
+    private void OnEnable()
+    {
+        if (!_active.Contains(this)) _active.Add(this);
+    }
+
+    private void OnDisable()
+    {
+        _active.Remove(this);
+    }
+
     public void Initialize(int index, Cult cult)
     {
         this.playerIndex = index;
         this.cult = cult;
-        this.bindings = index == 0 
-            ? PlayerInputBindings.CreatePlayer1Defaults() 
-            : PlayerInputBindings.CreatePlayer2Defaults();
+        this.bindings = BindingsPersistence.GetBindingsFor(index);
         
         // Start cursor at center of grid
         if (cult?.church != null)
