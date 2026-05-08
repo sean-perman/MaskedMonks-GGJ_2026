@@ -18,6 +18,13 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private string title = "MASKED MONKS";
     [SerializeField] private string subtitle = "DU Arcade Edition";
 
+    [Header("Background")]
+    [Tooltip("Background sprite to render behind the menu. If null, falls back to Resources/Sprites/Background or Resources/Background.")]
+    [SerializeField] private Sprite backgroundSprite;
+    [Tooltip("Alpha of the dim overlay drawn between the background sprite and the menu UI. 0 = no dim, 1 = fully opaque dark.")]
+    [Range(0f, 1f)]
+    [SerializeField] private float backgroundDim = 0.45f;
+
     [Header("Config Editor Hotkey")]
     [Tooltip("Key that opens the config editor on the main menu. Default is tilde / backtick (`).")]
     [SerializeField] private KeyCode configHotkey = KeyCode.BackQuote;
@@ -47,6 +54,32 @@ public class MainMenuController : MonoBehaviour
 
         // Reset timeScale in case we returned here from a paused state.
         Time.timeScale = 1f;
+
+        CreateBackground();
+    }
+
+    private void CreateBackground()
+    {
+        Sprite sprite = backgroundSprite;
+        if (sprite == null) sprite = Resources.Load<Sprite>("Sprites/Background");
+        if (sprite == null) sprite = Resources.Load<Sprite>("Background");
+        if (sprite == null)
+        {
+            Debug.LogWarning("MainMenu: no background sprite available - skipping background.");
+            return;
+        }
+
+        var bgObj = new GameObject("MenuBackground");
+        bgObj.transform.SetParent(transform);
+        bgObj.transform.position = new Vector3(0, 0, 10f);
+
+        var sr = bgObj.AddComponent<SpriteRenderer>();
+        sr.sprite = sprite;
+        sr.sortingOrder = -100;
+
+        // BackgroundFitter scales to cover the camera and re-applies on screen
+        // size / camera changes, so the background stays full-screen on resize.
+        bgObj.AddComponent<BackgroundFitter>();
     }
 
     private void Update()
@@ -108,10 +141,14 @@ public class MainMenuController : MonoBehaviour
 
         InitStyles();
 
-        // Solid backdrop so the title screen reads even without a scene background.
-        GUI.color = new Color(0.05f, 0.05f, 0.1f, 1f);
-        GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
-        GUI.color = Color.white;
+        // Translucent dim over the scene background so the title and buttons stay
+        // readable on top of the background sprite.
+        if (backgroundDim > 0f)
+        {
+            GUI.color = new Color(0f, 0f, 0f, backgroundDim);
+            GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
+            GUI.color = Color.white;
+        }
 
         // Title block
         GUI.Label(new Rect(0, Screen.height * 0.18f, Screen.width, 90f), title, titleStyle);

@@ -60,11 +60,10 @@ public class God : MonoBehaviour
     }
     
     // === Unity Lifecycle ===
-    
-    private void Start()
-    {
-        strength = maxStrength;
-    }
+
+    // Note: no Start() override - GameInitializer calls Initialize() which sets
+    // strength from GameConfig. A previous Start() that did `strength = maxStrength`
+    // overwrote the configured starting strength.
 
     private void Update()
     {

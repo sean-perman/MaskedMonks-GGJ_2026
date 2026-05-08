@@ -157,8 +157,11 @@ public class GameInitializer : MonoBehaviour
         CreateCursorVisual(player2Controller, "Player 2 Cursor", new Color(1f, 0.5f, 0.3f));
         
         // Create controls menu
-        CreateControlsMenu();
-        
+        var controlsMenu = CreateControlsMenu();
+
+        // Create pause menu (Escape opens this; it can launch ControlsMenu)
+        CreatePauseMenu(controlsMenu);
+
         // Create game over screen
         CreateGameOverScreen();
         
@@ -207,10 +210,10 @@ public class GameInitializer : MonoBehaviour
                 sr.sortingOrder = -100;
                 sr.sprite = bgSprite;
 
-                float targetHeight = 20f;
-                float spriteHeight = bgSprite.bounds.size.y;
-                float scale = targetHeight / spriteHeight;
-                bgObj.transform.localScale = new Vector3(scale, scale, 1f);
+                if (bgObj.GetComponent<BackgroundFitter>() == null)
+                {
+                    bgObj.AddComponent<BackgroundFitter>();
+                }
 
                 Debug.Log("Loaded background sprite for backgroundPrefab");
             }
@@ -238,13 +241,9 @@ public class GameInitializer : MonoBehaviour
             {
                 // Use the provided Background.png sprite as background
                 sr.sprite = bgSprite;
-                
-                // Scale to cover the screen while maintaining aspect ratio
-                float targetHeight = 20f; // Adjust based on camera size
-                float spriteHeight = bgSprite.bounds.size.y;
-                float scale = targetHeight / spriteHeight;
-                bgObj.transform.localScale = new Vector3(scale, scale, 1f);
-                
+
+                bgObj.AddComponent<BackgroundFitter>();
+
                 Debug.Log("Loaded background sprite as background");
             }
             else
@@ -745,11 +744,11 @@ public class GameInitializer : MonoBehaviour
         cursor.SetController(controller);
     }
     
-    private void CreateControlsMenu()
+    private ControlsMenu CreateControlsMenu()
     {
         GameObject menuObj;
         ControlsMenu menu;
-        
+
         if (controlsMenuPrefab != null)
         {
             menuObj = Instantiate(controlsMenuPrefab, transform);
@@ -763,8 +762,17 @@ public class GameInitializer : MonoBehaviour
             menuObj.transform.SetParent(transform);
             menu = menuObj.AddComponent<ControlsMenu>();
         }
-        
+
         menu.SetControllers(player1Controller, player2Controller);
+        return menu;
+    }
+
+    private void CreatePauseMenu(ControlsMenu controlsMenu)
+    {
+        var pauseObj = new GameObject("PauseMenu");
+        pauseObj.transform.SetParent(transform);
+        var pauseMenu = pauseObj.AddComponent<PauseMenu>();
+        pauseMenu.SetReferences(controlsMenu);
     }
     
     private void CreateRoomInfoPanels()

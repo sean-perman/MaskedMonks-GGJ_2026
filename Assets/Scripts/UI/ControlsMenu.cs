@@ -3,42 +3,63 @@ using UnityEngine.InputSystem;
 
 /// <summary>
 /// In-game menu for viewing and rebinding controls for both players.
-/// Toggle with Escape key.
+/// Opened externally (e.g. by PauseMenu); Escape closes it.
 /// </summary>
 public class ControlsMenu : MonoBehaviour
 {
     [Header("Settings")]
-    [SerializeField] private KeyCode toggleKey = KeyCode.Escape;
     [SerializeField] private bool isOpen = false;
-    
+
     [Header("References")]
     [SerializeField] private PlayerController player1;
     [SerializeField] private PlayerController player2;
-    
+
     private GUIStyle headerStyle;
     private GUIStyle labelStyle;
     private GUIStyle buttonStyle;
     private GUIStyle bindingStyle;
     private bool stylesInit = false;
-    
+
     private bool isRebinding = false;
     private int rebindingPlayer = -1;
     private string rebindingAction = null;
     private string rebindingFieldName = null;
     private string rebindingDeviceInfo = null;
-    
+
     private Vector2 scrollPosition;
-    
+
+    private float previousTimeScale = 1f;
+
+    public bool IsOpen => isOpen;
+
+    public void Show() => SetOpen(true);
+    public void Hide() => SetOpen(false);
+
+    public void SetOpen(bool open)
+    {
+        if (open == isOpen) return;
+        isOpen = open;
+        if (isOpen)
+        {
+            previousTimeScale = Time.timeScale;
+            Time.timeScale = 0f;
+        }
+        else
+        {
+            CancelRebinding();
+            Time.timeScale = previousTimeScale;
+        }
+    }
+
     private void Update()
     {
-        if (Input.GetKeyDown(toggleKey) && !isRebinding)
+        // Escape closes the menu (open is initiated externally - typically by PauseMenu).
+        if (isOpen && !isRebinding && Input.GetKeyDown(KeyCode.Escape))
         {
-            isOpen = !isOpen;
-            
-            // Pause game when menu is open
-            Time.timeScale = isOpen ? 0f : 1f;
+            SetOpen(false);
+            return;
         }
-        
+
         // Handle rebinding
         if (isRebinding)
         {
@@ -253,8 +274,7 @@ public class ControlsMenu : MonoBehaviour
             
             if (GUILayout.Button("Close (Escape)", GUILayout.Height(30)))
             {
-                isOpen = false;
-                Time.timeScale = 1f;
+                SetOpen(false);
             }
             
             GUILayout.EndHorizontal();

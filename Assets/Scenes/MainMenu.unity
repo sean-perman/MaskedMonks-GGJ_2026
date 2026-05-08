@@ -319,6 +319,7 @@ GameObject:
   - component: {fileID: 1879212284}
   - component: {fileID: 1879212283}
   - component: {fileID: 1879212282}
+  - component: {fileID: 1879212285}
   m_Layer: 0
   m_Name: MainMenu
   m_TagString: Untagged
@@ -341,6 +342,8 @@ MonoBehaviour:
   gameSceneName: SampleScene
   title: MASKED MONKS
   subtitle: DU Arcade Edition
+  backgroundSprite: {fileID: 21300000, guid: c122ea8cd686fdd40a9cfb5bb3037afe, type: 3}
+  backgroundDim: 0.45
   configHotkey: 96
   requireCtrlShift: 0
   showHotkeyHint: 1
@@ -371,6 +374,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1879212285
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1879212281}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 858c9731efb4c5a448ebd67b5b5d6dee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MainMenuControlsScreen
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

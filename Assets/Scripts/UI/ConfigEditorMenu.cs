@@ -152,6 +152,13 @@ public class ConfigEditorMenu : MonoBehaviour
 
         GUILayout.Label("CONFIG EDITOR", headerStyle);
         GUILayout.Label($"Save file: {GameConfigPersistence.FilePath}", pathStyle);
+
+        var fields = GetConfigFields();
+        var configForDiag = GameConfig.Instance;
+        GUILayout.Label(
+            $"Fields: {fields.Length}   Config: {(configForDiag == null ? "NULL" : configForDiag.name)}   AssetRef: {(GameConfig.AssetReference == null ? "NULL" : "ok")}",
+            pathStyle);
+
         if (Time.unscaledTime < statusUntilTime)
         {
             GUILayout.Label(statusMessage, labelStyle);
@@ -162,19 +169,44 @@ public class ConfigEditorMenu : MonoBehaviour
         }
         GUILayout.Space(4);
 
-        scroll = GUILayout.BeginScrollView(scroll);
+        // Fixed-height scroll area so the list always has visible space, regardless
+        // of how GUILayout would have flexibly sized it.
+        float scrollH = Mathf.Max(120f, window.height - 200f);
+        scroll = GUILayout.BeginScrollView(scroll, GUILayout.Height(scrollH));
 
         var config = GameConfig.Instance;
-        foreach (var f in GetConfigFields())
+        if (config == null)
         {
-            var headerAttr = f.GetCustomAttribute<HeaderAttribute>();
-            if (headerAttr != null)
+            GUILayout.Label("GameConfig.Instance is null - cannot render fields.", labelStyle);
+        }
+        else if (fields.Length == 0)
+        {
+            GUILayout.Label("No public instance fields found on GameConfig - reflection returned 0 results.", labelStyle);
+        }
+        else
+        {
+            try
             {
-                GUILayout.Space(10);
-                GUILayout.Label(headerAttr.header, sectionStyle);
-            }
+                foreach (var f in fields)
+                {
+                    // HeaderAttribute is AllowMultiple = true, so a single field can have several
+                    // (e.g. "=== ROOM SETTINGS ===" stacked above "Sanctuary"). The singular
+                    // GetCustomAttribute<T>() throws AmbiguousMatchException in that case - use the
+                    // plural form.
+                    foreach (var headerAttr in f.GetCustomAttributes<HeaderAttribute>())
+                    {
+                        GUILayout.Space(10);
+                        GUILayout.Label(headerAttr.header, sectionStyle);
+                    }
 
-            DrawFieldRow(f, config);
+                    DrawFieldRow(f, config);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogException(ex);
+                GUILayout.Label($"Error rendering fields: {ex.GetType().Name}: {ex.Message}", labelStyle);
+            }
         }
 
         GUILayout.EndScrollView();
