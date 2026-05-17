@@ -103,6 +103,7 @@ public class GameManager : MonoBehaviour
             godAttackTimer = 0f;
         }
         
+        CheckFavor();
         // Check win/loss conditions
         CheckWinLossConditions();
     }
@@ -181,8 +182,10 @@ public class GameManager : MonoBehaviour
         if (cult1?.god == null || cult2?.god == null) return;
 
         // Calculate damage: Strength / 10, minimum 1
-        int damage1 = Mathf.Max(1, cult1.god.Strength / 10);
-        int damage2 = Mathf.Max(1, cult2.god.Strength / 10);
+        // int damage1 = Mathf.Max(1, cult1.god.Strength / 10);
+        // int damage2 = Mathf.Max(1, cult2.god.Strength / 10);
+        int damage1 = 5;
+        int damage2 = 5;
 
         // Play god attack sound
         AudioManager.PlayGodAttack();
@@ -206,6 +209,27 @@ public class GameManager : MonoBehaviour
         Debug.Log($"God Combat! Cult1 dealt {damage1} damage, Cult2 dealt {damage2} damage.");
     }
     
+    /// <summary>
+    /// If God Favor is depleted, reduce God Health
+    /// Add back single tick of favor
+    /// </summary>
+    private void CheckFavor()
+    {
+        if (cult1?.god != null && cult1.god.Favor <= 0)
+        {
+            cult1.god.DecreaseStrength(30); // Arbitrary damage value when favor is depleted
+            Debug.Log("Cult 1's God is losing strength due to depleted favor!");
+            cult1.god.IncreaseFavor(1); // Add back a single tick of favor to prevent instant death
+        }
+        
+        if (cult2?.god != null && cult2.god.Favor <= 0)
+        {
+            cult2.god.DecreaseStrength(30); // Arbitrary damage value when favor is depleted
+            Debug.Log("Cult 2's God is losing strength due to depleted favor!");
+            cult2.god.IncreaseFavor(1); // Add back a single tick of favor to prevent instant death
+        }
+    }
+
     // === Win/Loss Detection ===
     
     /// <summary>
@@ -252,10 +276,10 @@ public class GameManager : MonoBehaviour
         }
         
         // God favor depleted
-        if (cult.god.Favor <= 0)
-        {
-            return "God favor depleted";
-        }
+        // if (cult.god.Favor <= 0)
+        // {
+        //     return "God favor depleted";
+        // }
         
         return null; // No loss condition met
     }
