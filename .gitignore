@@ -33,6 +33,7 @@
 
 # Visual Studio cache directory
 .vs/
+.vscode/
 
 # Gradle cache directory
 .gradle/
@@ -104,3 +105,11 @@ InitTestScene*.unity*
 .fmod/
 [Aa]ssets/Plugins/FMOD/Cache/
 [Aa]ssets/Plugins/FMOD/Cache.meta
+
+# FMOD caches and local/editor state
+[Aa]ssets/**/[Ff][Mm][Oo][Dd]/**/[Cc]ache*/
+[Aa]ssets/**/[Ff][Mm][Oo][Dd]/**/[Ee]ditor[Cc]ache*/
+[Aa]ssets/**/[Ff][Mm][Oo][Dd]/**/[Ll]ogs*/
+[Aa]ssets/**/[Ff][Mm][Oo][Dd]/**/[Tt]emp*/
+[Aa]ssets/**/[Ff][Mm][Oo][Dd]/**/[Ii]mport*/
+[Aa]ssets/**/[Ff][Mm][Oo][Dd]/**/[Dd]esktop*/
